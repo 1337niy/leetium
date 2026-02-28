@@ -192,14 +192,20 @@ system. The sandbox backend controls which container technology is used.</p>
 backend = "auto"          # default — picks the best available
 # backend = "docker"      # force Docker
 # backend = "apple-container"  # force Apple Container (macOS only)
+# backend = "wasm"        # force WASM sandbox (Wasmtime + WASI)
+# backend = "restricted-host"  # env clearing + rlimits only
 </code></pre>
 <p>With <code>"auto"</code> (the default), Moltis picks the strongest available backend:</p>
 <div class="table-wrapper"><table><thead><tr><th>Priority</th><th>Backend</th><th>Platform</th><th>Isolation</th></tr></thead><tbody>
 <tr><td>1</td><td>Apple Container</td><td>macOS</td><td>VM (Virtualization.framework)</td></tr>
 <tr><td>2</td><td>Docker</td><td>any</td><td>Linux namespaces / cgroups</td></tr>
-<tr><td>3</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
+<tr><td>3</td><td>Restricted Host</td><td>any</td><td>env clearing, rlimits (no filesystem isolation)</td></tr>
+<tr><td>4</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
 </tbody></table>
 </div>
+<p>The WASM backend (<code>backend = "wasm"</code>) is not in the auto-detect chain because
+it cannot execute arbitrary shell commands — use it explicitly when you want
+WASI-isolated execution.</p>
 <h2 id="apple-container-recommended-on-macos"><a class="header" href="#apple-container-recommended-on-macos">Apple Container (recommended on macOS)</a></h2>
 <p><a href="https://github.com/apple/container">Apple Container</a> runs each sandbox in a
 lightweight virtual machine using Apple’s Virtualization.framework. Every
@@ -230,10 +236,144 @@ container run --rm ubuntu echo "hello from VM"
 Linux VM managed by Docker Desktop, so it is reasonably isolated but adds more
 overhead than Apple Container.</p>
 <p>Install from https://docs.docker.com/get-docker/</p>
+<h3 id="docker-hardening"><a class="header" href="#docker-hardening">Docker Hardening</a></h3>
+<p>Docker containers launched by Moltis include the following security hardening
+flags by default:</p>
+<div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody>
+<tr><td><code>--cap-drop ALL</code></td><td>Drops all Linux capabilities</td></tr>
+<tr><td><code>--security-opt no-new-privileges</code></td><td>Prevents privilege escalation via setuid/setgid binaries</td></tr>
+<tr><td><code>--tmpfs /tmp:rw,nosuid,size=256m</code></td><td>Writable tmpfs for temp files (noexec on real root)</td></tr>
+<tr><td><code>--tmpfs /run:rw,nosuid,size=64m</code></td><td>Writable tmpfs for runtime files</td></tr>
+<tr><td><code>--read-only</code></td><td>Read-only root filesystem (prebuilt images only)</td></tr>
+</tbody></table>
+</div>
+<p>The <code>--read-only</code> flag is applied only to prebuilt sandbox images (where
+packages are already baked in). Non-prebuilt images need a writable root
+filesystem for <code>apt-get</code> provisioning on first start.</p>
+<h2 id="wasm-sandbox-wasmtime--wasi"><a class="header" href="#wasm-sandbox-wasmtime--wasi">WASM Sandbox (Wasmtime + WASI)</a></h2>
+<p>The WASM sandbox provides real sandboxed execution using
+<a href="https://wasmtime.dev/">Wasmtime</a> with WASI. Commands execute in an isolated
+filesystem tree with fuel metering and epoch-based timeout enforcement.</p>
+<h3 id="how-it-works"><a class="header" href="#how-it-works">How It Works</a></h3>
+<p>The WASM sandbox has two execution tiers:</p>
+<p><strong>Tier 1 — Built-in commands</strong> (~20 common coreutils implemented in Rust):
+<code>echo</code>, <code>cat</code>, <code>ls</code>, <code>mkdir</code>, <code>rm</code>, <code>cp</code>, <code>mv</code>, <code>pwd</code>, <code>env</code>, <code>head</code>, <code>tail</code>,
+<code>wc</code>, <code>sort</code>, <code>touch</code>, <code>which</code>, <code>true</code>, <code>false</code>, <code>test</code>/<code>[</code>, <code>basename</code>,
+<code>dirname</code>.</p>
+<p>These operate on a sandboxed directory tree, translating guest paths (e.g.
+<code>/home/sandbox/file.txt</code>) to host paths under <code>~/.moltis/sandbox/wasm/&lt;id&gt;/</code>.
+Paths outside the sandbox root are rejected.</p>
+<p>Basic shell features are supported: <code>&amp;&amp;</code>, <code>||</code>, <code>;</code> sequences, <code>$VAR</code>
+expansion, quoting via <code>shell-words</code>, and <code>&gt;</code> / <code>&gt;&gt;</code> output redirects.</p>
+<p><strong>Tier 2 — Real WASM module execution</strong>: When the command references a <code>.wasm</code>
+file, it is loaded and run via Wasmtime + WASI preview1 with full isolation:
+preopened directories, fuel metering, epoch interruption, and captured I/O.</p>
+<p><strong>Unknown commands</strong> return exit code 127: “command not found in WASM sandbox”.</p>
+<h3 id="filesystem-isolation"><a class="header" href="#filesystem-isolation">Filesystem Isolation</a></h3>
+<pre><code>~/.moltis/sandbox/wasm/&lt;session-key&gt;/
+  home/        preopened as /home/sandbox (rw)
+  tmp/         preopened as /tmp (rw)
+</code></pre>
+<p>Home persistence is respected:</p>
+<ul>
+<li><code>shared</code>: uses <code>data_dir()/sandbox/home/shared/wasm/</code></li>
+<li><code>session</code>: uses <code>data_dir()/sandbox/wasm/&lt;session-id&gt;/</code></li>
+<li><code>off</code>: per-session, cleaned up on <code>cleanup()</code></li>
+</ul>
+<h3 id="resource-limits"><a class="header" href="#resource-limits">Resource Limits</a></h3>
+<ul>
+<li><strong>Fuel metering</strong>: <code>store.set_fuel(fuel_limit)</code> — limits WASM instruction
+count (Tier 2 only)</li>
+<li><strong>Epoch interruption</strong>: background thread ticks epochs, store traps on
+deadline (Tier 2 only)</li>
+<li><strong>Memory</strong>: <code>wasm_config.memory_reservation(bytes)</code> — Wasmtime memory limits
+(Tier 2 only)</li>
+</ul>
+<h3 id="configuration"><a class="header" href="#configuration">Configuration</a></h3>
+<pre><code class="language-toml">[tools.exec.sandbox]
+backend = "wasm"
+
+# WASM-specific settings
+wasm_fuel_limit = 1000000000       # instruction fuel (default: 1 billion)
+wasm_epoch_interval_ms = 100       # epoch interruption interval (default: 100ms)
+
+[tools.exec.sandbox.resource_limits]
+memory_limit = "512M"    # Wasmtime memory reservation
+</code></pre>
+<h3 id="limitations"><a class="header" href="#limitations">Limitations</a></h3>
+<ul>
+<li>Built-in commands cover common coreutils but not a full shell</li>
+<li>No pipe support yet (planned via busybox.wasm in future)</li>
+<li>No network access from WASM modules</li>
+<li><code>.wasm</code> modules must target WASI preview1</li>
+</ul>
+<h3 id="when-to-use"><a class="header" href="#when-to-use">When to Use</a></h3>
+<p>The WASM sandbox is a good fit when:</p>
+<ul>
+<li>You want filesystem-isolated execution without container overhead</li>
+<li>You need a sandboxed environment on platforms without Docker or Apple
+Container</li>
+<li>You are running <code>.wasm</code> modules and want fuel-metered, time-bounded execution</li>
+</ul>
+<h3 id="compile-time-feature"><a class="header" href="#compile-time-feature">Compile-Time Feature</a></h3>
+<p>The WASM sandbox is gated behind the <code>wasm</code> cargo feature, which is enabled by
+default. To build without Wasmtime (saves ~30 MB binary size):</p>
+<pre><code class="language-bash">cargo build --release --no-default-features --features lightweight
+</code></pre>
+<p>When the feature is disabled and the config requests <code>backend = "wasm"</code>, Moltis
+falls back to <code>restricted-host</code> with a warning.</p>
+<h2 id="restricted-host-sandbox"><a class="header" href="#restricted-host-sandbox">Restricted Host Sandbox</a></h2>
+<p>The restricted-host sandbox provides lightweight isolation by running commands
+on the host via <code>sh -c</code> with environment clearing and <code>ulimit</code> resource
+wrappers. This is the fallback when no container runtime is available.</p>
+<h3 id="how-it-works-1"><a class="header" href="#how-it-works-1">How It Works</a></h3>
+<p>When the restricted-host sandbox runs a command, it:</p>
+<ol>
+<li><strong>Clears the environment</strong> — all inherited environment variables are removed</li>
+<li><strong>Sets a restricted PATH</strong> — only <code>/usr/local/bin:/usr/bin:/bin</code></li>
+<li><strong>Sets HOME to <code>/tmp</code></strong> — prevents access to the user’s home directory</li>
+<li><strong>Applies resource limits</strong> via shell <code>ulimit</code>:
+<ul>
+<li><code>ulimit -u</code> (max processes) from <code>pids_max</code> config (default: 256)</li>
+<li><code>ulimit -n 1024</code> (max open files)</li>
+<li><code>ulimit -t</code> (CPU seconds) from <code>cpu_quota</code> config (default: 300s)</li>
+<li><code>ulimit -v</code> (virtual memory) from <code>memory_limit</code> config (default: 512M)</li>
+</ul>
+</li>
+<li><strong>Enforces a timeout</strong> via <code>tokio::time::timeout</code></li>
+</ol>
+<p>User-specified environment variables from <code>opts.env</code> are re-applied after the
+environment is cleared, so the LLM tool can still pass required variables.</p>
+<h3 id="limitations-1"><a class="header" href="#limitations-1">Limitations</a></h3>
+<ul>
+<li>No filesystem isolation — commands run on the host filesystem</li>
+<li>No network isolation — commands can make network requests</li>
+<li><code>ulimit</code> enforcement is best-effort</li>
+<li>No image building — <code>moltis sandbox build</code> returns immediately</li>
+</ul>
+<p>For production use with untrusted workloads, prefer Apple Container or Docker.</p>
 <h2 id="no-sandbox"><a class="header" href="#no-sandbox">No sandbox</a></h2>
-<p>If neither runtime is found, commands execute directly on the host. The
-startup banner will show a warning. This is <strong>not recommended</strong> for untrusted
-workloads.</p>
+<p>If no runtime is found (and the <code>wasm</code> feature is disabled), commands execute
+directly on the host. The startup banner will show a warning. This is <strong>not
+recommended</strong> for untrusted workloads.</p>
+<h2 id="failover-chain"><a class="header" href="#failover-chain">Failover Chain</a></h2>
+<p>Moltis wraps the primary sandbox backend with automatic failover:</p>
+<ul>
+<li><strong>Apple Container → Docker → Restricted Host</strong>: if Apple Container enters a
+corrupted state (stale metadata, missing config, VM boot failure), Moltis
+fails over to Docker. If Docker is unavailable, it uses restricted-host.</li>
+<li><strong>Docker → Restricted Host</strong>: if Docker loses its daemon connection during a
+session, Moltis fails over to the restricted-host sandbox.</li>
+</ul>
+<p>Failover is sticky for the lifetime of the gateway process — once triggered,
+all subsequent commands use the fallback backend. Restart the gateway to retry
+the primary backend.</p>
+<p>Failover triggers:</p>
+<div class="table-wrapper"><table><thead><tr><th>Primary</th><th>Triggers</th></tr></thead><tbody>
+<tr><td>Apple Container</td><td><code>config.json missing</code>, <code>VM never booted</code>, <code>NSPOSIXErrorDomain Code=22</code>, service errors</td></tr>
+<tr><td>Docker</td><td><code>cannot connect to the docker daemon</code>, <code>connection refused</code>, <code>is the docker daemon running</code></td></tr>
+</tbody></table>
+</div>
 <h2 id="per-session-overrides"><a class="header" href="#per-session-overrides">Per-session overrides</a></h2>
 <p>The web UI allows toggling sandboxing per session and selecting a custom
 container image. These overrides persist across gateway restarts.</p>
@@ -252,13 +392,37 @@ home_persistence = "session"   # "off", "session", or "shared" (default)
 (defaults to <code>data_dir()/sandbox/home/shared</code>, or <code>shared_home_dir</code> if set)</li>
 </ul>
 <p>Moltis stores persisted homes under <code>data_dir()/sandbox/home/</code>.</p>
-<h2 id="resource-limits"><a class="header" href="#resource-limits">Resource limits</a></h2>
+<blockquote>
+<p><strong>Note</strong>: Home persistence applies to Docker, Apple Container, and WASM
+backends. The restricted-host backend uses <code>HOME=/tmp</code> and does not mount
+persistent storage.</p>
+</blockquote>
+<h2 id="resource-limits-1"><a class="header" href="#resource-limits-1">Resource limits</a></h2>
 <pre><code class="language-toml">[tools.exec.sandbox.resource_limits]
 memory_limit = "512M"
 cpu_quota = 1.0
 pids_max = 256
 </code></pre>
-
+<p>How resource limits are applied depends on the backend:</p>
+<div class="table-wrapper"><table><thead><tr><th>Limit</th><th>Docker</th><th>Apple Container</th><th>WASM</th><th>Restricted Host</th><th>cgroup (Linux)</th></tr></thead><tbody>
+<tr><td><code>memory_limit</code></td><td><code>--memory</code></td><td><code>--memory</code></td><td>Wasmtime reservation</td><td><code>ulimit -v</code></td><td><code>MemoryMax=</code></td></tr>
+<tr><td><code>cpu_quota</code></td><td><code>--cpus</code></td><td><code>--cpus</code></td><td>epoch timeout</td><td><code>ulimit -t</code> (seconds)</td><td><code>CPUQuota=</code></td></tr>
+<tr><td><code>pids_max</code></td><td><code>--pids-limit</code></td><td><code>--pids-limit</code></td><td>n/a</td><td><code>ulimit -u</code></td><td><code>TasksMax=</code></td></tr>
+</tbody></table>
+</div>
+<h2 id="comparison"><a class="header" href="#comparison">Comparison</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Feature</th><th>Apple Container</th><th>Docker</th><th>WASM</th><th>Restricted Host</th><th>none</th></tr></thead><tbody>
+<tr><td>Filesystem isolation</td><td>✅ VM boundary</td><td>✅ namespaces</td><td>✅ sandboxed tree</td><td>❌ host FS</td><td>❌</td></tr>
+<tr><td>Network isolation</td><td>✅</td><td>✅</td><td>✅ (no network)</td><td>❌</td><td>❌</td></tr>
+<tr><td>Kernel isolation</td><td>✅ separate kernel</td><td>❌ shared kernel</td><td>✅ WASM VM</td><td>❌</td><td>❌</td></tr>
+<tr><td>Environment isolation</td><td>✅</td><td>✅</td><td>✅</td><td>✅ cleared + restricted</td><td>❌</td></tr>
+<tr><td>Resource limits</td><td>✅</td><td>✅</td><td>✅ fuel + epoch</td><td>✅ ulimit</td><td>❌</td></tr>
+<tr><td>Image building</td><td>✅ (via Docker)</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Shell commands</td><td>✅ full shell</td><td>✅ full shell</td><td>~20 built-ins</td><td>✅ full shell</td><td>✅ full shell</td></tr>
+<tr><td>Platform</td><td>macOS 26+</td><td>any</td><td>any</td><td>any</td><td>any</td></tr>
+<tr><td>Overhead</td><td>low</td><td>medium</td><td>minimal</td><td>minimal</td><td>none</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

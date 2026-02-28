@@ -190,6 +190,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased"><a class="header" href="#unreleased">[Unreleased]</a></h2>
 <h3 id="added"><a class="header" href="#added">Added</a></h3>
 <ul>
+<li><strong>Real WASM sandbox</strong> (<code>wasm</code> feature, default on) — Wasmtime + WASI sandbox with filesystem isolation, fuel metering, epoch-based timeouts, and ~20 built-in coreutils (echo, cat, ls, mkdir, rm, cp, mv, etc.). Two execution tiers: built-in commands operate on a sandboxed directory tree; <code>.wasm</code> modules run via Wasmtime with preopened dirs and captured I/O. Backend: <code>"wasm"</code> in config</li>
+<li><strong>Restricted-host sandbox</strong> — new <code>"restricted-host"</code> backend (extracted from the old <code>WasmtimeSandbox</code>) providing honest naming for what it does: env clearing, restricted PATH, and <code>ulimit</code> resource wrappers without containers or WASM. Always compiled (no feature gate)</li>
+<li><strong>Docker security hardening</strong> — containers now launch with <code>--cap-drop ALL</code>, <code>--security-opt no-new-privileges</code>, tmpfs mounts for <code>/tmp</code> and <code>/run</code>, and <code>--read-only</code> root filesystem for prebuilt images</li>
+<li><strong>Generic sandbox failover chain</strong> — auto-detection now tries Apple Container → Docker → Restricted Host. Failover uses restricted-host as the final fallback instead of NoSandbox</li>
 <li>Discord channel integration via new <code>moltis-discord</code> crate using serenity Gateway API (persistent WebSocket, no public URL required). Supports DM and group messaging with allowlist/OTP gating, mention mode, guild allowlist, and 2000-char message chunking. Web UI: connect/edit/remove Discord bots in Settings &gt; Channels and onboarding flow</li>
 <li>Discord reply-to-message support: set <code>reply_to_message = true</code> to have the bot send responses as Discord threaded replies to the user’s message</li>
 <li>Discord ack reactions: set <code>ack_reaction = "👀"</code> to add an emoji reaction while processing (removed on completion)</li>
