@@ -2412,6 +2412,7 @@ system. The sandbox backend controls which container technology is used.</p>
 <p>Configure in <code>moltis.toml</code>:</p>
 <pre><code class="language-toml">[tools.exec.sandbox]
 backend = "auto"          # default — picks the best available
+# backend = "podman"      # force Podman (daemonless, rootless)
 # backend = "docker"      # force Docker
 # backend = "apple-container"  # force Apple Container (macOS only)
 # backend = "wasm"        # force WASM sandbox (Wasmtime + WASI)
@@ -2420,9 +2421,10 @@ backend = "auto"          # default — picks the best available
 <p>With <code>"auto"</code> (the default), Moltis picks the strongest available backend:</p>
 <div class="table-wrapper"><table><thead><tr><th>Priority</th><th>Backend</th><th>Platform</th><th>Isolation</th></tr></thead><tbody>
 <tr><td>1</td><td>Apple Container</td><td>macOS</td><td>VM (Virtualization.framework)</td></tr>
-<tr><td>2</td><td>Docker</td><td>any</td><td>Linux namespaces / cgroups</td></tr>
-<tr><td>3</td><td>Restricted Host</td><td>any</td><td>env clearing, rlimits (no filesystem isolation)</td></tr>
-<tr><td>4</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
+<tr><td>2</td><td>Podman</td><td>any</td><td>Linux namespaces / cgroups (daemonless)</td></tr>
+<tr><td>3</td><td>Docker</td><td>any</td><td>Linux namespaces / cgroups</td></tr>
+<tr><td>4</td><td>Restricted Host</td><td>any</td><td>env clearing, rlimits (no filesystem isolation)</td></tr>
+<tr><td>5</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
 </tbody></table>
 </div>
 <p>The WASM backend (<code>backend = "wasm"</code>) is not in the auto-detect chain because
@@ -2453,14 +2455,37 @@ container run --rm ubuntu echo "hello from VM"
 </code></pre>
 <p>Once installed, restart <code>moltis gateway</code> — the startup banner will show
 <code>sandbox: apple-container backend</code>.</p>
+<h2 id="podman"><a class="header" href="#podman">Podman</a></h2>
+<p><a href="https://podman.io/">Podman</a> is a daemonless, rootless container engine that
+is CLI-compatible with Docker. It is preferred over Docker in auto-detection
+because it doesn’t require a background daemon process and runs rootless by
+default for better security.</p>
+<h3 id="install-1"><a class="header" href="#install-1">Install</a></h3>
+<pre><code class="language-bash"># macOS
+brew install podman
+podman machine init &amp;&amp; podman machine start
+
+# Debian/Ubuntu
+sudo apt-get install -y podman
+
+# Fedora/RHEL
+sudo dnf install -y podman
+</code></pre>
+<h3 id="verify-1"><a class="header" href="#verify-1">Verify</a></h3>
+<pre><code class="language-bash">podman --version
+podman run --rm docker.io/library/ubuntu echo "hello from podman"
+</code></pre>
+<p>Once installed, restart <code>moltis gateway</code> — the startup banner will show
+<code>sandbox: podman backend</code>. All Docker hardening flags (see below) apply
+identically to Podman containers.</p>
 <h2 id="docker-1"><a class="header" href="#docker-1">Docker</a></h2>
 <p>Docker is supported on macOS, Linux, and Windows. On macOS it runs inside a
 Linux VM managed by Docker Desktop, so it is reasonably isolated but adds more
 overhead than Apple Container.</p>
 <p>Install from https://docs.docker.com/get-docker/</p>
-<h3 id="docker-hardening"><a class="header" href="#docker-hardening">Docker Hardening</a></h3>
-<p>Docker containers launched by Moltis include the following security hardening
-flags by default:</p>
+<h3 id="dockerpodman-hardening"><a class="header" href="#dockerpodman-hardening">Docker/Podman Hardening</a></h3>
+<p>Docker and Podman containers launched by Moltis include the following security
+hardening flags by default:</p>
 <div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody>
 <tr><td><code>--cap-drop ALL</code></td><td>Drops all Linux capabilities</td></tr>
 <tr><td><code>--security-opt no-new-privileges</code></td><td>Prevents privilege escalation via setuid/setgid binaries</td></tr>
@@ -8158,6 +8183,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased"><a class="header" href="#unreleased">[Unreleased]</a></h2>
 <h3 id="added"><a class="header" href="#added">Added</a></h3>
 <ul>
+<li><strong>Podman sandbox backend</strong> — Podman as a first-class sandbox backend. Set <code>backend = "podman"</code> or let auto-detection prefer it over Docker (Apple Container → Podman → Docker → restricted-host). Uses the <code>podman</code> CLI directly (no socket compatibility needed)</li>
 <li><strong>Trusted network mode</strong>: sandbox containers now default to <code>sandbox.network = "trusted"</code>, routing outbound traffic through an HTTP CONNECT proxy with full audit logging. When <code>trusted_domains</code> is empty (the default), all domains are allowed (audit-only mode); when configured, only listed domains pass without approval. Includes real-time network audit log with domain, protocol, and action filtering via Settings &gt; Network Audit. Configurable via <code>sandbox.trusted_domains</code> in <code>moltis.toml</code>. Proxy env vars (<code>HTTP_PROXY</code>, <code>HTTPS_PROXY</code>, <code>NO_PROXY</code>) are now automatically injected into both Docker and Apple Container sandboxes, and the proxy binds to <code>0.0.0.0</code> so it is reachable from container VMs. The proxy rejects connections from non-private IPs (only loopback, RFC 1918, link-local, and CGNAT ranges are accepted)</li>
 <li><strong>New <code>moltis-network-filter</code> crate</strong>: domain filtering, proxy, and audit buffer logic extracted from <code>moltis-tools</code> and <code>moltis-gateway</code> into a standalone crate with feature flags (<code>proxy</code>, <code>service</code>, <code>metrics</code>). The macOS app can now depend on it directly for network audit log display via <code>moltis-swift-bridge</code></li>
 <li><strong>macOS Network Audit pane</strong>: new Settings &gt; Network Audit section with real-time log display, action filtering (allowed/denied), search, pause/resume, clipboard export, and JSONL download — matching the web UI pattern. New FFI callback <code>moltis_set_network_audit_callback</code> bridges Rust audit entries to Swift</li>
@@ -8197,6 +8223,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Teams channel management in the web UI (add/edit/remove accounts, sender review, session/channel badges)</li>
 <li>Guided Teams bootstrap tooling via <code>moltis channels teams bootstrap</code> plus an in-UI endpoint generator in Settings → Channels</li>
 <li>Multi-agent personas with per-agent workspaces (<code>data_dir()/agents/&lt;id&gt;/</code>), <code>agents.*</code> RPC methods, and session-level <code>agent_id</code> binding/switching across web + Telegram flows</li>
+<li><code>chat.peek</code> RPC method returning real-time session state (active flag, thinking text, active tool calls) for any session key</li>
+<li>Active tool call tracking per-session in <code>LiveChatService</code> with camelCase-serialized <code>ActiveToolCall</code> structs</li>
+<li>Web UI: inline red “Stop” button inside thinking indicator, <code>aborted</code> broadcast handler that cleans up streaming state</li>
+<li>Channel commands: <code>/peek</code> (shows thinking text and active tool calls) and <code>/stop</code> (aborts active generation)</li>
 </ul>
 <h3 id="changed"><a class="header" href="#changed">Changed</a></h3>
 <ul>

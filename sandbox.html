@@ -190,6 +190,7 @@ system. The sandbox backend controls which container technology is used.</p>
 <p>Configure in <code>moltis.toml</code>:</p>
 <pre><code class="language-toml">[tools.exec.sandbox]
 backend = "auto"          # default — picks the best available
+# backend = "podman"      # force Podman (daemonless, rootless)
 # backend = "docker"      # force Docker
 # backend = "apple-container"  # force Apple Container (macOS only)
 # backend = "wasm"        # force WASM sandbox (Wasmtime + WASI)
@@ -198,9 +199,10 @@ backend = "auto"          # default — picks the best available
 <p>With <code>"auto"</code> (the default), Moltis picks the strongest available backend:</p>
 <div class="table-wrapper"><table><thead><tr><th>Priority</th><th>Backend</th><th>Platform</th><th>Isolation</th></tr></thead><tbody>
 <tr><td>1</td><td>Apple Container</td><td>macOS</td><td>VM (Virtualization.framework)</td></tr>
-<tr><td>2</td><td>Docker</td><td>any</td><td>Linux namespaces / cgroups</td></tr>
-<tr><td>3</td><td>Restricted Host</td><td>any</td><td>env clearing, rlimits (no filesystem isolation)</td></tr>
-<tr><td>4</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
+<tr><td>2</td><td>Podman</td><td>any</td><td>Linux namespaces / cgroups (daemonless)</td></tr>
+<tr><td>3</td><td>Docker</td><td>any</td><td>Linux namespaces / cgroups</td></tr>
+<tr><td>4</td><td>Restricted Host</td><td>any</td><td>env clearing, rlimits (no filesystem isolation)</td></tr>
+<tr><td>5</td><td>none (host)</td><td>any</td><td>no isolation</td></tr>
 </tbody></table>
 </div>
 <p>The WASM backend (<code>backend = "wasm"</code>) is not in the auto-detect chain because
@@ -231,14 +233,37 @@ container run --rm ubuntu echo "hello from VM"
 </code></pre>
 <p>Once installed, restart <code>moltis gateway</code> — the startup banner will show
 <code>sandbox: apple-container backend</code>.</p>
+<h2 id="podman"><a class="header" href="#podman">Podman</a></h2>
+<p><a href="https://podman.io/">Podman</a> is a daemonless, rootless container engine that
+is CLI-compatible with Docker. It is preferred over Docker in auto-detection
+because it doesn’t require a background daemon process and runs rootless by
+default for better security.</p>
+<h3 id="install-1"><a class="header" href="#install-1">Install</a></h3>
+<pre><code class="language-bash"># macOS
+brew install podman
+podman machine init &amp;&amp; podman machine start
+
+# Debian/Ubuntu
+sudo apt-get install -y podman
+
+# Fedora/RHEL
+sudo dnf install -y podman
+</code></pre>
+<h3 id="verify-1"><a class="header" href="#verify-1">Verify</a></h3>
+<pre><code class="language-bash">podman --version
+podman run --rm docker.io/library/ubuntu echo "hello from podman"
+</code></pre>
+<p>Once installed, restart <code>moltis gateway</code> — the startup banner will show
+<code>sandbox: podman backend</code>. All Docker hardening flags (see below) apply
+identically to Podman containers.</p>
 <h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
 <p>Docker is supported on macOS, Linux, and Windows. On macOS it runs inside a
 Linux VM managed by Docker Desktop, so it is reasonably isolated but adds more
 overhead than Apple Container.</p>
 <p>Install from https://docs.docker.com/get-docker/</p>
-<h3 id="docker-hardening"><a class="header" href="#docker-hardening">Docker Hardening</a></h3>
-<p>Docker containers launched by Moltis include the following security hardening
-flags by default:</p>
+<h3 id="dockerpodman-hardening"><a class="header" href="#dockerpodman-hardening">Docker/Podman Hardening</a></h3>
+<p>Docker and Podman containers launched by Moltis include the following security
+hardening flags by default:</p>
 <div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody>
 <tr><td><code>--cap-drop ALL</code></td><td>Drops all Linux capabilities</td></tr>
 <tr><td><code>--security-opt no-new-privileges</code></td><td>Prevents privilege escalation via setuid/setgid binaries</td></tr>

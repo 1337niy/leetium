@@ -190,6 +190,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased"><a class="header" href="#unreleased">[Unreleased]</a></h2>
 <h3 id="added"><a class="header" href="#added">Added</a></h3>
 <ul>
+<li><strong>Podman sandbox backend</strong> — Podman as a first-class sandbox backend. Set <code>backend = "podman"</code> or let auto-detection prefer it over Docker (Apple Container → Podman → Docker → restricted-host). Uses the <code>podman</code> CLI directly (no socket compatibility needed)</li>
 <li><strong>Trusted network mode</strong>: sandbox containers now default to <code>sandbox.network = "trusted"</code>, routing outbound traffic through an HTTP CONNECT proxy with full audit logging. When <code>trusted_domains</code> is empty (the default), all domains are allowed (audit-only mode); when configured, only listed domains pass without approval. Includes real-time network audit log with domain, protocol, and action filtering via Settings &gt; Network Audit. Configurable via <code>sandbox.trusted_domains</code> in <code>moltis.toml</code>. Proxy env vars (<code>HTTP_PROXY</code>, <code>HTTPS_PROXY</code>, <code>NO_PROXY</code>) are now automatically injected into both Docker and Apple Container sandboxes, and the proxy binds to <code>0.0.0.0</code> so it is reachable from container VMs. The proxy rejects connections from non-private IPs (only loopback, RFC 1918, link-local, and CGNAT ranges are accepted)</li>
 <li><strong>New <code>moltis-network-filter</code> crate</strong>: domain filtering, proxy, and audit buffer logic extracted from <code>moltis-tools</code> and <code>moltis-gateway</code> into a standalone crate with feature flags (<code>proxy</code>, <code>service</code>, <code>metrics</code>). The macOS app can now depend on it directly for network audit log display via <code>moltis-swift-bridge</code></li>
 <li><strong>macOS Network Audit pane</strong>: new Settings &gt; Network Audit section with real-time log display, action filtering (allowed/denied), search, pause/resume, clipboard export, and JSONL download — matching the web UI pattern. New FFI callback <code>moltis_set_network_audit_callback</code> bridges Rust audit entries to Swift</li>
@@ -229,6 +230,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Teams channel management in the web UI (add/edit/remove accounts, sender review, session/channel badges)</li>
 <li>Guided Teams bootstrap tooling via <code>moltis channels teams bootstrap</code> plus an in-UI endpoint generator in Settings → Channels</li>
 <li>Multi-agent personas with per-agent workspaces (<code>data_dir()/agents/&lt;id&gt;/</code>), <code>agents.*</code> RPC methods, and session-level <code>agent_id</code> binding/switching across web + Telegram flows</li>
+<li><code>chat.peek</code> RPC method returning real-time session state (active flag, thinking text, active tool calls) for any session key</li>
+<li>Active tool call tracking per-session in <code>LiveChatService</code> with camelCase-serialized <code>ActiveToolCall</code> structs</li>
+<li>Web UI: inline red “Stop” button inside thinking indicator, <code>aborted</code> broadcast handler that cleans up streaming state</li>
+<li>Channel commands: <code>/peek</code> (shows thinking text and active tool calls) and <code>/stop</code> (aborts active generation)</li>
 </ul>
 <h3 id="changed"><a class="header" href="#changed">Changed</a></h3>
 <ul>
