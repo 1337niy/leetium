@@ -192,12 +192,20 @@ Registry on every release.</p>
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/moltis-org/moltis:latest
 </code></pre>
 <p>Open https://localhost:13131 in your browser and configure your LLM provider to start chatting.</p>
+<h3 id="ports"><a class="header" href="#ports">Ports</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Port</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>13131</td><td>Gateway (HTTPS) — web UI, API, WebSocket</td></tr>
+<tr><td>13132</td><td>HTTP — CA certificate download for TLS trust</td></tr>
+<tr><td>1455</td><td>OAuth callback — required for OpenAI Codex and other providers with pre-registered redirect URIs</td></tr>
+</tbody></table>
+</div>
 <h3 id="trusting-the-tls-certificate"><a class="header" href="#trusting-the-tls-certificate">Trusting the TLS certificate</a></h3>
 <p>Moltis generates a self-signed CA on first run. Browsers will show a security
 warning until you trust this CA. Port 13132 serves the certificate over plain
@@ -224,9 +232,8 @@ sudo update-ca-certificates
 </div>
 <div>
 <p>When accessing from localhost, no authentication is required. If you access Moltis from a different machine (e.g., over the network), a setup code is printed to the container logs for authentication setup:</p>
-<p>```bash
-docker logs moltis
-```</p>
+<pre><code class="language-bash">docker logs moltis
+</code></pre>
 </div>
 </div>
 <h2 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h2>
@@ -242,6 +249,7 @@ for easier access to configuration files:</p>
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v ./config:/home/moltis/.config/moltis \
   -v ./data:/home/moltis/.moltis \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -277,6 +285,7 @@ complete example:</p>
     ports:
       - "13131:13131"
       - "13132:13132"
+      - "1455:1455"   # OAuth callback (OpenAI Codex, etc.)
     volumes:
       - ./config:/home/moltis/.config/moltis
       - ./data:/home/moltis/.moltis
@@ -308,6 +317,7 @@ podman run -d \
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /run/user/$(id -u)/podman/podman.sock:/var/run/docker.sock \
@@ -318,6 +328,7 @@ podman run -d \
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /run/podman/podman.sock:/var/run/docker.sock \
@@ -341,6 +352,7 @@ sudo systemctl enable --now podman.socket
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -e MOLTIS_CONFIG_DIR=/config \
   -e MOLTIS_DATA_DIR=/data \
   -v ./config:/config \
@@ -411,6 +423,19 @@ to access it. Verify:</p>
 <p>The setup code only appears when accessing from a non-localhost address. If you’re accessing from the same machine via <code>localhost</code>, no setup code is needed. For network access, wait a few seconds for the gateway to start, then check logs:</p>
 <pre><code class="language-bash">docker logs moltis 2&gt;&amp;1 | grep -i setup
 </code></pre>
+<h3 id="oauth-authentication-error-openai-codex"><a class="header" href="#oauth-authentication-error-openai-codex">OAuth authentication error (OpenAI Codex)</a></h3>
+<p>If clicking <strong>Connect</strong> for OpenAI Codex shows “unknown_error” on OpenAI’s
+page, port 1455 is not reachable from your browser. Make sure you published it:</p>
+<pre><code class="language-bash">-p 1455:1455
+</code></pre>
+<p>If you’re running Moltis on a remote server (cloud VM, VPS) and accessing it
+over the network, <code>localhost:1455</code> on the browser side points to your local
+machine — not the server. In that case, authenticate via the CLI instead:</p>
+<pre><code class="language-bash">docker exec -it moltis moltis auth login --provider openai-codex
+</code></pre>
+<p>The CLI opens a browser on the machine where you run the command and handles
+the OAuth callback locally. Tokens are saved to the config volume and picked
+up by the running gateway automatically.</p>
 <h3 id="permission-denied-on-bind-mounts"><a class="header" href="#permission-denied-on-bind-mounts">Permission denied on bind mounts</a></h3>
 <p>When using bind mounts, ensure the directories exist and are writable:</p>
 <pre><code class="language-bash">mkdir -p ./config ./data

@@ -264,6 +264,7 @@ onboarding-ready configs.</li>
 <h3 id="removed"><a class="header" href="#removed">Removed</a></h3>
 <h3 id="fixed"><a class="header" href="#fixed">Fixed</a></h3>
 <ul>
+<li><strong>OpenAI Codex OAuth in Docker</strong>: the web UI no longer overrides the provider’s pre-registered <code>redirect_uri</code>, which caused OpenAI to reject the authorization request with <code>unknown_error</code>. The OAuth callback server now also respects the gateway bind address (<code>0.0.0.0</code> in Docker) so the callback port (1455) is reachable from the host. Docker image now exposes port 1455 for OAuth callbacks (#207)</li>
 <li><strong>Slow SQLite writes</strong>: <code>moltis.db</code> and <code>memory.db</code> now use <code>journal_mode=WAL</code> and <code>synchronous=NORMAL</code> (matching <code>metrics.db</code>), eliminating multi-second write contention that caused 3–10 s INSERT times under concurrent access</li>
 <li>Channel image delivery now parses the actual MIME type from data URIs instead of hardcoding <code>image/png</code></li>
 <li>Docker image now installs Docker CLI from Docker’s official Debian repository (<code>docker-ce-cli</code>), avoiding API mismatches with newer host daemons during sandbox builds/exec</li>

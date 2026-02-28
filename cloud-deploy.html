@@ -337,6 +337,35 @@ environment variables (`MOLTIS_CONFIG_DIR`, `MOLTIS_DATA_DIR`,
 Railway supports persistent volumes. Add one in the service settings and mount
 it at `/data`.
 -->
+<h2 id="oauth-providers-openai-codex-github-copilot"><a class="header" href="#oauth-providers-openai-codex-github-copilot">OAuth Providers (OpenAI Codex, GitHub Copilot)</a></h2>
+<p>OAuth providers that redirect to <code>localhost</code> (like OpenAI Codex) cannot
+complete the browser flow when Moltis runs on a remote server — <code>localhost</code>
+on the user’s browser points to their own machine, not the cloud instance.</p>
+<p><strong>Use the CLI to authenticate instead:</strong></p>
+<pre><code class="language-bash"># Fly.io
+fly ssh console -C "moltis auth login --provider openai-codex"
+
+# DigitalOcean (Droplet with Docker)
+docker exec -it moltis moltis auth login --provider openai-codex
+
+# Generic container
+docker exec -it &lt;container&gt; moltis auth login --provider openai-codex
+</code></pre>
+<p>The CLI opens a browser on the machine where you run the command. After you
+log in, tokens are saved to the config volume and the running gateway picks
+them up automatically — no restart needed.</p>
+<div id="admonition-tip-1" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-1-title">
+<div class="admonition-title">
+<div id="admonition-tip-1-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-tip-1"></a>
+</div>
+<div>
+<p>GitHub Copilot uses device-flow authentication (a code you enter on
+github.com), so it works from the web UI without this workaround.</p>
+</div>
+</div>
 <h2 id="authentication"><a class="header" href="#authentication">Authentication</a></h2>
 <p>On first launch, Moltis requires a password or passkey to be set. In cloud
 deployments the easiest approach is to set the <code>MOLTIS_PASSWORD</code> environment

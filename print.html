@@ -1110,6 +1110,27 @@ priority_models = ["gpt-5.2"]
 <li>Click <strong>Connect</strong> and complete the auth flow.</li>
 <li>Choose a Codex model.</li>
 </ol>
+<div id="admonition-docker-and-cloud-deployments" class="admonition admonish-note" role="note" aria-labelledby="admonition-docker-and-cloud-deployments-title">
+<div class="admonition-title">
+<div id="admonition-docker-and-cloud-deployments-title">
+<p>Docker and cloud deployments</p>
+</div>
+<a class="admonition-anchor-link" href="providers.html#admonition-docker-and-cloud-deployments"></a>
+</div>
+<div>
+<p>The OAuth flow redirects your browser to <code>localhost:1455</code>. In Docker, make sure
+port 1455 is published (<code>-p 1455:1455</code>). On cloud platforms where <code>localhost</code>
+cannot reach the server, authenticate via the CLI instead:</p>
+<pre><code class="language-bash"># Docker
+docker exec -it moltis moltis auth login --provider openai-codex
+
+# Fly.io
+fly ssh console -C "moltis auth login --provider openai-codex"
+</code></pre>
+<p>The CLI opens a browser on your machine and handles the callback locally.
+Tokens are saved to the config volume and picked up by the gateway automatically.</p>
+</div>
+</div>
 <h3 id="github-copilot"><a class="header" href="#github-copilot">GitHub Copilot</a></h3>
 <p>GitHub Copilot uses OAuth authentication.</p>
 <ol>
@@ -1117,6 +1138,21 @@ priority_models = ["gpt-5.2"]
 <li>Click <strong>Connect</strong>.</li>
 <li>Complete the GitHub OAuth flow.</li>
 </ol>
+<div id="admonition-docker-and-cloud-deployments-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-docker-and-cloud-deployments-1-title">
+<div class="admonition-title">
+<div id="admonition-docker-and-cloud-deployments-1-title">
+<p>Docker and cloud deployments</p>
+</div>
+<a class="admonition-anchor-link" href="providers.html#admonition-docker-and-cloud-deployments-1"></a>
+</div>
+<div>
+<p>GitHub Copilot uses device-flow authentication (a code you enter on github.com),
+so it works from the web UI without extra port configuration. If you prefer the
+CLI:</p>
+<pre><code class="language-bash">docker exec -it moltis moltis auth login --provider github-copilot
+</code></pre>
+</div>
+</div>
 <div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
 <div class="admonition-title">
 <div id="admonition-info-title">
@@ -6715,12 +6751,20 @@ Registry on every release.</p>
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/moltis-org/moltis:latest
 </code></pre>
 <p>Open https://localhost:13131 in your browser and configure your LLM provider to start chatting.</p>
+<h3 id="ports"><a class="header" href="#ports">Ports</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Port</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>13131</td><td>Gateway (HTTPS) — web UI, API, WebSocket</td></tr>
+<tr><td>13132</td><td>HTTP — CA certificate download for TLS trust</td></tr>
+<tr><td>1455</td><td>OAuth callback — required for OpenAI Codex and other providers with pre-registered redirect URIs</td></tr>
+</tbody></table>
+</div>
 <h3 id="trusting-the-tls-certificate"><a class="header" href="#trusting-the-tls-certificate">Trusting the TLS certificate</a></h3>
 <p>Moltis generates a self-signed CA on first run. Browsers will show a security
 warning until you trust this CA. Port 13132 serves the certificate over plain
@@ -6747,9 +6791,8 @@ sudo update-ca-certificates
 </div>
 <div>
 <p>When accessing from localhost, no authentication is required. If you access Moltis from a different machine (e.g., over the network), a setup code is printed to the container logs for authentication setup:</p>
-<p>```bash
-docker logs moltis
-```</p>
+<pre><code class="language-bash">docker logs moltis
+</code></pre>
 </div>
 </div>
 <h2 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h2>
@@ -6765,6 +6808,7 @@ for easier access to configuration files:</p>
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v ./config:/home/moltis/.config/moltis \
   -v ./data:/home/moltis/.moltis \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -6800,6 +6844,7 @@ complete example:</p>
     ports:
       - "13131:13131"
       - "13132:13132"
+      - "1455:1455"   # OAuth callback (OpenAI Codex, etc.)
     volumes:
       - ./config:/home/moltis/.config/moltis
       - ./data:/home/moltis/.moltis
@@ -6831,6 +6876,7 @@ podman run -d \
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /run/user/$(id -u)/podman/podman.sock:/var/run/docker.sock \
@@ -6841,6 +6887,7 @@ podman run -d \
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -v moltis-config:/home/moltis/.config/moltis \
   -v moltis-data:/home/moltis/.moltis \
   -v /run/podman/podman.sock:/var/run/docker.sock \
@@ -6864,6 +6911,7 @@ sudo systemctl enable --now podman.socket
   --name moltis \
   -p 13131:13131 \
   -p 13132:13132 \
+  -p 1455:1455 \
   -e MOLTIS_CONFIG_DIR=/config \
   -e MOLTIS_DATA_DIR=/data \
   -v ./config:/config \
@@ -6934,6 +6982,19 @@ to access it. Verify:</p>
 <p>The setup code only appears when accessing from a non-localhost address. If you’re accessing from the same machine via <code>localhost</code>, no setup code is needed. For network access, wait a few seconds for the gateway to start, then check logs:</p>
 <pre><code class="language-bash">docker logs moltis 2&gt;&amp;1 | grep -i setup
 </code></pre>
+<h3 id="oauth-authentication-error-openai-codex"><a class="header" href="#oauth-authentication-error-openai-codex">OAuth authentication error (OpenAI Codex)</a></h3>
+<p>If clicking <strong>Connect</strong> for OpenAI Codex shows “unknown_error” on OpenAI’s
+page, port 1455 is not reachable from your browser. Make sure you published it:</p>
+<pre><code class="language-bash">-p 1455:1455
+</code></pre>
+<p>If you’re running Moltis on a remote server (cloud VM, VPS) and accessing it
+over the network, <code>localhost:1455</code> on the browser side points to your local
+machine — not the server. In that case, authenticate via the CLI instead:</p>
+<pre><code class="language-bash">docker exec -it moltis moltis auth login --provider openai-codex
+</code></pre>
+<p>The CLI opens a browser on the machine where you run the command and handles
+the OAuth callback locally. Tokens are saved to the config volume and picked
+up by the running gateway automatically.</p>
 <h3 id="permission-denied-on-bind-mounts"><a class="header" href="#permission-denied-on-bind-mounts">Permission denied on bind mounts</a></h3>
 <p>When using bind mounts, ensure the directories exist and are writable:</p>
 <pre><code class="language-bash">mkdir -p ./config ./data
@@ -7097,6 +7158,35 @@ environment variables (`MOLTIS_CONFIG_DIR`, `MOLTIS_DATA_DIR`,
 Railway supports persistent volumes. Add one in the service settings and mount
 it at `/data`.
 -->
+<h2 id="oauth-providers-openai-codex-github-copilot"><a class="header" href="#oauth-providers-openai-codex-github-copilot">OAuth Providers (OpenAI Codex, GitHub Copilot)</a></h2>
+<p>OAuth providers that redirect to <code>localhost</code> (like OpenAI Codex) cannot
+complete the browser flow when Moltis runs on a remote server — <code>localhost</code>
+on the user’s browser points to their own machine, not the cloud instance.</p>
+<p><strong>Use the CLI to authenticate instead:</strong></p>
+<pre><code class="language-bash"># Fly.io
+fly ssh console -C "moltis auth login --provider openai-codex"
+
+# DigitalOcean (Droplet with Docker)
+docker exec -it moltis moltis auth login --provider openai-codex
+
+# Generic container
+docker exec -it &lt;container&gt; moltis auth login --provider openai-codex
+</code></pre>
+<p>The CLI opens a browser on the machine where you run the command. After you
+log in, tokens are saved to the config volume and the running gateway picks
+them up automatically — no restart needed.</p>
+<div id="admonition-tip-1" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-1-title">
+<div class="admonition-title">
+<div id="admonition-tip-1-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="cloud-deploy.html#admonition-tip-1"></a>
+</div>
+<div>
+<p>GitHub Copilot uses device-flow authentication (a code you enter on
+github.com), so it works from the web UI without this workaround.</p>
+</div>
+</div>
 <h2 id="authentication-3"><a class="header" href="#authentication-3">Authentication</a></h2>
 <p>On first launch, Moltis requires a password or passkey to be set. In cloud
 deployments the easiest approach is to set the <code>MOLTIS_PASSWORD</code> environment
@@ -8257,6 +8347,7 @@ onboarding-ready configs.</li>
 <h3 id="removed"><a class="header" href="#removed">Removed</a></h3>
 <h3 id="fixed"><a class="header" href="#fixed">Fixed</a></h3>
 <ul>
+<li><strong>OpenAI Codex OAuth in Docker</strong>: the web UI no longer overrides the provider’s pre-registered <code>redirect_uri</code>, which caused OpenAI to reject the authorization request with <code>unknown_error</code>. The OAuth callback server now also respects the gateway bind address (<code>0.0.0.0</code> in Docker) so the callback port (1455) is reachable from the host. Docker image now exposes port 1455 for OAuth callbacks (#207)</li>
 <li><strong>Slow SQLite writes</strong>: <code>moltis.db</code> and <code>memory.db</code> now use <code>journal_mode=WAL</code> and <code>synchronous=NORMAL</code> (matching <code>metrics.db</code>), eliminating multi-second write contention that caused 3–10 s INSERT times under concurrent access</li>
 <li>Channel image delivery now parses the actual MIME type from data URIs instead of hardcoding <code>image/png</code></li>
 <li>Docker image now installs Docker CLI from Docker’s official Debian repository (<code>docker-ce-cli</code>), avoiding API mismatches with newer host daemons during sandbox builds/exec</li>

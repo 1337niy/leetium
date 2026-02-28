@@ -230,6 +230,27 @@ priority_models = ["gpt-5.2"]
 <li>Click <strong>Connect</strong> and complete the auth flow.</li>
 <li>Choose a Codex model.</li>
 </ol>
+<div id="admonition-docker-and-cloud-deployments" class="admonition admonish-note" role="note" aria-labelledby="admonition-docker-and-cloud-deployments-title">
+<div class="admonition-title">
+<div id="admonition-docker-and-cloud-deployments-title">
+<p>Docker and cloud deployments</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-docker-and-cloud-deployments"></a>
+</div>
+<div>
+<p>The OAuth flow redirects your browser to <code>localhost:1455</code>. In Docker, make sure
+port 1455 is published (<code>-p 1455:1455</code>). On cloud platforms where <code>localhost</code>
+cannot reach the server, authenticate via the CLI instead:</p>
+<pre><code class="language-bash"># Docker
+docker exec -it moltis moltis auth login --provider openai-codex
+
+# Fly.io
+fly ssh console -C "moltis auth login --provider openai-codex"
+</code></pre>
+<p>The CLI opens a browser on your machine and handles the callback locally.
+Tokens are saved to the config volume and picked up by the gateway automatically.</p>
+</div>
+</div>
 <h3 id="github-copilot"><a class="header" href="#github-copilot">GitHub Copilot</a></h3>
 <p>GitHub Copilot uses OAuth authentication.</p>
 <ol>
@@ -237,6 +258,21 @@ priority_models = ["gpt-5.2"]
 <li>Click <strong>Connect</strong>.</li>
 <li>Complete the GitHub OAuth flow.</li>
 </ol>
+<div id="admonition-docker-and-cloud-deployments-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-docker-and-cloud-deployments-1-title">
+<div class="admonition-title">
+<div id="admonition-docker-and-cloud-deployments-1-title">
+<p>Docker and cloud deployments</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-docker-and-cloud-deployments-1"></a>
+</div>
+<div>
+<p>GitHub Copilot uses device-flow authentication (a code you enter on github.com),
+so it works from the web UI without extra port configuration. If you prefer the
+CLI:</p>
+<pre><code class="language-bash">docker exec -it moltis moltis auth login --provider github-copilot
+</code></pre>
+</div>
+</div>
 <div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
 <div class="admonition-title">
 <div id="admonition-info-title">
