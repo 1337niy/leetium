@@ -11,26 +11,23 @@
 //! 4. Exchange code for tokens using PKCE verifier
 //! 5. Store tokens securely for future use
 
-use std::pin::Pin;
+use std::{pin::Pin, sync::mpsc, time::Duration};
 
 use {
     async_trait::async_trait,
     futures::StreamExt,
+    moltis_agents::model::{
+        ChatMessage, CompletionResponse, ContentPart, LlmProvider, StreamEvent, ToolCall, Usage,
+        UserContent,
+    },
     moltis_oauth::{
         CallbackServer, OAuthConfig, OAuthFlow, OAuthTokens, TokenStore, callback_port,
         load_oauth_config,
     },
     secrecy::ExposeSecret,
     tokio_stream::Stream,
-    tracing::{debug, trace, warn},
+    tracing::{debug, info, trace, warn},
 };
-
-use crate::model::{
-    ChatMessage, CompletionResponse, LlmProvider, StreamEvent, ToolCall, Usage, UserContent,
-};
-
-// Re-export GeminiModelInfo from the api-key provider for shared use
-pub use super::gemini::GeminiModelInfo;
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -39,6 +36,42 @@ const PROVIDER_NAME: &str = "gemini-oauth";
 
 /// Buffer before token expiry to trigger refresh (5 minutes).
 const REFRESH_THRESHOLD_SECS: u64 = 300;
+
+/// Information about a Gemini model returned from the API.
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GeminiModelInfo {
+    /// Full resource name (e.g., "models/gemini-2.0-flash")
+    pub name: String,
+    /// Human-readable display name
+    #[serde(default)]
+    pub display_name: String,
+    /// Maximum input tokens (context window)
+    #[serde(default)]
+    pub input_token_limit: u32,
+    /// Maximum output tokens
+    #[serde(default)]
+    pub output_token_limit: u32,
+    /// Supported generation methods (e.g., "generateContent", "streamGenerateContent")
+    #[serde(default)]
+    pub supported_generation_methods: Vec<String>,
+}
+
+impl GeminiModelInfo {
+    /// Extract the model ID from the full resource name.
+    #[must_use]
+    pub fn model_id(&self) -> &str {
+        self.name.strip_prefix("models/").unwrap_or(&self.name)
+    }
+
+    /// Check if this model supports text generation.
+    #[must_use]
+    pub fn supports_generation(&self) -> bool {
+        self.supported_generation_methods
+            .iter()
+            .any(|m| m == "generateContent")
+    }
+}
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 
@@ -67,7 +100,7 @@ impl GeminiOAuthProvider {
     pub fn start_auth_flow() -> Option<AuthFlowState> {
         let config = Self::oauth_config()?;
         let flow = OAuthFlow::new(config.clone());
-        let auth_request = flow.start();
+        let auth_request = flow.start().ok()?;
 
         Some(AuthFlowState {
             auth_url: auth_request.url,
@@ -82,7 +115,8 @@ impl GeminiOAuthProvider {
         let port = callback_port(&flow_state.config);
 
         // Wait for the callback with the authorization code
-        let code = CallbackServer::wait_for_code(port, flow_state.state.clone()).await?;
+        let code =
+            CallbackServer::wait_for_code(port, flow_state.state.clone(), "127.0.0.1").await?;
 
         // Exchange the code for tokens
         let flow = OAuthFlow::new(flow_state.config.clone());
@@ -97,7 +131,7 @@ impl GeminiOAuthProvider {
             .ok_or_else(|| anyhow::anyhow!("gemini-oauth configuration not found"))?;
 
         let flow = OAuthFlow::new(config);
-        flow.refresh(refresh_token).await
+        Ok(flow.refresh(refresh_token).await?)
     }
 
     /// List available models using stored OAuth credentials.
@@ -116,7 +150,7 @@ impl GeminiOAuthProvider {
         if let Some(expires_at) = tokens.expires_at {
             let now = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                .map_err(|err| anyhow::anyhow!("system clock before UNIX epoch: {err}"))?
                 .as_secs();
 
             if now + REFRESH_THRESHOLD_SECS >= expires_at {
@@ -244,10 +278,10 @@ pub async fn list_models_with_token(
 /// Check if the stored token needs refresh (within REFRESH_THRESHOLD_SECS of expiry).
 fn needs_token_refresh(tokens: &OAuthTokens) -> bool {
     if let Some(expires_at) = tokens.expires_at {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let Ok(now) = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) else {
+            return true;
+        };
+        let now = now.as_secs();
         now + REFRESH_THRESHOLD_SECS >= expires_at
     } else {
         false
@@ -264,7 +298,76 @@ pub const GEMINI_OAUTH_MODELS: &[(&str, &str)] = &[
     ("gemini-1.5-flash", "Gemini 1.5 Flash (OAuth)"),
 ];
 
-// ── Gemini API helpers (reused from gemini.rs) ──────────────────────────────
+fn info_to_discovered_model(info: GeminiModelInfo) -> super::DiscoveredModel {
+    let id = info.model_id().to_string();
+    let display_name = if info.display_name.trim().is_empty() {
+        id.clone()
+    } else {
+        info.display_name
+    };
+    super::DiscoveredModel::new(id, display_name)
+}
+
+pub fn default_model_catalog() -> Vec<super::DiscoveredModel> {
+    GEMINI_OAUTH_MODELS
+        .iter()
+        .map(|(id, name)| super::DiscoveredModel::new(*id, *name))
+        .collect()
+}
+
+fn fetch_models_blocking() -> anyhow::Result<Vec<super::DiscoveredModel>> {
+    let (tx, rx) = mpsc::sync_channel(1);
+    std::thread::spawn(move || {
+        let result = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(anyhow::Error::from)
+            .and_then(|rt| {
+                rt.block_on(async {
+                    let models = tokio::time::timeout(Duration::from_secs(8), list_models_oauth())
+                        .await
+                        .map_err(|_| anyhow::anyhow!("gemini-oauth model discovery timed out"))??;
+                    Ok(models
+                        .into_iter()
+                        .map(info_to_discovered_model)
+                        .collect::<Vec<_>>())
+                })
+            });
+        let _ = tx.send(result);
+    });
+
+    rx.recv()
+        .map_err(|err| anyhow::anyhow!("gemini-oauth model discovery worker failed: {err}"))?
+}
+
+pub fn live_models() -> anyhow::Result<Vec<super::DiscoveredModel>> {
+    let models = fetch_models_blocking()?;
+    info!(
+        model_count = models.len(),
+        "loaded gemini-oauth live models"
+    );
+    Ok(models)
+}
+
+pub fn available_models() -> Vec<super::DiscoveredModel> {
+    let fallback = default_model_catalog();
+    let discovered = match live_models() {
+        Ok(models) => models,
+        Err(err) => {
+            let msg = err.to_string();
+            if msg.contains("not logged in") || msg.contains("tokens not found") {
+                debug!(error = %err, "gemini-oauth not configured, using fallback catalog");
+            } else {
+                warn!(error = %err, "failed to fetch gemini-oauth models, using fallback catalog");
+            }
+            return fallback;
+        },
+    };
+
+    super::merge_discovered_with_fallback_catalog(discovered, fallback)
+}
+
+// ── Gemini API helpers ───────────────────────────────────────────────────────
 
 /// Convert JSON Schema types (lowercase) to Gemini types (uppercase).
 fn convert_json_schema_types(schema: &serde_json::Value) -> serde_json::Value {
@@ -359,10 +462,10 @@ fn to_gemini_messages(messages: &[&ChatMessage]) -> Vec<serde_json::Value> {
                     UserContent::Multimodal(parts) => parts
                         .iter()
                         .map(|p| match p {
-                            crate::model::ContentPart::Text(text) => {
+                            ContentPart::Text(text) => {
                                 serde_json::json!({ "text": text })
                             },
-                            crate::model::ContentPart::Image { media_type, data } => {
+                            ContentPart::Image { media_type, data } => {
                                 serde_json::json!({
                                     "inlineData": {
                                         "mimeType": media_type,
@@ -872,6 +975,8 @@ mod tests {
         let tokens = OAuthTokens {
             access_token: Secret::new("test".into()),
             refresh_token: None,
+            id_token: None,
+            account_id: None,
             expires_at: None,
         };
         assert!(!needs_token_refresh(&tokens));
@@ -888,6 +993,8 @@ mod tests {
         let tokens = OAuthTokens {
             access_token: Secret::new("test".into()),
             refresh_token: None,
+            id_token: None,
+            account_id: None,
             expires_at: Some(now - 600),
         };
         assert!(needs_token_refresh(&tokens));
@@ -904,6 +1011,8 @@ mod tests {
         let tokens = OAuthTokens {
             access_token: Secret::new("test".into()),
             refresh_token: None,
+            id_token: None,
+            account_id: None,
             expires_at: Some(now + 120),
         };
         assert!(needs_token_refresh(&tokens));
@@ -920,6 +1029,8 @@ mod tests {
         let tokens = OAuthTokens {
             access_token: Secret::new("test".into()),
             refresh_token: None,
+            id_token: None,
+            account_id: None,
             expires_at: Some(now + 3600),
         };
         assert!(!needs_token_refresh(&tokens));

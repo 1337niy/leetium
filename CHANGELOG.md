@@ -1591,13 +1591,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Google Gemini Provider**: Native Gemini API integration with two authentication methods:
-  - **API Key** (`gemini`): Direct authentication via `GEMINI_API_KEY` environment variable
-  - **OAuth** (`gemini-oauth`): Browser-based Authorization Code + PKCE flow where users authenticate with their Google account (API usage billed to user's account, not application developer)
-  - Full tool/function calling support with automatic JSON Schema type conversion
-  - Streaming via Server-Sent Events
-  - System instruction support
-  - All models support 1M token context window
+- **Google Gemini OAuth provider** (`gemini-oauth`): Added browser-based Authorization Code + PKCE authentication using Google accounts
+  - Integrates with provider setup UI and token storage
+  - Supports model discovery from Gemini OAuth credentials with fallback catalog
+  - API usage is billed to the authenticated user's Google account
 - **Voice Provider Management UI**: Configure TTS and STT providers from Settings > Voice
   - Auto-detection of API keys from environment variables and LLM provider configs
   - Toggle switches to enable/disable providers without removing configuration

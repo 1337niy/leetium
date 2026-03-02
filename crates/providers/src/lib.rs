@@ -21,6 +21,9 @@ pub mod github_copilot;
 #[cfg(feature = "provider-kimi-code")]
 pub mod kimi_code;
 
+#[cfg(feature = "provider-gemini-oauth")]
+pub mod gemini_oauth;
+
 #[cfg(feature = "local-llm")]
 pub mod local_gguf;
 
@@ -1265,6 +1268,11 @@ impl ProviderRegistry {
             reg.register_kimi_code_providers(config, env_overrides);
         }
 
+        #[cfg(feature = "provider-gemini-oauth")]
+        {
+            reg.register_gemini_oauth_providers(config);
+        }
+
         // Local GGUF providers (no API key needed, model runs locally)
         #[cfg(feature = "local-llm")]
         {
@@ -1510,6 +1518,42 @@ impl ProviderRegistry {
                 ModelInfo {
                     id: model_id,
                     provider: "kimi-code".into(),
+                    display_name,
+                    created_at,
+                },
+                provider,
+            );
+        }
+    }
+
+    #[cfg(feature = "provider-gemini-oauth")]
+    fn register_gemini_oauth_providers(&mut self, config: &ProvidersConfig) {
+        if !config.is_enabled("gemini-oauth") {
+            return;
+        }
+        if !gemini_oauth::has_stored_tokens() {
+            return;
+        }
+
+        let preferred = configured_models_for_provider(config, "gemini-oauth");
+        let discovered = if should_fetch_models(config, "gemini-oauth") {
+            gemini_oauth::available_models()
+        } else {
+            gemini_oauth::default_model_catalog()
+        };
+        let models = merge_preferred_and_discovered_models(preferred, discovered);
+
+        for model in models {
+            let (model_id, display_name, created_at) =
+                (model.id, model.display_name, model.created_at);
+            if self.has_provider_model("gemini-oauth", &model_id) {
+                continue;
+            }
+            let provider = Arc::new(gemini_oauth::GeminiOAuthProvider::new(model_id.clone()));
+            self.register(
+                ModelInfo {
+                    id: model_id,
+                    provider: "gemini-oauth".into(),
                     display_name,
                     created_at,
                 },
@@ -2672,6 +2716,26 @@ mod tests {
         assert!(
             provider.supports_tools(),
             "deepseek models must support tool calling"
+        );
+    }
+
+    #[cfg(feature = "provider-gemini-oauth")]
+    #[test]
+    fn gemini_oauth_not_registered_without_tokens() {
+        let mut config = ProvidersConfig::default();
+        config.providers.insert(
+            "gemini-oauth".into(),
+            moltis_config::schema::ProviderEntry {
+                enabled: true,
+                ..Default::default()
+            },
+        );
+
+        let reg = ProviderRegistry::from_env_with_config(&config);
+        assert!(
+            !reg.list_models()
+                .iter()
+                .any(|m| m.provider == "gemini-oauth")
         );
     }
 

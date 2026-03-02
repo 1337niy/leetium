@@ -763,6 +763,15 @@ pub fn known_providers() -> Vec<KnownProvider> {
             key_optional: false,
         },
         KnownProvider {
+            name: "gemini-oauth",
+            display_name: "Google Gemini (OAuth)",
+            auth_type: AuthType::Oauth,
+            env_key: None,
+            default_base_url: None,
+            requires_model: false,
+            key_optional: false,
+        },
+        KnownProvider {
             name: "groq",
             display_name: "Groq",
             auth_type: AuthType::ApiKey,
@@ -3720,6 +3729,7 @@ mod tests {
         assert!(names.contains(&"venice"), "missing venice");
         assert!(names.contains(&"ollama"), "missing ollama");
         // OAuth providers
+        assert!(names.contains(&"gemini-oauth"), "missing gemini-oauth");
         assert!(names.contains(&"github-copilot"), "missing github-copilot");
     }
 
@@ -3732,6 +3742,17 @@ mod tests {
             .expect("github-copilot not in known_providers");
         assert_eq!(copilot.auth_type, AuthType::Oauth);
         assert!(copilot.env_key.is_none());
+    }
+
+    #[test]
+    fn gemini_oauth_is_oauth_provider() {
+        let providers = known_providers();
+        let gemini_oauth = providers
+            .iter()
+            .find(|p| p.name == "gemini-oauth")
+            .expect("gemini-oauth not in known_providers");
+        assert_eq!(gemini_oauth.auth_type, AuthType::Oauth);
+        assert!(gemini_oauth.env_key.is_none());
     }
 
     #[test]

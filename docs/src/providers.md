@@ -27,6 +27,7 @@ Configure providers through the web UI or directly in configuration files.
 
 | Provider | Config Name | Notes |
 |----------|-------------|-------|
+| **Google Gemini (OAuth)** | `gemini-oauth` | Browser OAuth flow with Google account |
 | **OpenAI Codex** | `openai-codex` | OAuth flow via web UI |
 | **GitHub Copilot** | `github-copilot` | Requires active Copilot subscription |
 
@@ -119,6 +120,16 @@ models = ["gemini-2.5-flash-preview-05-20", "gemini-2.0-flash"]
 ```
 
 Gemini supports native tool calling, vision/multimodal inputs, streaming, and automatic model discovery.
+
+### Google Gemini (OAuth)
+
+Gemini OAuth uses browser-based OAuth authentication with your Google account.
+
+1. Go to **Settings** → **Providers** → **Google Gemini (OAuth)**.
+2. Click **Connect**.
+3. Complete the Google OAuth flow.
+
+See [Google Gemini](gemini.md) for full OAuth setup details and troubleshooting.
 
 ### Anthropic
 

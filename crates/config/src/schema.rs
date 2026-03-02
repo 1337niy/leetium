@@ -1929,7 +1929,10 @@ pub struct ProvidersConfig {
     pub offered: Vec<String>,
 
     /// Provider-specific settings keyed by provider name.
-    /// Known keys: "anthropic", "openai", "gemini", "groq", "xai", "deepseek"
+    /// Known keys include "anthropic", "openai", "gemini", "gemini-oauth",
+    /// "groq", "xai", "deepseek", "mistral", "openrouter", "cerebras",
+    /// "minimax", "moonshot", "venice", "ollama", "lmstudio",
+    /// "openai-codex", "github-copilot", and "kimi-code".
     #[serde(flatten)]
     pub providers: HashMap<String, ProviderEntry>,
 

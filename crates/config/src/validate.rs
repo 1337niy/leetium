@@ -88,6 +88,7 @@ const KNOWN_PROVIDER_NAMES: &[&str] = &[
     "anthropic",
     "openai",
     "gemini",
+    "gemini-oauth",
     "groq",
     "xai",
     "deepseek",
@@ -99,6 +100,9 @@ const KNOWN_PROVIDER_NAMES: &[&str] = &[
     "venice",
     "ollama",
     "lmstudio",
+    "openai-codex",
+    "github-copilot",
+    "kimi-code",
 ];
 
 /// Static metadata keys allowed directly under `[providers]`.
