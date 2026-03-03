@@ -1191,6 +1191,8 @@ pub struct GatewayServices {
     pub project: Arc<dyn ProjectService>,
     pub local_llm: Arc<dyn LocalLlmService>,
     pub network_audit: Arc<dyn crate::network_audit::NetworkAuditService>,
+    /// Optional channel registry for direct plugin access (thread context, etc.).
+    pub channel_registry: Option<Arc<moltis_channels::ChannelRegistry>>,
     /// Optional channel outbound for sending replies back to channels.
     channel_outbound: Option<Arc<dyn moltis_channels::ChannelOutbound>>,
     /// Optional channel stream outbound for edit-in-place channel streaming.
@@ -1203,6 +1205,8 @@ pub struct GatewayServices {
     pub session_share_store: Option<Arc<crate::share_store::ShareStore>>,
     /// Optional agent persona store for multi-agent support.
     pub agent_persona_store: Option<Arc<crate::agent_persona::AgentPersonaStore>>,
+    /// Shared agents config (presets) for spawn_agent and RPC sync.
+    pub agents_config: Option<Arc<tokio::sync::RwLock<moltis_config::AgentsConfig>>>,
 }
 
 impl GatewayServices {
@@ -1223,6 +1227,14 @@ impl GatewayServices {
 
     pub fn with_provider_setup(mut self, ps: Arc<dyn ProviderSetupService>) -> Self {
         self.provider_setup = ps;
+        self
+    }
+
+    pub fn with_channel_registry(
+        mut self,
+        registry: Arc<moltis_channels::ChannelRegistry>,
+    ) -> Self {
+        self.channel_registry = Some(registry);
         self
     }
 
@@ -1278,12 +1290,14 @@ impl GatewayServices {
             project: Arc::new(NoopProjectService),
             local_llm: Arc::new(NoopLocalLlmService),
             network_audit: Arc::new(crate::network_audit::NoopNetworkAuditService),
+            channel_registry: None,
             channel_outbound: None,
             channel_stream_outbound: None,
             session_metadata: None,
             session_store: None,
             session_share_store: None,
             agent_persona_store: None,
+            agents_config: None,
         }
     }
 
@@ -1333,6 +1347,14 @@ impl GatewayServices {
         store: Arc<crate::agent_persona::AgentPersonaStore>,
     ) -> Self {
         self.agent_persona_store = Some(store);
+        self
+    }
+
+    pub fn with_agents_config(
+        mut self,
+        agents_config: Arc<tokio::sync::RwLock<moltis_config::AgentsConfig>>,
+    ) -> Self {
+        self.agents_config = Some(agents_config);
         self
     }
 

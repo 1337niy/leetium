@@ -2508,6 +2508,7 @@ impl LiveChatService {
 
 #[async_trait]
 impl ChatService for LiveChatService {
+    #[tracing::instrument(skip(self, params), fields(session_id))]
     async fn send(&self, mut params: Value) -> ServiceResult {
         // Support both text-only and multimodal content.
         // - "text": string → plain text message
@@ -7393,9 +7394,7 @@ async fn deliver_channel_replies_to_targets(
                         }
                     },
                 },
-                moltis_channels::ChannelType::MsTeams
-                | moltis_channels::ChannelType::Discord
-                | moltis_channels::ChannelType::Whatsapp => match tts_payload {
+                _ => match tts_payload {
                     Some(payload) => {
                         if let Err(e) = outbound
                             .send_media(&target.account_id, &target.chat_id, &payload, reply_to)
@@ -7824,34 +7823,29 @@ async fn send_screenshot_to_channels(
         let outbound = Arc::clone(&outbound);
         let payload = payload.clone();
         tasks.push(tokio::spawn(async move {
-            match target.channel_type {
-                moltis_channels::ChannelType::Telegram
-                | moltis_channels::ChannelType::MsTeams
-                | moltis_channels::ChannelType::Discord
-                | moltis_channels::ChannelType::Whatsapp => {
-                    let reply_to = target.message_id.as_deref();
-                    if let Err(e) = outbound
-                        .send_media(&target.account_id, &target.chat_id, &payload, reply_to)
-                        .await
-                    {
-                        warn!(
-                            account_id = target.account_id,
-                            chat_id = target.chat_id,
-                            "failed to send screenshot to channel: {e}"
-                        );
-                        // Notify the user of the error
-                        let error_msg = format!("⚠️ Failed to send screenshot: {e}");
-                        let _ = outbound
-                            .send_text(&target.account_id, &target.chat_id, &error_msg, reply_to)
-                            .await;
-                    } else {
-                        debug!(
-                            account_id = target.account_id,
-                            chat_id = target.chat_id,
-                            "sent screenshot to channel"
-                        );
-                    }
-                },
+            {
+                let reply_to = target.message_id.as_deref();
+                if let Err(e) = outbound
+                    .send_media(&target.account_id, &target.chat_id, &payload, reply_to)
+                    .await
+                {
+                    warn!(
+                        account_id = target.account_id,
+                        chat_id = target.chat_id,
+                        "failed to send screenshot to channel: {e}"
+                    );
+                    // Notify the user of the error
+                    let error_msg = format!("⚠️ Failed to send screenshot: {e}");
+                    let _ = outbound
+                        .send_text(&target.account_id, &target.chat_id, &error_msg, reply_to)
+                        .await;
+                } else {
+                    debug!(
+                        account_id = target.account_id,
+                        chat_id = target.chat_id,
+                        "sent screenshot to channel"
+                    );
+                }
             }
         }));
     }

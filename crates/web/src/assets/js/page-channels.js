@@ -38,6 +38,7 @@ var showAddTelegram = signal(false);
 var showAddTeams = signal(false);
 var showAddDiscord = signal(false);
 var showAddWhatsApp = signal(false);
+var showAddSlack = signal(false);
 var editingChannel = signal(null);
 var sendersAccount = signal("");
 
@@ -56,7 +57,40 @@ function channelLabel(type) {
 	if (t === "msteams") return "Microsoft Teams";
 	if (t === "discord") return "Discord";
 	if (t === "whatsapp") return "WhatsApp";
+	if (t === "slack") return "Slack";
 	return "Telegram";
+}
+
+function channelDescriptor(type) {
+	var descs = getGon("channel_descriptors") || [];
+	return descs.find((d) => d.channel_type === channelType(type)) || null;
+}
+
+var MODE_LABELS = {
+	none: "Send only",
+	polling: "Polling",
+	gateway_loop: "Gateway",
+	socket_mode: "Socket Mode",
+	webhook: "Webhook",
+};
+
+var MODE_HINTS = {
+	webhook: "Requires a publicly reachable URL. Configure your platform to send events to the endpoint shown below.",
+	polling: "Connects automatically via long-polling. No public URL needed.",
+	gateway_loop: "Maintains a persistent connection. No public URL needed.",
+	socket_mode: "Connects via Socket Mode. No public URL needed.",
+	none: "This channel is send-only and cannot receive inbound messages.",
+};
+
+function ConnectionModeHint({ type }) {
+	var desc = channelDescriptor(type);
+	if (!desc) return null;
+	var hint = MODE_HINTS[desc.capabilities.inbound_mode];
+	if (!hint) return null;
+	return html`<div class="text-xs text-[var(--muted)] mt-1 flex items-center gap-1">
+		<span class="tier-badge">${MODE_LABELS[desc.capabilities.inbound_mode]}</span>
+		<span>${hint}</span>
+	</div>`;
 }
 
 function senderSelectionKey(ch) {
@@ -134,6 +168,8 @@ function ChannelCard(props) {
 				? active.map((s) => `${s.label || s.key} (${s.messageCount} msgs)`).join(", ")
 				: "No active session";
 	}
+	var desc = channelDescriptor(ch.type);
+	var modeLabel = desc ? MODE_LABELS[desc.capabilities.inbound_mode] || desc.capabilities.inbound_mode : null;
 
 	return html`<div class="provider-card p-3 rounded-lg mb-2">
     <div class="flex items-center gap-2.5">
@@ -144,8 +180,10 @@ function ChannelCard(props) {
 	        <span class="text-sm text-[var(--text-strong)]">${ch.name || ch.account_id || channelLabel(ch.type)}</span>
         ${ch.details && html`<span class="text-xs text-[var(--muted)]">${ch.details}</span>`}
         ${sessionLine && html`<span class="text-xs text-[var(--muted)]">${sessionLine}</span>`}
+        ${channelType(ch.type) === "telegram" && ch.account_id && html`<a href="https://t.me/${ch.account_id}" target="_blank" class="text-xs text-[var(--accent)] underline">t.me/${ch.account_id}</a>`}
       </div>
       <span class="provider-item-badge ${statusClass}">${ch.status || "unknown"}</span>
+      ${modeLabel && html`<span class="tier-badge">${modeLabel}</span>`}
     </div>
     <div class="flex gap-2">
       <button class="provider-btn provider-btn-sm provider-btn-secondary" title="Edit ${ch.account_id || "channel"}"
@@ -187,6 +225,15 @@ function ConnectButtons() {
 				if (connected.value) showAddDiscord.value = true;
 			}}>
 			<span class="icon icon-discord"></span> Connect Discord
+		</button>`
+		}
+		${
+			offered.has("slack") &&
+			html`<button class="provider-btn provider-btn-secondary inline-flex items-center gap-1.5"
+			onClick=${() => {
+				if (connected.value) showAddSlack.value = true;
+			}}>
+			<span class="icon icon-slack"></span> Connect Slack
 		</button>`
 		}
 		${
@@ -433,6 +480,7 @@ function AddTelegramModal() {
 	          <div class="text-xs text-[var(--muted)]">3. Copy the bot token and paste it below</div>
 	        </div>
 	      </div>
+	      <${ConnectionModeHint} type="telegram" />
 	      <label class="text-xs text-[var(--muted)]">Bot username</label>
 	      <input data-field="accountId" type="text" placeholder="e.g. my_assistant_bot"
 	        value=${accountDraft.value}
@@ -444,6 +492,13 @@ function AddTelegramModal() {
 	      <input data-field="credential" type="password" placeholder="123456:ABC-DEF..." class="channel-input"
 	        autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false"
 	        name="telegram_bot_token" />
+	      ${
+					accountDraft.value.trim() &&
+					html`<div class="flex items-center gap-1.5 text-xs py-1">
+	        <span class="text-[var(--muted)]">Chat with your bot:</span>
+	        <a href="https://t.me/${accountDraft.value.trim()}" target="_blank" class="text-[var(--accent)] underline">t.me/${accountDraft.value.trim()}</a>
+	      </div>`
+				}
 	      <${SharedChannelFields} addModel=${addModel} allowlistItems=${allowlistItems} />
 	      ${error.value && html`<div class="text-xs text-[var(--error)] channel-error block">${error.value}</div>`}
 	      <button class="provider-btn" onClick=${onSubmit} disabled=${saving.value}>
@@ -556,6 +611,7 @@ function AddTeamsModal() {
 	          <div class="text-xs text-[var(--muted)]">3. Optional CLI shortcut: <code>moltis channels teams bootstrap</code>.</div>
 	        </div>
 	      </div>
+	      <${ConnectionModeHint} type="msteams" />
 	      <label class="text-xs text-[var(--muted)]">App ID / Account ID</label>
 	      <input data-field="accountId" type="text" placeholder="Azure App ID or alias"
 	        value=${accountDraft.value}
@@ -689,6 +745,7 @@ function AddDiscordModal() {
 	          <div class="text-xs text-[var(--muted)]">5. You can also DM the bot directly without adding it to a server</div>
 	        </div>
 	      </div>
+	      <${ConnectionModeHint} type="discord" />
 	      <label class="text-xs text-[var(--muted)]">Account ID</label>
 	      <input data-field="accountId" type="text" placeholder="e.g. my-discord-bot"
 	        value=${accountDraft.value}
@@ -716,6 +773,162 @@ function AddDiscordModal() {
 	      ${error.value && html`<div class="text-xs text-[var(--error)] channel-error block">${error.value}</div>`}
 	      <button class="provider-btn" onClick=${onSubmit} disabled=${saving.value}>
 	        ${saving.value ? "Connecting\u2026" : "Connect Discord"}
+	      </button>
+	    </div>
+	  </${Modal}>`;
+}
+
+// ── Add Slack modal ──────────────────────────────────────────
+function AddSlackModal() {
+	var error = useSignal("");
+	var saving = useSignal(false);
+	var addModel = useSignal("");
+	var allowlistItems = useSignal([]);
+	var channelAllowlistItems = useSignal([]);
+	var accountDraft = useSignal("");
+	var botTokenDraft = useSignal("");
+	var appTokenDraft = useSignal("");
+	var connectionMode = useSignal("socket_mode");
+	var signingSecretDraft = useSignal("");
+
+	function onSubmit(e) {
+		e.preventDefault();
+		var form = e.target.closest(".channel-form");
+		var accountId = accountDraft.value.trim();
+		var botToken = botTokenDraft.value.trim();
+		if (!accountId) {
+			error.value = "Account ID is required.";
+			return;
+		}
+		if (!botToken) {
+			error.value = "Bot Token is required.";
+			return;
+		}
+		if (connectionMode.value === "socket_mode" && !appTokenDraft.value.trim()) {
+			error.value = "App Token is required for Socket Mode.";
+			return;
+		}
+		if (connectionMode.value === "events_api" && !signingSecretDraft.value.trim()) {
+			error.value = "Signing Secret is required for Events API mode.";
+			return;
+		}
+		error.value = "";
+		saving.value = true;
+		var addConfig = {
+			bot_token: botToken,
+			app_token: appTokenDraft.value.trim(),
+			connection_mode: connectionMode.value,
+			dm_policy: form.querySelector("[data-field=dmPolicy]").value,
+			group_policy: form.querySelector("[data-field=groupPolicy]")?.value || "open",
+			mention_mode: form.querySelector("[data-field=mentionMode]").value,
+			allowlist: allowlistItems.value,
+			channel_allowlist: channelAllowlistItems.value,
+		};
+		if (connectionMode.value === "events_api") {
+			addConfig.signing_secret = signingSecretDraft.value.trim();
+		}
+		if (addModel.value) {
+			addConfig.model = addModel.value;
+			var found = modelsSig.value.find((x) => x.id === addModel.value);
+			if (found?.provider) addConfig.model_provider = found.provider;
+		}
+		addChannel("slack", accountId, addConfig).then((res) => {
+			saving.value = false;
+			if (res?.ok) {
+				showAddSlack.value = false;
+				addModel.value = "";
+				allowlistItems.value = [];
+				channelAllowlistItems.value = [];
+				accountDraft.value = "";
+				botTokenDraft.value = "";
+				appTokenDraft.value = "";
+				signingSecretDraft.value = "";
+				connectionMode.value = "socket_mode";
+				loadChannels();
+			} else {
+				error.value = (res?.error && (res.error.message || res.error.detail)) || "Failed to connect Slack.";
+			}
+		});
+	}
+
+	return html`<${Modal} show=${showAddSlack.value} onClose=${() => {
+		showAddSlack.value = false;
+	}}
+	    title="Connect Slack">
+	    <div class="channel-form">
+	      <div class="channel-card">
+	        <div>
+	          <span class="text-xs font-medium text-[var(--text-strong)]">How to set up a Slack bot</span>
+	          <div class="text-xs text-[var(--muted)] channel-help">1. Go to <a href="https://api.slack.com/apps" target="_blank" class="text-[var(--accent)] underline">api.slack.com/apps</a> and create a new app</div>
+	          <div class="text-xs text-[var(--muted)]">2. Under OAuth & Permissions, add bot scopes: <code class="text-[var(--accent)]">chat:write</code>, <code class="text-[var(--accent)]">channels:history</code>, <code class="text-[var(--accent)]">im:history</code>, <code class="text-[var(--accent)]">app_mentions:read</code></div>
+	          <div class="text-xs text-[var(--muted)]">3. Install the app to your workspace and copy the Bot User OAuth Token</div>
+	          <div class="text-xs text-[var(--muted)]">4. For Socket Mode: enable Socket Mode and generate an App-Level Token with <code class="text-[var(--accent)]">connections:write</code> scope</div>
+	          <div class="text-xs text-[var(--muted)]">5. For Events API: set the Request URL to your server\u2019s webhook endpoint</div>
+	        </div>
+	      </div>
+	      <${ConnectionModeHint} type="slack" />
+	      <label class="text-xs text-[var(--muted)]">Account ID</label>
+	      <input data-field="accountId" type="text" placeholder="e.g. my-slack-bot"
+	        value=${accountDraft.value}
+	        onInput=${(e) => {
+						accountDraft.value = e.target.value;
+					}}
+	        class="channel-input" />
+	      <label class="text-xs text-[var(--muted)]">Bot Token (xoxb-...)</label>
+	      <input data-field="botToken" type="password" placeholder="xoxb-..." class="channel-input"
+	        value=${botTokenDraft.value}
+	        onInput=${(e) => {
+						botTokenDraft.value = e.target.value;
+					}}
+	        autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" />
+	      <label class="text-xs text-[var(--muted)]">Connection Mode</label>
+	      <select data-field="connectionMode" class="channel-select"
+	        value=${connectionMode.value}
+	        onChange=${(e) => {
+						connectionMode.value = e.target.value;
+					}}>
+	        <option value="socket_mode">Socket Mode (recommended)</option>
+	        <option value="events_api">Events API (HTTP webhook)</option>
+	      </select>
+	      ${
+					connectionMode.value === "socket_mode" &&
+					html`
+	        <label class="text-xs text-[var(--muted)]">App Token (xapp-...)</label>
+	        <input data-field="appToken" type="password" placeholder="xapp-..." class="channel-input"
+	          value=${appTokenDraft.value}
+	          onInput=${(e) => {
+							appTokenDraft.value = e.target.value;
+						}}
+	          autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" />
+	      `
+				}
+	      ${
+					connectionMode.value === "events_api" &&
+					html`
+	        <label class="text-xs text-[var(--muted)]">Signing Secret</label>
+	        <input data-field="signingSecret" type="password" placeholder="Signing secret from Basic Information" class="channel-input"
+	          value=${signingSecretDraft.value}
+	          onInput=${(e) => {
+							signingSecretDraft.value = e.target.value;
+						}}
+	          autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" />
+	      `
+				}
+	      <label class="text-xs text-[var(--muted)]">Group/Channel Policy</label>
+	      <select data-field="groupPolicy" class="channel-select">
+	        <option value="open">Open (respond in any channel)</option>
+	        <option value="allowlist">Channel allowlist only</option>
+	        <option value="disabled">Disabled (no channel messages)</option>
+	      </select>
+	      <${SharedChannelFields} addModel=${addModel} allowlistItems=${allowlistItems} />
+	      <label class="text-xs text-[var(--muted)]">Channel Allowlist (Slack channel IDs)</label>
+	      <${AllowlistInput} value=${channelAllowlistItems.value}
+	        onChange=${(items) => {
+						channelAllowlistItems.value = items;
+					}} />
+	      ${error.value && html`<div class="text-xs text-[var(--error)] channel-error block">${error.value}</div>`}
+	      <button class="provider-btn" onClick=${onSubmit} disabled=${saving.value}>
+	        ${saving.value ? "Connecting\u2026" : "Connect Slack"}
 	      </button>
 	    </div>
 	  </${Modal}>`;
@@ -832,6 +1045,7 @@ function AddWhatsAppModal() {
             <div class="text-xs text-[var(--muted)]">4. Scan the QR code to connect</div>
           </div>
         </div>
+        <${ConnectionModeHint} type="whatsapp" />
         <label class="text-xs text-[var(--muted)]">Account ID</label>
         <input data-field="accountId" type="text" placeholder="e.g. my-whatsapp" class="channel-input"
           value=${accountDraft.value}
@@ -948,6 +1162,7 @@ function EditChannelModal() {
 	}} title=${`Edit ${channelLabel(ch.type)} Channel`}>
 	    <div class="channel-form">
 	      <div class="text-sm text-[var(--text-strong)]">${ch.name || ch.account_id}</div>
+	      ${isTelegram && ch.account_id && html`<a href="https://t.me/${ch.account_id}" target="_blank" class="text-xs text-[var(--accent)] underline">t.me/${ch.account_id}</a>`}
 	      ${
 					isTeams &&
 					html`<div>
@@ -1090,6 +1305,7 @@ function ChannelsPage() {
     <${AddTelegramModal} />
     <${AddTeamsModal} />
     <${AddDiscordModal} />
+    <${AddSlackModal} />
     <${AddWhatsAppModal} />
     <${EditChannelModal} />
     <${ConfirmDialog} />

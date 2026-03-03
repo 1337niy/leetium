@@ -66,10 +66,7 @@ use crate::{
     services::GatewayServices,
     session::LiveSessionService,
     state::GatewayState,
-    update_check::{
-        UPDATE_CHECK_INTERVAL, fetch_update_availability, github_latest_release_api_url,
-        resolve_repository_url,
-    },
+    update_check::{UPDATE_CHECK_INTERVAL, fetch_update_availability, resolve_releases_url},
     ws::handle_connection,
 };
 
@@ -2360,10 +2357,15 @@ pub async fn prepare_gateway(
     // Session service is wired after hook registry is built (below).
 
     let msteams_webhook_plugin: Arc<tokio::sync::RwLock<moltis_msteams::MsTeamsPlugin>>;
+    #[cfg(feature = "slack")]
+    let slack_webhook_plugin: Arc<tokio::sync::RwLock<moltis_slack::SlackPlugin>>;
 
-    // Wire channel store and channel plugins.
+    // Wire channel store, registry, and channel plugins.
     {
-        use moltis_channels::store::ChannelStore;
+        use moltis_channels::{
+            registry::{ChannelRegistry, RegistryOutboundRouter},
+            store::ChannelStore,
+        };
 
         let channel_store: Arc<dyn ChannelStore> = Arc::new(
             crate::channel_store::SqliteChannelStore::new(db_pool.clone()),
@@ -2372,82 +2374,95 @@ pub async fn prepare_gateway(
         let channel_sink: Arc<dyn moltis_channels::ChannelEventSink> = Arc::new(
             crate::channel_events::GatewayChannelEventSink::new(Arc::clone(&deferred_state)),
         );
+
+        // Create plugins and register with the registry.
+        let mut registry = ChannelRegistry::new();
+
         let tg_plugin = Arc::new(tokio::sync::RwLock::new(
             moltis_telegram::TelegramPlugin::new()
                 .with_message_log(Arc::clone(&message_log))
                 .with_event_sink(Arc::clone(&channel_sink)),
         ));
+        registry
+            .register(tg_plugin as Arc<tokio::sync::RwLock<dyn ChannelPlugin>>)
+            .await;
+
         let msteams_plugin = Arc::new(tokio::sync::RwLock::new(
             moltis_msteams::MsTeamsPlugin::new()
                 .with_message_log(Arc::clone(&message_log))
                 .with_event_sink(Arc::clone(&channel_sink)),
         ));
         msteams_webhook_plugin = Arc::clone(&msteams_plugin);
+        registry
+            .register(msteams_plugin as Arc<tokio::sync::RwLock<dyn ChannelPlugin>>)
+            .await;
+
         let discord_plugin = Arc::new(tokio::sync::RwLock::new(
             moltis_discord::DiscordPlugin::new()
                 .with_message_log(Arc::clone(&message_log))
                 .with_event_sink(Arc::clone(&channel_sink)),
         ));
+        registry
+            .register(discord_plugin as Arc<tokio::sync::RwLock<dyn ChannelPlugin>>)
+            .await;
 
         #[cfg(feature = "whatsapp")]
-        let whatsapp_plugin = {
+        {
             let wa_data_dir = data_dir.join("whatsapp");
             if let Err(e) = std::fs::create_dir_all(&wa_data_dir) {
                 tracing::warn!("failed to create whatsapp data dir: {e}");
             }
-            Arc::new(tokio::sync::RwLock::new(
+            let whatsapp_plugin = Arc::new(tokio::sync::RwLock::new(
                 moltis_whatsapp::WhatsAppPlugin::new(wa_data_dir)
                     .with_message_log(Arc::clone(&message_log))
-                    .with_event_sink(channel_sink),
-            ))
-        };
+                    .with_event_sink(Arc::clone(&channel_sink)),
+            ));
+            registry
+                .register(whatsapp_plugin as Arc<tokio::sync::RwLock<dyn ChannelPlugin>>)
+                .await;
+        }
         #[cfg(not(feature = "whatsapp"))]
-        let _ = channel_sink; // consume unused channel_sink
+        let _ = &channel_sink; // silence unused warning
 
-        // Start channels from config file (these take precedence over DB rows).
+        #[cfg(feature = "slack")]
+        {
+            let slack_plugin = Arc::new(tokio::sync::RwLock::new(
+                moltis_slack::SlackPlugin::new()
+                    .with_message_log(Arc::clone(&message_log))
+                    .with_event_sink(Arc::clone(&channel_sink)),
+            ));
+            slack_webhook_plugin = Arc::clone(&slack_plugin);
+            registry
+                .register(slack_plugin as Arc<tokio::sync::RwLock<dyn ChannelPlugin>>)
+                .await;
+        }
+
+        // Generic config startup loop — one loop for all channel types.
         let mut started: HashSet<(String, String)> = HashSet::new();
 
-        {
-            let mut tg = tg_plugin.write().await;
-            for (account_id, account_config) in &config.channels.telegram {
-                if let Err(e) = tg.start_account(account_id, account_config.clone()).await {
-                    tracing::warn!(account_id, "failed to start telegram account: {e}");
-                } else {
-                    started.insert(("telegram".into(), account_id.clone()));
+        for (channel_type, accounts) in config.channels.all_channel_configs() {
+            // Skip channel types that have no registered plugin.
+            if registry.get(channel_type).is_none() {
+                if !accounts.is_empty() {
+                    tracing::debug!(
+                        channel_type,
+                        "skipping config — no plugin registered for this channel type"
+                    );
                 }
+                continue;
             }
-        }
-
-        {
-            let mut ms = msteams_plugin.write().await;
-            for (account_id, account_config) in &config.channels.msteams {
-                if let Err(e) = ms.start_account(account_id, account_config.clone()).await {
-                    tracing::warn!(account_id, "failed to start microsoft teams account: {e}");
+            for (account_id, account_config) in accounts {
+                if let Err(e) = registry
+                    .start_account(channel_type, account_id, account_config.clone())
+                    .await
+                {
+                    tracing::warn!(
+                        account_id,
+                        channel_type,
+                        "failed to start channel account: {e}"
+                    );
                 } else {
-                    started.insert(("msteams".into(), account_id.clone()));
-                }
-            }
-        }
-
-        {
-            let mut dc = discord_plugin.write().await;
-            for (account_id, account_config) in &config.channels.discord {
-                if let Err(e) = dc.start_account(account_id, account_config.clone()).await {
-                    tracing::warn!(account_id, "failed to start discord account: {e}");
-                } else {
-                    started.insert(("discord".into(), account_id.clone()));
-                }
-            }
-        }
-
-        #[cfg(feature = "whatsapp")]
-        {
-            let mut wa = whatsapp_plugin.write().await;
-            for (account_id, account_config) in &config.channels.whatsapp {
-                if let Err(e) = wa.start_account(account_id, account_config.clone()).await {
-                    tracing::warn!(account_id, "failed to start whatsapp account: {e}");
-                } else {
-                    started.insert(("whatsapp".into(), account_id.clone()));
+                    started.insert((channel_type.to_string(), account_id.clone()));
                 }
             }
         }
@@ -2467,42 +2482,25 @@ pub async fn prepare_gateway(
                         continue;
                     }
 
+                    // Only start if the channel type is registered.
+                    if registry.get(&ch.channel_type).is_none() {
+                        tracing::warn!(
+                            account_id = ch.account_id,
+                            channel_type = ch.channel_type,
+                            "unsupported channel type, skipping stored account"
+                        );
+                        continue;
+                    }
+
                     info!(
                         account_id = ch.account_id,
                         channel_type = ch.channel_type,
                         "starting stored channel"
                     );
-                    let start_result = match ch.channel_type.parse::<moltis_channels::ChannelType>()
+                    if let Err(e) = registry
+                        .start_account(&ch.channel_type, &ch.account_id, ch.config)
+                        .await
                     {
-                        Ok(moltis_channels::ChannelType::Telegram) => {
-                            let mut tg = tg_plugin.write().await;
-                            tg.start_account(&ch.account_id, ch.config).await
-                        },
-                        Ok(moltis_channels::ChannelType::MsTeams) => {
-                            let mut ms = msteams_plugin.write().await;
-                            ms.start_account(&ch.account_id, ch.config).await
-                        },
-                        Ok(moltis_channels::ChannelType::Discord) => {
-                            let mut dc = discord_plugin.write().await;
-                            dc.start_account(&ch.account_id, ch.config).await
-                        },
-                        #[cfg(feature = "whatsapp")]
-                        Ok(moltis_channels::ChannelType::Whatsapp) => {
-                            let mut wa = whatsapp_plugin.write().await;
-                            wa.start_account(&ch.account_id, ch.config).await
-                        },
-                        #[cfg(not(feature = "whatsapp"))]
-                        Ok(moltis_channels::ChannelType::Whatsapp) => {
-                            tracing::warn!(
-                                account_id = ch.account_id,
-                                "whatsapp feature not enabled, skipping stored account"
-                            );
-                            continue;
-                        },
-                        Err(e) => Err(moltis_channels::Error::invalid_input(e)),
-                    };
-
-                    if let Err(e) = start_result {
                         tracing::warn!(
                             account_id = ch.account_id,
                             channel_type = ch.channel_type,
@@ -2520,55 +2518,18 @@ pub async fn prepare_gateway(
             info!("{} channel account(s) started", started.len());
         }
 
-        let (tg_outbound, tg_stream_outbound) = {
-            let tg = tg_plugin.read().await;
-            (tg.shared_outbound(), tg.shared_stream_outbound())
-        };
-        let (ms_outbound, ms_stream_outbound) = {
-            let ms = msteams_plugin.read().await;
-            (ms.shared_outbound(), ms.shared_stream_outbound())
-        };
-        let (dc_outbound, dc_stream_outbound) = {
-            let dc = discord_plugin.read().await;
-            (dc.shared_outbound(), dc.shared_stream_outbound())
-        };
-        #[cfg(feature = "whatsapp")]
-        let (wa_outbound, wa_stream_outbound) = {
-            let wa = whatsapp_plugin.read().await;
-            (wa.shared_outbound(), wa.shared_stream_outbound())
-        };
+        let registry = Arc::new(registry);
+        let router = Arc::new(RegistryOutboundRouter::new(Arc::clone(&registry)));
 
-        let multi_router = Arc::new(crate::channel_outbound::MultiChannelOutbound::new(
-            Arc::clone(&tg_plugin),
-            Arc::clone(&msteams_plugin),
-            Arc::clone(&discord_plugin),
-            #[cfg(feature = "whatsapp")]
-            Arc::clone(&whatsapp_plugin),
-            tg_outbound,
-            ms_outbound,
-            dc_outbound,
-            #[cfg(feature = "whatsapp")]
-            wa_outbound,
-            tg_stream_outbound,
-            ms_stream_outbound,
-            dc_stream_outbound,
-            #[cfg(feature = "whatsapp")]
-            wa_stream_outbound,
-        ));
-
-        let outbound_router =
-            Arc::clone(&multi_router) as Arc<dyn moltis_channels::ChannelOutbound>;
+        services = services.with_channel_registry(Arc::clone(&registry));
+        let outbound_router = Arc::clone(&router) as Arc<dyn moltis_channels::ChannelOutbound>;
         services = services.with_channel_outbound(Arc::clone(&outbound_router));
         services = services.with_channel_stream_outbound(
-            multi_router as Arc<dyn moltis_channels::ChannelStreamOutbound>,
+            router as Arc<dyn moltis_channels::ChannelStreamOutbound>,
         );
 
         services.channel = Arc::new(crate::channel::LiveChannelService::new(
-            tg_plugin,
-            msteams_plugin,
-            discord_plugin,
-            #[cfg(feature = "whatsapp")]
-            whatsapp_plugin,
+            registry,
             outbound_router,
             channel_store,
             Arc::clone(&message_log),
@@ -2581,6 +2542,25 @@ pub async fn prepare_gateway(
     services = services.with_session_share_store(Arc::clone(&session_share_store));
 
     services = services.with_agent_persona_store(Arc::clone(&agent_persona_store));
+
+    // Shared agents config (presets) — used by both SpawnAgentTool and RPC.
+    let agents_config = Arc::new(tokio::sync::RwLock::new(config.agents.clone()));
+
+    // Sync persona identity into presets at startup so spawn_agent sees unified agents.
+    {
+        let personas = agent_persona_store.list().await;
+        if let Ok(personas) = personas {
+            let mut guard = agents_config.write().await;
+            for persona in &personas {
+                if persona.id == "main" {
+                    continue;
+                }
+                sync_persona_into_preset(&mut guard, persona);
+            }
+        }
+    }
+
+    services = services.with_agents_config(Arc::clone(&agents_config));
 
     // ── Hook discovery & registration ─────────────────────────────────────
     seed_default_workspace_markdown_files();
@@ -3448,7 +3428,6 @@ pub async fn prepare_gateway(
                     broadcast(&state, "chat", payload, BroadcastOpts::default()).await;
                 });
             });
-            let agents_config = Arc::new(tokio::sync::RwLock::new(config.agents.clone()));
             let spawn_tool = moltis_tools::spawn_agent::SpawnAgentTool::new(
                 Arc::clone(&registry),
                 default_provider,
@@ -3634,45 +3613,264 @@ pub async fn prepare_gateway(
 
     let mut app = finalize_gateway_app(router, app_state, config.server.http_request_logs);
 
-    app = app.route(
-        "/api/channels/msteams/{account_id}/webhook",
-        axum::routing::post(
-            move |axum::extract::Path(account_id): axum::extract::Path<String>,
-                  axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
-                  Json(payload): Json<serde_json::Value>| {
-                let teams_plugin = Arc::clone(&msteams_webhook_plugin);
-                async move {
-                    let secret = query.get("secret").map(String::as_str);
-                    let result = {
-                        let plugin = teams_plugin.read().await;
-                        plugin.ingest_activity(&account_id, payload, secret).await
-                    };
-                    match result {
-                        Ok(()) => (StatusCode::OK, Json(serde_json::json!({ "ok": true }))),
-                        Err(e) => {
-                            let msg = e.to_string();
-                            if msg.contains("invalid Teams webhook secret") {
-                                (
-                                    StatusCode::UNAUTHORIZED,
-                                    Json(serde_json::json!({ "ok": false, "error": msg })),
-                                )
-                            } else if msg.contains("unknown Teams account") {
-                                (
-                                    StatusCode::NOT_FOUND,
-                                    Json(serde_json::json!({ "ok": false, "error": msg })),
-                                )
-                            } else {
-                                (
-                                    StatusCode::BAD_REQUEST,
-                                    Json(serde_json::json!({ "ok": false, "error": msg })),
-                                )
-                            }
-                        },
+    {
+        let teams_plugin_for_webhook = Arc::clone(&msteams_webhook_plugin);
+        let state_for_teams_webhook = Arc::clone(&state);
+        app = app.route(
+            "/api/channels/msteams/{account_id}/webhook",
+            axum::routing::post(
+                move |axum::extract::Path(account_id): axum::extract::Path<String>,
+                      axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
+                      headers: axum::http::HeaderMap,
+                      body: axum::body::Bytes| {
+                    let teams_plugin = Arc::clone(&teams_plugin_for_webhook);
+                    let gw_state = Arc::clone(&state_for_teams_webhook);
+                    async move {
+                        // Get the verifier from the plugin.
+                        let verifier = {
+                            let plugin = teams_plugin.read().await;
+                            plugin.channel_webhook_verifier(&account_id)
+                        };
+                        let Some(verifier) = verifier else {
+                            return (
+                                StatusCode::NOT_FOUND,
+                                Json(serde_json::json!({ "ok": false, "error": "unknown Teams account" })),
+                            )
+                                .into_response();
+                        };
+
+                        // Inject query-param secret as header for the verifier.
+                        let mut merged_headers = headers;
+                        if let Some(secret) = query.get("secret")
+                            && let Ok(val) = secret.parse()
+                        {
+                            merged_headers.insert("x-moltis-webhook-secret", val);
+                        }
+
+                        // Run the middleware pipeline.
+                        match crate::channel_webhook_middleware::channel_webhook_gate(
+                            verifier.as_ref(),
+                            &gw_state.channel_webhook_dedup,
+                            &gw_state.channel_webhook_rate_limiter,
+                            &account_id,
+                            &merged_headers,
+                            &body,
+                        ) {
+                            Err(rejection) => {
+                                crate::channel_webhook_middleware::rejection_into_response(rejection)
+                            },
+                            Ok((_, moltis_channels::ChannelWebhookDedupeResult::Duplicate)) => (
+                                StatusCode::OK,
+                                Json(serde_json::json!({ "ok": true, "deduplicated": true })),
+                            )
+                                .into_response(),
+                            Ok((verified, moltis_channels::ChannelWebhookDedupeResult::New)) => {
+                                // Parse verified body and dispatch.
+                                let payload: serde_json::Value =
+                                    match serde_json::from_slice(&verified.body) {
+                                        Ok(v) => v,
+                                        Err(e) => {
+                                            return (
+                                                StatusCode::BAD_REQUEST,
+                                                Json(serde_json::json!({ "ok": false, "error": e.to_string() })),
+                                            )
+                                                .into_response();
+                                        },
+                                    };
+                                let result = {
+                                    let plugin = teams_plugin.read().await;
+                                    plugin
+                                        .ingest_verified_activity(&account_id, payload)
+                                        .await
+                                };
+                                match result {
+                                    Ok(()) => (
+                                        StatusCode::OK,
+                                        Json(serde_json::json!({ "ok": true })),
+                                    )
+                                        .into_response(),
+                                    Err(e) => {
+                                        let msg = e.to_string();
+                                        if msg.contains("unknown Teams account") {
+                                            (
+                                                StatusCode::NOT_FOUND,
+                                                Json(serde_json::json!({ "ok": false, "error": msg })),
+                                            )
+                                                .into_response()
+                                        } else {
+                                            (
+                                                StatusCode::BAD_REQUEST,
+                                                Json(serde_json::json!({ "ok": false, "error": msg })),
+                                            )
+                                                .into_response()
+                                        }
+                                    },
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        ),
-    );
+                },
+            ),
+        );
+    }
+
+    #[cfg(feature = "slack")]
+    {
+        // Slack Events API webhook — receives event callbacks.
+        let slack_events_plugin = Arc::clone(&slack_webhook_plugin);
+        let state_for_slack_events = Arc::clone(&state);
+        app = app.route(
+            "/api/channels/slack/{account_id}/events",
+            axum::routing::post(
+                move |axum::extract::Path(account_id): axum::extract::Path<String>,
+                      headers: axum::http::HeaderMap,
+                      body: axum::body::Bytes| {
+                    let plugin = Arc::clone(&slack_events_plugin);
+                    let gw_state = Arc::clone(&state_for_slack_events);
+                    async move {
+                        // Get the verifier from the plugin.
+                        let verifier = {
+                            let p = plugin.read().await;
+                            p.channel_webhook_verifier(&account_id)
+                        };
+                        let Some(verifier) = verifier else {
+                            return (
+                                StatusCode::NOT_FOUND,
+                                Json(serde_json::json!({ "ok": false, "error": "unknown Slack account" })),
+                            )
+                                .into_response();
+                        };
+
+                        // Run the middleware pipeline.
+                        match crate::channel_webhook_middleware::channel_webhook_gate(
+                            verifier.as_ref(),
+                            &gw_state.channel_webhook_dedup,
+                            &gw_state.channel_webhook_rate_limiter,
+                            &account_id,
+                            &headers,
+                            &body,
+                        ) {
+                            Err(rejection) => {
+                                crate::channel_webhook_middleware::rejection_into_response(rejection)
+                            },
+                            Ok((_, moltis_channels::ChannelWebhookDedupeResult::Duplicate)) => (
+                                StatusCode::OK,
+                                Json(serde_json::json!({ "ok": true, "deduplicated": true })),
+                            )
+                                .into_response(),
+                            Ok((verified, moltis_channels::ChannelWebhookDedupeResult::New)) => {
+                                // Dispatch to Slack plugin with verified body.
+                                let result = {
+                                    let p = plugin.read().await;
+                                    p.ingest_verified_webhook(&account_id, &verified.body)
+                                        .await
+                                };
+                                match result {
+                                    Ok(Some(challenge)) => (
+                                        StatusCode::OK,
+                                        Json(serde_json::json!({ "challenge": challenge })),
+                                    )
+                                        .into_response(),
+                                    Ok(None) => (
+                                        StatusCode::OK,
+                                        Json(serde_json::json!({ "ok": true })),
+                                    )
+                                        .into_response(),
+                                    Err(e) => {
+                                        let msg = e.to_string();
+                                        if msg.contains("unknown") {
+                                            (
+                                                StatusCode::NOT_FOUND,
+                                                Json(serde_json::json!({ "ok": false, "error": msg })),
+                                            )
+                                                .into_response()
+                                        } else {
+                                            (
+                                                StatusCode::BAD_REQUEST,
+                                                Json(serde_json::json!({ "ok": false, "error": msg })),
+                                            )
+                                                .into_response()
+                                        }
+                                    },
+                                }
+                            },
+                        }
+                    }
+                },
+            ),
+        );
+
+        // Slack interaction webhook — receives button click payloads.
+        let slack_interact_plugin = Arc::clone(&slack_webhook_plugin);
+        let state_for_slack_interact = Arc::clone(&state);
+        app = app.route(
+            "/api/channels/slack/{account_id}/interactions",
+            axum::routing::post(
+                move |axum::extract::Path(account_id): axum::extract::Path<String>,
+                      headers: axum::http::HeaderMap,
+                      body: axum::body::Bytes| {
+                    let plugin = Arc::clone(&slack_interact_plugin);
+                    let gw_state = Arc::clone(&state_for_slack_interact);
+                    async move {
+                        // Get the verifier from the plugin.
+                        let verifier = {
+                            let p = plugin.read().await;
+                            p.channel_webhook_verifier(&account_id)
+                        };
+                        let Some(verifier) = verifier else {
+                            return (
+                                StatusCode::NOT_FOUND,
+                                Json(serde_json::json!({ "ok": false, "error": "unknown Slack account" })),
+                            )
+                                .into_response();
+                        };
+
+                        // Run the middleware pipeline.
+                        match crate::channel_webhook_middleware::channel_webhook_gate(
+                            verifier.as_ref(),
+                            &gw_state.channel_webhook_dedup,
+                            &gw_state.channel_webhook_rate_limiter,
+                            &account_id,
+                            &headers,
+                            &body,
+                        ) {
+                            Err(rejection) => {
+                                crate::channel_webhook_middleware::rejection_into_response(rejection)
+                            },
+                            Ok((_, moltis_channels::ChannelWebhookDedupeResult::Duplicate)) => (
+                                StatusCode::OK,
+                                Json(serde_json::json!({ "ok": true, "deduplicated": true })),
+                            )
+                                .into_response(),
+                            Ok((verified, moltis_channels::ChannelWebhookDedupeResult::New)) => {
+                                // Dispatch to Slack plugin with verified body.
+                                let result = {
+                                    let p = plugin.read().await;
+                                    p.ingest_verified_interaction_webhook(
+                                        &account_id,
+                                        &verified.body,
+                                    )
+                                    .await
+                                };
+                                match result {
+                                    Ok(()) => (
+                                        StatusCode::OK,
+                                        Json(serde_json::json!({ "ok": true })),
+                                    )
+                                        .into_response(),
+                                    Err(e) => (
+                                        StatusCode::BAD_REQUEST,
+                                        Json(serde_json::json!({ "ok": false, "error": e.to_string() })),
+                                    )
+                                        .into_response(),
+                                }
+                            },
+                        }
+                    }
+                },
+            ),
+        );
+    }
 
     // Resolve TLS configuration (only when compiled with the `tls` feature).
     let tls_active = tls_enabled_for_gateway;
@@ -3815,25 +4013,10 @@ pub async fn prepare_gateway(
         });
     }
 
-    // Spawn periodic update check against latest GitHub release.
+    // Spawn periodic update check against releases manifest.
     let update_state = Arc::clone(&state);
-    let update_repository_url =
-        resolve_repository_url(config.server.update_repository_url.as_deref());
+    let releases_url = resolve_releases_url(config.server.update_releases_url.as_deref());
     tokio::spawn(async move {
-        let latest_release_api_url = match update_repository_url {
-            Some(repository_url) => match github_latest_release_api_url(&repository_url) {
-                Ok(url) => url,
-                Err(e) => {
-                    warn!("update checker disabled: {e}");
-                    return;
-                },
-            },
-            None => {
-                info!("update checker disabled: server.update_repository_url is not configured");
-                return;
-            },
-        };
-
         let client = match reqwest::Client::builder()
             .user_agent(format!("moltis-gateway/{}", update_state.version))
             .timeout(std::time::Duration::from_secs(12))
@@ -3849,31 +4032,24 @@ pub async fn prepare_gateway(
         let mut interval = tokio::time::interval(UPDATE_CHECK_INTERVAL);
         loop {
             interval.tick().await;
-            match fetch_update_availability(&client, &latest_release_api_url, &update_state.version)
-                .await
-            {
-                Ok(next) => {
-                    let changed = {
-                        let mut inner = update_state.inner.write().await;
-                        let update = &mut inner.update;
-                        if *update == next {
-                            false
-                        } else {
-                            *update = next.clone();
-                            true
-                        }
-                    };
-                    if changed && let Ok(payload) = serde_json::to_value(&next) {
-                        broadcast(&update_state, "update.available", payload, BroadcastOpts {
-                            drop_if_slow: true,
-                            ..Default::default()
-                        })
-                        .await;
-                    }
-                },
-                Err(e) => {
-                    warn!("failed to check latest release: {e}");
-                },
+            let next =
+                fetch_update_availability(&client, &releases_url, &update_state.version).await;
+            let changed = {
+                let mut inner = update_state.inner.write().await;
+                let update = &mut inner.update;
+                if *update == next {
+                    false
+                } else {
+                    *update = next.clone();
+                    true
+                }
+            };
+            if changed && let Ok(payload) = serde_json::to_value(&next) {
+                broadcast(&update_state, "update.available", payload, BroadcastOpts {
+                    drop_if_slow: true,
+                    ..Default::default()
+                })
+                .await;
             }
         }
     });
@@ -5101,6 +5277,32 @@ fn seed_skill_if_missing(name: &str, content: &str) {
     }
 }
 
+/// Merge a persona's identity into an `AgentsConfig` preset entry.
+///
+/// If a preset already exists for this persona, identity fields from the persona
+/// take precedence (name/emoji/theme) while TOML-defined fields (model, tools,
+/// timeout, etc.) are preserved. The soul is synced into `system_prompt_suffix`.
+pub(crate) fn sync_persona_into_preset(
+    agents: &mut moltis_config::AgentsConfig,
+    persona: &crate::agent_persona::AgentPersona,
+) {
+    let soul = moltis_config::load_soul_for_agent(&persona.id);
+
+    let entry = agents.presets.entry(persona.id.clone()).or_default();
+
+    // Persona identity always wins for name/emoji/theme.
+    entry.identity.name = Some(persona.name.clone());
+    entry.identity.emoji = persona.emoji.clone();
+    entry.identity.theme = persona.theme.clone();
+
+    // Sync soul into system_prompt_suffix if the persona has one.
+    if let Some(ref soul) = soul
+        && !soul.trim().is_empty()
+    {
+        entry.system_prompt_suffix = Some(soul.clone());
+    }
+}
+
 /// Seed default workspace markdown files in workspace root on first run.
 fn seed_default_workspace_markdown_files() {
     let data_dir = moltis_config::data_dir();
@@ -6065,5 +6267,61 @@ mod tests {
             env_value_with_overrides(&overrides, &unique_key).as_deref(),
             Some("override-value")
         );
+    }
+
+    #[test]
+    fn sync_persona_into_preset_creates_new_entry() {
+        let mut agents = moltis_config::AgentsConfig::default();
+        let persona = crate::agent_persona::AgentPersona {
+            id: "writer".into(),
+            name: "Creative Writer".into(),
+            is_default: false,
+            emoji: Some("\u{270d}\u{fe0f}".into()),
+            theme: Some("poetic".into()),
+            description: None,
+            created_at: 0,
+            updated_at: 0,
+        };
+
+        sync_persona_into_preset(&mut agents, &persona);
+
+        let preset = agents.presets.get("writer").expect("preset should exist");
+        assert_eq!(preset.identity.name.as_deref(), Some("Creative Writer"));
+        assert_eq!(preset.identity.emoji.as_deref(), Some("\u{270d}\u{fe0f}"));
+        assert_eq!(preset.identity.theme.as_deref(), Some("poetic"));
+    }
+
+    #[test]
+    fn sync_persona_preserves_existing_preset_fields() {
+        let mut agents = moltis_config::AgentsConfig::default();
+        let existing = moltis_config::AgentPreset {
+            model: Some("haiku".into()),
+            timeout_secs: Some(30),
+            tools: moltis_config::PresetToolPolicy {
+                deny: vec!["exec".into()],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        agents.presets.insert("coder".into(), existing);
+
+        let persona = crate::agent_persona::AgentPersona {
+            id: "coder".into(),
+            name: "Code Bot".into(),
+            is_default: false,
+            emoji: None,
+            theme: None,
+            description: None,
+            created_at: 0,
+            updated_at: 0,
+        };
+
+        sync_persona_into_preset(&mut agents, &persona);
+
+        let preset = agents.presets.get("coder").expect("preset should exist");
+        assert_eq!(preset.identity.name.as_deref(), Some("Code Bot"));
+        assert_eq!(preset.model.as_deref(), Some("haiku"));
+        assert_eq!(preset.timeout_secs, Some(30));
+        assert_eq!(preset.tools.deny, vec!["exec".to_string()]);
     }
 }

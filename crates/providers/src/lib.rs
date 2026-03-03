@@ -1,6 +1,8 @@
 //! LLM provider implementations and registry.
 
 pub mod anthropic;
+#[cfg(test)]
+pub mod contract;
 pub mod error;
 pub mod openai;
 pub mod openai_compat;
@@ -302,6 +304,9 @@ fn discover_ollama_models(base_url: &str) -> anyhow::Result<Vec<DiscoveredModel>
 struct OllamaShowResponse {
     #[serde(default)]
     details: OllamaModelDetails,
+    /// Ollama >= 0.5.x returns a list of model capabilities (e.g. `["tools"]`).
+    #[serde(default)]
+    capabilities: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, serde::Deserialize)]
@@ -352,6 +357,18 @@ fn ollama_model_supports_native_tools(model_name: &str, details: &OllamaModelDet
         .any(|known| name_lower.contains(known))
 }
 
+/// Check if Ollama's `capabilities` list indicates native tool support.
+///
+/// Returns `Some(true)` if `"tools"` is present, `Some(false)` if capabilities
+/// exist but don't include tools, and `None` if the list is empty (pre-0.5.x
+/// Ollama versions that don't report capabilities).
+fn ollama_capabilities_support_tools(capabilities: &[String]) -> Option<bool> {
+    if capabilities.is_empty() {
+        return None;
+    }
+    Some(capabilities.iter().any(|c| c == "tools"))
+}
+
 /// Probe the Ollama `/api/show` endpoint for a specific model to get its family
 /// and details. Returns `Ok(response)` on success, error on timeout/failure.
 async fn probe_ollama_model_info(
@@ -378,7 +395,9 @@ async fn probe_ollama_model_info(
 /// Resolve the effective tool mode for an Ollama model.
 ///
 /// - If the user configured an explicit `tool_mode`, use that.
-/// - Otherwise, probe the model and decide based on its family.
+/// - Otherwise, check the model's `capabilities` list from Ollama (>= 0.5.x).
+/// - Fall back to the hardcoded family whitelist only when capabilities are
+///   unavailable (pre-0.5.x Ollama).
 fn resolve_ollama_tool_mode(
     config_tool_mode: moltis_config::ToolMode,
     model_name: &str,
@@ -389,6 +408,17 @@ fn resolve_ollama_tool_mode(
     match config_tool_mode {
         ToolMode::Native | ToolMode::Text | ToolMode::Off => config_tool_mode,
         ToolMode::Auto => {
+            // Prefer Ollama's own capabilities field when available.
+            if let Some(resp) = probe_result
+                && let Some(supports) = ollama_capabilities_support_tools(&resp.capabilities)
+            {
+                return if supports {
+                    ToolMode::Native
+                } else {
+                    ToolMode::Text
+                };
+            }
+            // Fallback: family whitelist (pre-0.5.x Ollama without capabilities).
             let details = probe_result
                 .map(|r| &r.details)
                 .cloned()
@@ -788,6 +818,15 @@ struct OpenAiCompatDef {
     /// this to `false` so the static catalog is used without a noisy warning.
     /// Users can still override via `fetch_models = true` in config.
     supports_model_discovery: bool,
+    /// When `false`, a dummy API key (the provider name) is used if none is
+    /// configured. Intended for local servers that don't authenticate.
+    requires_api_key: bool,
+    /// Local-only providers (Ollama, LM Studio) are skipped unless the user
+    /// has an explicit `[providers.<name>]` entry, a `_BASE_URL` env var, or
+    /// configured models. This avoids probing localhost when nothing is running.
+    /// Also ensures model discovery is always attempted (never short-circuited
+    /// by the empty-catalog heuristic).
+    local_only: bool,
 }
 
 const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
@@ -798,6 +837,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.mistral.ai/v1",
         models: MISTRAL_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "openrouter",
@@ -806,6 +847,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://openrouter.ai/api/v1",
         models: &[],
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "cerebras",
@@ -814,6 +857,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.cerebras.ai/v1",
         models: CEREBRAS_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "minimax",
@@ -823,6 +868,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         models: MINIMAX_MODELS,
         // MiniMax API does not expose a /models endpoint (returns 404).
         supports_model_discovery: false,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "moonshot",
@@ -831,6 +878,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.moonshot.ai/v1",
         models: MOONSHOT_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "zai",
@@ -839,6 +888,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.z.ai/api/paas/v4",
         models: ZAI_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "venice",
@@ -847,6 +898,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.venice.ai/api/v1",
         models: &[],
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "deepseek",
@@ -855,6 +908,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://api.deepseek.com",
         models: DEEPSEEK_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
     OpenAiCompatDef {
         config_name: "ollama",
@@ -863,6 +918,18 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "http://127.0.0.1:11434/v1",
         models: &[],
         supports_model_discovery: true,
+        requires_api_key: false,
+        local_only: true,
+    },
+    OpenAiCompatDef {
+        config_name: "lmstudio",
+        env_key: "LMSTUDIO_API_KEY",
+        env_base_url_key: "LMSTUDIO_BASE_URL",
+        default_base_url: "http://127.0.0.1:1234/v1",
+        models: &[],
+        supports_model_discovery: true,
+        requires_api_key: false,
+        local_only: true,
     },
     OpenAiCompatDef {
         config_name: "gemini",
@@ -871,6 +938,8 @@ const OPENAI_COMPAT_PROVIDERS: &[OpenAiCompatDef] = &[
         default_base_url: "https://generativelanguage.googleapis.com/v1beta/openai",
         models: GEMINI_MODELS,
         supports_model_discovery: true,
+        requires_api_key: true,
+        local_only: false,
     },
 ];
 
@@ -1675,10 +1744,10 @@ impl ProviderRegistry {
 
             let key = resolve_api_key(config, def.config_name, def.env_key, env_overrides);
 
-            // Ollama doesn't require an API key — use a dummy value.
+            // Local providers don't require an API key — use a dummy value.
             // Gemini accepts both GEMINI_API_KEY and GOOGLE_API_KEY.
-            let key = if def.config_name == "ollama" {
-                key.or_else(|| Some(secrecy::Secret::new("ollama".into())))
+            let key = if !def.requires_api_key {
+                key.or_else(|| Some(secrecy::Secret::new(def.config_name.into())))
             } else if def.config_name == "gemini" {
                 key.or_else(|| env_value(env_overrides, "GOOGLE_API_KEY").map(secrecy::Secret::new))
             } else {
@@ -1703,8 +1772,8 @@ impl ProviderRegistry {
                 .map(|entry| entry.stream_transport)
                 .unwrap_or(ProviderStreamTransport::Sse);
             let preferred = configured_models_for_provider(config, def.config_name);
-            if def.config_name == "ollama" {
-                let has_explicit_entry = config.get("ollama").is_some();
+            if def.local_only {
+                let has_explicit_entry = config.get(def.config_name).is_some();
                 let has_env_base_url = env_value(env_overrides, def.env_base_url_key).is_some();
                 if !has_explicit_entry && !has_env_base_url && preferred.is_empty() {
                     continue;
@@ -1715,7 +1784,7 @@ impl ProviderRegistry {
             // OpenRouter supports `/models`, so we discover dynamically.
             let skip_discovery = def.models.is_empty()
                 && preferred.is_empty()
-                && def.config_name != "ollama"
+                && !def.local_only
                 && (def.config_name == "venice" || cfg!(test));
             // Respect `supports_model_discovery`: providers whose API lacks a
             // /models endpoint (e.g. MiniMax) skip live fetch unless the user
@@ -3275,6 +3344,7 @@ mod tests {
                 family: Some("llama3.1".into()),
                 families: None,
             },
+            ..Default::default()
         };
         assert_eq!(
             resolve_ollama_tool_mode(ToolMode::Auto, "llama3.1:8b", Some(&show_resp)),
@@ -3290,11 +3360,150 @@ mod tests {
                 family: Some("starcoder2".into()),
                 families: None,
             },
+            ..Default::default()
         };
         assert_eq!(
             resolve_ollama_tool_mode(ToolMode::Auto, "starcoder2:3b", Some(&show_resp)),
             ToolMode::Text
         );
+    }
+
+    // ── Ollama capabilities-based tool detection ──────────────────────
+
+    #[test]
+    fn ollama_capabilities_with_tools() {
+        let caps = vec!["completion".into(), "tools".into()];
+        assert_eq!(ollama_capabilities_support_tools(&caps), Some(true));
+    }
+
+    #[test]
+    fn ollama_capabilities_without_tools() {
+        let caps = vec!["completion".into(), "vision".into()];
+        assert_eq!(ollama_capabilities_support_tools(&caps), Some(false));
+    }
+
+    #[test]
+    fn ollama_capabilities_empty_returns_none() {
+        let caps: Vec<String> = vec![];
+        assert_eq!(ollama_capabilities_support_tools(&caps), None);
+    }
+
+    #[test]
+    fn resolve_ollama_tool_mode_capabilities_override_family() {
+        use moltis_config::ToolMode;
+        // Model is NOT in the family whitelist but Ollama reports "tools" capability.
+        let show_resp = OllamaShowResponse {
+            details: OllamaModelDetails {
+                family: Some("minimax".into()),
+                families: None,
+            },
+            capabilities: vec!["completion".into(), "tools".into()],
+        };
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Auto, "MiniMax-M2.5:latest", Some(&show_resp)),
+            ToolMode::Native
+        );
+    }
+
+    #[test]
+    fn resolve_ollama_tool_mode_capabilities_no_tools() {
+        use moltis_config::ToolMode;
+        // Model has capabilities but "tools" is not among them.
+        let show_resp = OllamaShowResponse {
+            details: OllamaModelDetails {
+                family: Some("llama3.1".into()),
+                families: None,
+            },
+            capabilities: vec!["completion".into()],
+        };
+        // Even though family matches, capabilities say no tools.
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Auto, "llama3.1:8b", Some(&show_resp)),
+            ToolMode::Text
+        );
+    }
+
+    #[test]
+    fn resolve_ollama_tool_mode_empty_capabilities_falls_back_to_family() {
+        use moltis_config::ToolMode;
+        // Empty capabilities (pre-0.5.x Ollama) — falls back to family whitelist.
+        let show_resp = OllamaShowResponse {
+            details: OllamaModelDetails {
+                family: Some("llama3.1".into()),
+                families: None,
+            },
+            capabilities: vec![],
+        };
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Auto, "llama3.1:8b", Some(&show_resp)),
+            ToolMode::Native
+        );
+    }
+
+    #[test]
+    fn resolve_ollama_tool_mode_no_probe_result_falls_back_to_name_heuristic() {
+        use moltis_config::ToolMode;
+        // No probe result at all — falls back to model name matching.
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Auto, "llama3.1:8b", None),
+            ToolMode::Native
+        );
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Auto, "unknown-model:latest", None),
+            ToolMode::Text
+        );
+    }
+
+    #[test]
+    fn resolve_ollama_tool_mode_explicit_overrides_capabilities() {
+        use moltis_config::ToolMode;
+        // Even with capabilities saying "tools", explicit Text override wins.
+        let show_resp = OllamaShowResponse {
+            details: OllamaModelDetails {
+                family: Some("minimax".into()),
+                families: None,
+            },
+            capabilities: vec!["tools".into()],
+        };
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Text, "MiniMax-M2.5:latest", Some(&show_resp)),
+            ToolMode::Text
+        );
+        assert_eq!(
+            resolve_ollama_tool_mode(ToolMode::Off, "MiniMax-M2.5:latest", Some(&show_resp)),
+            ToolMode::Off
+        );
+    }
+
+    /// Verify OllamaShowResponse deserializes from Ollama >= 0.5.x JSON with capabilities.
+    #[test]
+    fn ollama_show_response_deserializes_with_capabilities() {
+        let json = r#"{
+            "details": {"family": "minimax", "families": null},
+            "capabilities": ["completion", "tools"]
+        }"#;
+        let resp: OllamaShowResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(resp.details.family.as_deref(), Some("minimax"));
+        assert_eq!(resp.capabilities, vec!["completion", "tools"]);
+    }
+
+    /// Verify OllamaShowResponse deserializes from old Ollama without capabilities field.
+    #[test]
+    fn ollama_show_response_deserializes_without_capabilities() {
+        let json = r#"{"details": {"family": "llama3.1", "families": ["llama3.1"]}}"#;
+        let resp: OllamaShowResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(resp.details.family.as_deref(), Some("llama3.1"));
+        assert!(
+            resp.capabilities.is_empty(),
+            "missing field should default to empty vec"
+        );
+    }
+
+    /// Capabilities with only "tools" (single item).
+    #[test]
+    fn ollama_capabilities_single_tools_entry() {
+        let caps = vec!["tools".into()];
+        assert_eq!(ollama_capabilities_support_tools(&caps), Some(true));
     }
 
     #[test]

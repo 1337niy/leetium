@@ -163,6 +163,10 @@ jobs:
             git commit -m "init" --allow-empty
             git tag v0.0.0
           fi
+      - name: Build Tailwind CSS
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
       - run: cargo clippy -Z unstable-options --workspace --all-features --all-targets --timings -- -D warnings
       - name: Upload cargo timing reports
         if: always()
@@ -225,6 +229,10 @@ jobs:
       - uses: taiki-e/install-action@f176c07a0a40cbfdd08ee9aa8bf1655701d11e69 # v2.67.25
         with:
           tool: cargo-llvm-cov
+      - name: Build Tailwind CSS
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
       - name: Generate coverage
         run: cargo llvm-cov --workspace --exclude moltis-tools --exclude moltis-swift-bridge --lcov --output-path lcov.info
       - name: Upload to Codecov
@@ -250,9 +258,6 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Build moltis binary
-        run: cargo build --bin moltis
-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
@@ -261,6 +266,14 @@ jobs:
       - name: Install npm dependencies
         working-directory: crates/web/ui
         run: npm ci
+
+      - name: Build Tailwind CSS
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
+
+      - name: Build moltis binary
+        run: cargo build --bin moltis
 
       - name: Install Playwright browsers
         working-directory: crates/web/ui
@@ -308,6 +321,11 @@ jobs:
 
       - name: Install Swift build dependencies
         run: brew install xcodegen cbindgen swiftlint
+
+      - name: Build Tailwind CSS
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-macos-arm64
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-macos-arm64 ./build.sh
 
       - name: Build Swift bridge and generate Xcode project
         run: |
@@ -408,6 +426,10 @@ jobs:
             git commit -m "init" --allow-empty
             git tag v0.0.0
           fi
+      - name: Build Tailwind CSS
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
       - run: cargo clippy -Z unstable-options --workspace --all-features --all-targets --timings -- -D warnings
       - name: Upload cargo timing reports
         if: always()

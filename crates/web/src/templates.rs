@@ -54,6 +54,7 @@ pub(crate) static SPA_ROUTES: SpaRoutes = SpaRoutes {
 #[derive(serde::Serialize)]
 pub(crate) struct GonData {
     pub(crate) identity: moltis_config::ResolvedIdentity,
+    version: String,
     port: u16,
     counts: NavCounts,
     crons: Vec<moltis_cron::types::CronJob>,
@@ -67,6 +68,7 @@ pub(crate) struct GonData {
     #[serde(skip_serializing_if = "Option::is_none")]
     deploy_platform: Option<String>,
     channels_offered: Vec<String>,
+    channel_descriptors: Vec<moltis_channels::ChannelDescriptor>,
     update: moltis_gateway::update_check::UpdateAvailability,
     sandbox: SandboxGonInfo,
     routes: SpaRoutes,
@@ -279,6 +281,11 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
             inner.channels_offered.clone(),
         )
     };
+    let channel_descriptors: Vec<moltis_channels::ChannelDescriptor> = channels_offered
+        .iter()
+        .filter_map(|s| s.parse::<moltis_channels::ChannelType>().ok())
+        .map(|ct| ct.descriptor())
+        .collect();
 
     let heartbeat_runs: Vec<moltis_cron::types::CronRunRecord> = gw
         .services
@@ -325,6 +332,7 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
 
     GonData {
         identity,
+        version: gw.version.clone(),
         port,
         counts,
         crons,
@@ -337,6 +345,7 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
         mem: collect_mem_snapshot(),
         deploy_platform: gw.deploy_platform.clone(),
         channels_offered,
+        channel_descriptors,
         update: gw.inner.read().await.update.clone(),
         sandbox,
         routes: SPA_ROUTES.clone(),

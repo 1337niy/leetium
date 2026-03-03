@@ -98,6 +98,7 @@ const KNOWN_PROVIDER_NAMES: &[&str] = &[
     "moonshot",
     "venice",
     "ollama",
+    "lmstudio",
 ];
 
 /// Static metadata keys allowed directly under `[providers]`.
@@ -112,6 +113,7 @@ fn build_schema_map() -> KnownKeys {
             ("enabled", Leaf),
             ("api_key", Leaf),
             ("base_url", Leaf),
+            ("url", Leaf),
             ("models", Leaf),
             ("fetch_models", Leaf),
             ("stream_transport", Leaf),
@@ -223,6 +225,7 @@ fn build_schema_map() -> KnownKeys {
             ("low_memory_threshold_mb", Leaf),
             ("persist_profile", Leaf),
             ("profile_dir", Leaf),
+            ("container_host", Leaf),
         ]))
     };
 
@@ -304,11 +307,36 @@ fn build_schema_map() -> KnownKeys {
 
     let agent_preset = || {
         Struct(HashMap::from([
+            (
+                "identity",
+                Struct(HashMap::from([
+                    ("name", Leaf),
+                    ("emoji", Leaf),
+                    ("theme", Leaf),
+                ])),
+            ),
             ("model", Leaf),
-            ("allow_tools", Leaf),
-            ("deny_tools", Leaf),
+            (
+                "tools",
+                Struct(HashMap::from([("allow", Leaf), ("deny", Leaf)])),
+            ),
             ("delegate_only", Leaf),
             ("system_prompt_suffix", Leaf),
+            ("max_iterations", Leaf),
+            ("timeout_secs", Leaf),
+            (
+                "sessions",
+                Struct(HashMap::from([
+                    ("key_prefix", Leaf),
+                    ("allowed_keys", Leaf),
+                    ("can_send", Leaf),
+                    ("cross_agent", Leaf),
+                ])),
+            ),
+            (
+                "memory",
+                Struct(HashMap::from([("scope", Leaf), ("max_lines", Leaf)])),
+            ),
         ]))
     };
 
@@ -321,7 +349,7 @@ fn build_schema_map() -> KnownKeys {
                 ("http_request_logs", Leaf),
                 ("ws_request_logs", Leaf),
                 ("log_buffer_size", Leaf),
-                ("update_repository_url", Leaf),
+                ("update_releases_url", Leaf),
             ])),
         ),
         ("providers", MapWithFields {
@@ -359,16 +387,18 @@ fn build_schema_map() -> KnownKeys {
                 Map(Box::new(mcp_server_entry())),
             )])),
         ),
-        (
-            "channels",
-            Struct(HashMap::from([
+        ("channels", MapWithFields {
+            // Dynamic keys: extra channel types via #[serde(flatten)]
+            value: Box::new(Map(Box::new(Leaf))),
+            fields: HashMap::from([
                 ("offered", Array(Box::new(Leaf))),
                 ("telegram", Map(Box::new(Leaf))),
                 ("whatsapp", Map(Box::new(Leaf))),
                 ("msteams", Map(Box::new(Leaf))),
                 ("discord", Map(Box::new(Leaf))),
-            ])),
-        ),
+                ("slack", Map(Box::new(Leaf))),
+            ]),
+        }),
         (
             "tls",
             Struct(HashMap::from([
@@ -477,6 +507,18 @@ fn build_schema_map() -> KnownKeys {
                     ])))),
                 ),
             ])),
+        ),
+        (
+            "webhooks",
+            Struct(HashMap::from([(
+                "rate_limit",
+                Struct(HashMap::from([
+                    ("enabled", Leaf),
+                    ("requests_per_minute", Leaf),
+                    ("burst", Leaf),
+                    ("cleanup_interval_secs", Leaf),
+                ])),
+            )])),
         ),
         (
             "voice",
@@ -967,8 +1009,12 @@ fn check_semantic_warnings(config: &MoltisConfig, diagnostics: &mut Vec<Diagnost
     // provider entry somehow comes through with a non-standard string we still
     // want to warn at the TOML level.  The enum is auto/native/text/off.
 
-    // Unknown channel types in channels.offered
-    let valid_channel_types = ["telegram", "msteams", "discord"];
+    // Unknown channel types in channels.offered — accept built-in types plus
+    // any dynamically configured types from `[channels.<type>]` sections.
+    let mut valid_channel_types: Vec<&str> = crate::schema::KNOWN_CHANNEL_TYPES.to_vec();
+    for ct in config.channels.extra.keys() {
+        valid_channel_types.push(ct.as_str());
+    }
     for (idx, entry) in config.channels.offered.iter().enumerate() {
         if !valid_channel_types.contains(&entry.as_str()) {
             diagnostics.push(Diagnostic {
@@ -2090,7 +2136,7 @@ dm_policy = "allowlist"
     fn channels_offered_unknown_type_warned() {
         let toml = r#"
 [channels]
-offered = ["telegram", "slack"]
+offered = ["telegram", "foobar"]
 "#;
         let result = validate_toml_str(toml);
         let warning = result
@@ -2100,6 +2146,64 @@ offered = ["telegram", "slack"]
         assert!(
             warning.is_some(),
             "unknown channel type should produce warning, got: {:?}",
+            result.diagnostics
+        );
+    }
+
+    #[test]
+    fn channels_offered_slack_accepted() {
+        let toml = r#"
+[channels]
+offered = ["telegram", "slack"]
+"#;
+        let result = validate_toml_str(toml);
+        let warning = result
+            .diagnostics
+            .iter()
+            .find(|d| d.path == "channels.offered[1]" && d.category == "unknown-field");
+        assert!(
+            warning.is_none(),
+            "slack should be accepted, got: {:?}",
+            result.diagnostics
+        );
+    }
+
+    #[test]
+    fn channels_offered_dynamic_type_accepted() {
+        let toml = r#"
+[channels]
+offered = ["telegram", "slack"]
+
+[channels.slack.my-bot]
+token = "xoxb-test"
+"#;
+        let result = validate_toml_str(toml);
+        let warning = result
+            .diagnostics
+            .iter()
+            .find(|d| d.path.starts_with("channels.offered") && d.category == "unknown-field");
+        assert!(
+            warning.is_none(),
+            "dynamically configured channel type should be accepted in offered, got: {:?}",
+            result.diagnostics
+        );
+    }
+
+    #[test]
+    fn channels_extra_config_accepted() {
+        let toml = r#"
+[channels.slack.my-bot]
+token = "xoxb-test"
+dm_policy = "allowlist"
+"#;
+        let result = validate_toml_str(toml);
+        let error = result.diagnostics.iter().find(|d| {
+            d.path.starts_with("channels.slack")
+                && (d.severity == Severity::Error || d.category == "unknown-field")
+        });
+        assert!(
+            error.is_none(),
+            "extra channel config should be accepted without errors, got: {:?}",
             result.diagnostics
         );
     }
@@ -2119,6 +2223,25 @@ tool_mode = "text"
         assert!(
             unknown.is_none(),
             "tool_mode should be a known field, got: {:?}",
+            result.diagnostics
+        );
+    }
+
+    #[test]
+    fn url_field_accepted_in_provider_entry() {
+        let toml = r#"
+[providers.ollama]
+enabled = true
+url = "http://192.168.0.9:11434"
+"#;
+        let result = validate_toml_str(toml);
+        let unknown = result
+            .diagnostics
+            .iter()
+            .find(|d| d.category == "unknown-field" && d.path.contains("providers.ollama.url"));
+        assert!(
+            unknown.is_none(),
+            "url should be accepted as a provider field alias, got: {:?}",
             result.diagnostics
         );
     }
