@@ -9,7 +9,7 @@ use tokio::net::TcpListener;
 #[cfg(all(feature = "graphql", feature = "web-ui"))]
 use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 
-use moltis_gateway::{
+use leetium_gateway::{
     auth::{self, CredentialStore},
     methods::MethodRegistry,
     server::{build_gateway_base, finalize_gateway_app},
@@ -46,13 +46,13 @@ async fn start_auth_server_impl(
     // Isolate each test process with its own config/data directory so
     // concurrent nextest processes don't race on shared config files.
     let tmp = tempfile::tempdir().unwrap();
-    moltis_config::set_config_dir(tmp.path().to_path_buf());
-    moltis_config::set_data_dir(tmp.path().to_path_buf());
+    leetium_config::set_config_dir(tmp.path().to_path_buf());
+    leetium_config::set_data_dir(tmp.path().to_path_buf());
     // Leak the TempDir so it outlives the test (cleaned up on process exit).
     std::mem::forget(tmp);
 
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
-    let auth_config = moltis_config::AuthConfig::default();
+    let auth_config = leetium_config::AuthConfig::default();
     let cred_store = Arc::new(
         CredentialStore::with_config(pool, &auth_config)
             .await
@@ -90,7 +90,7 @@ async fn start_auth_server_impl(
     #[cfg(not(feature = "push-notifications"))]
     let (router, app_state) = build_gateway_base(state, methods, None);
 
-    let router = router.merge(moltis_web::web_routes());
+    let router = router.merge(leetium_web::web_routes());
     let app = finalize_gateway_app(router, app_state, false);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -112,17 +112,17 @@ async fn start_localhost_server_with_vault() -> (
     SocketAddr,
     Arc<CredentialStore>,
     Arc<GatewayState>,
-    Arc<moltis_vault::Vault>,
+    Arc<leetium_vault::Vault>,
 ) {
     let tmp = tempfile::tempdir().unwrap();
-    moltis_config::set_config_dir(tmp.path().to_path_buf());
-    moltis_config::set_data_dir(tmp.path().to_path_buf());
+    leetium_config::set_config_dir(tmp.path().to_path_buf());
+    leetium_config::set_data_dir(tmp.path().to_path_buf());
     std::mem::forget(tmp);
 
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
-    moltis_vault::run_migrations(&pool).await.unwrap();
-    let auth_config = moltis_config::AuthConfig::default();
-    let vault = Arc::new(moltis_vault::Vault::new(pool.clone()).await.unwrap());
+    leetium_vault::run_migrations(&pool).await.unwrap();
+    let auth_config = leetium_config::AuthConfig::default();
+    let vault = Arc::new(leetium_vault::Vault::new(pool.clone()).await.unwrap());
     let cred_store = Arc::new(
         CredentialStore::with_vault(pool, &auth_config, Some(Arc::clone(&vault)))
             .await
@@ -160,7 +160,7 @@ async fn start_localhost_server_with_vault() -> (
     #[cfg(not(feature = "push-notifications"))]
     let (router, app_state) = build_gateway_base(state, methods, None);
 
-    let router = router.merge(moltis_web::web_routes());
+    let router = router.merge(leetium_web::web_routes());
     let app = finalize_gateway_app(router, app_state, false);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -179,8 +179,8 @@ async fn start_localhost_server_with_vault() -> (
 /// Start a test server without a credential store (no auth).
 async fn start_noauth_server() -> SocketAddr {
     let tmp = tempfile::tempdir().unwrap();
-    moltis_config::set_config_dir(tmp.path().to_path_buf());
-    moltis_config::set_data_dir(tmp.path().to_path_buf());
+    leetium_config::set_config_dir(tmp.path().to_path_buf());
+    leetium_config::set_data_dir(tmp.path().to_path_buf());
     std::mem::forget(tmp);
 
     let resolved_auth = auth::resolve_auth(None, None);
@@ -192,7 +192,7 @@ async fn start_noauth_server() -> SocketAddr {
     #[cfg(not(feature = "push-notifications"))]
     let (router, app_state) = build_gateway_base(state, methods, None);
 
-    let router = router.merge(moltis_web::web_routes());
+    let router = router.merge(leetium_web::web_routes());
     let app = finalize_gateway_app(router, app_state, false);
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -256,10 +256,10 @@ async fn session_cookie_auth_succeeds() {
     store.set_initial_password("testpass123").await.unwrap();
     let token = store.create_session().await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/bootstrap"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -274,7 +274,7 @@ async fn api_key_auth_succeeds() {
     store.set_initial_password("testpass123").await.unwrap();
     let (_id, raw_key) = store.create_api_key("test", None).await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/bootstrap"))
         .header("Authorization", format!("Bearer {raw_key}"))
@@ -353,8 +353,8 @@ async fn graphql_runtime_toggle_applies_immediately() {
     store.set_initial_password("testpass123").await.unwrap();
     let token = store.create_session().await.unwrap();
 
-    let client = reqwest::Client::new();
-    let auth_header = format!("moltis_session={token}");
+    let client = leetium_common::http::shared_http_client().clone();
+    let auth_header = format!("leetium_session={token}");
 
     let resp = client
         .get(format!("http://{addr}/graphql"))
@@ -395,10 +395,10 @@ async fn graphql_status_includes_uptime_ms() {
     store.set_initial_password("testpass123").await.unwrap();
     let token = store.create_session().await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/graphql"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .header("Content-Type", "application/json")
         .body(serde_json::json!({ "query": "{ status { uptimeMs } }" }).to_string())
         .send()
@@ -463,10 +463,10 @@ async fn invalid_session_cookie_returns_401() {
     let (addr, store) = start_auth_server().await;
     store.set_initial_password("testpass123").await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/bootstrap"))
-        .header("Cookie", "moltis_session=invalid_token")
+        .header("Cookie", "leetium_session=invalid_token")
         .send()
         .await
         .unwrap();
@@ -488,10 +488,10 @@ async fn reset_auth_removes_all_authentication() {
     assert_eq!(resp.status(), 401);
 
     // Reset auth (requires session).
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/reset"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -536,10 +536,10 @@ async fn reenable_auth_after_reset() {
     let token = store.create_session().await.unwrap();
 
     // Reset auth.
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/reset"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -600,7 +600,7 @@ async fn reset_auth_requires_session() {
     let (addr, store) = start_auth_server().await;
     store.set_initial_password("testpass123").await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/reset"))
         .send()
@@ -618,7 +618,7 @@ async fn revoked_api_key_returns_401() {
     let (id, raw_key) = store.create_api_key("test", None).await.unwrap();
     store.revoke_api_key(id).await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/bootstrap"))
         .header("Authorization", format!("Bearer {raw_key}"))
@@ -637,7 +637,7 @@ async fn setup_without_code_when_required_returns_403() {
     let (addr, _store, state) = start_auth_server_with_state().await;
     state.inner.write().await.setup_code = Some(secrecy::Secret::new("123456".to_string()));
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/setup"))
         .header("Content-Type", "application/json")
@@ -655,7 +655,7 @@ async fn setup_with_wrong_code_returns_403() {
     let (addr, _store, state) = start_auth_server_with_state().await;
     state.inner.write().await.setup_code = Some(secrecy::Secret::new("123456".to_string()));
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/setup"))
         .header("Content-Type", "application/json")
@@ -673,7 +673,7 @@ async fn setup_with_correct_code_succeeds() {
     let (addr, _store, state) = start_auth_server_with_state().await;
     state.inner.write().await.setup_code = Some(secrecy::Secret::new("123456".to_string()));
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/setup"))
         .header("Content-Type", "application/json")
@@ -728,10 +728,10 @@ async fn setup_code_not_required_when_auth_disabled() {
     let token = store.create_session().await.unwrap();
 
     // Reset auth to disable it.
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/reset"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -784,7 +784,7 @@ async fn localhost_no_password_session_endpoints_accessible() {
 async fn localhost_set_password_without_current() {
     let (addr, store, _state) = start_localhost_server().await;
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/password/change"))
         .header("Content-Type", "application/json")
@@ -821,7 +821,7 @@ async fn upload_endpoint_requires_auth() {
     store.set_initial_password("testpass123").await.unwrap();
 
     // Unauthenticated POST should get 401.
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/sessions/main/upload"))
         .header("Content-Type", "audio/webm")
@@ -836,7 +836,7 @@ async fn upload_endpoint_requires_auth() {
     let token = store.create_session().await.unwrap();
     let resp = client
         .post(format!("http://{addr}/api/sessions/main/upload"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .header("Content-Type", "audio/webm")
         .body(vec![0u8; 100])
         .send()
@@ -860,10 +860,10 @@ async fn media_endpoint_requires_auth() {
 
     // Authenticated GET should NOT get 401.
     let token = store.create_session().await.unwrap();
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/sessions/main/media/test.png"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -986,10 +986,10 @@ async fn proxied_with_password_requires_auth() {
 
     // With a valid session, it works.
     let token = store.create_session().await.unwrap();
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .get(format!("http://{addr}/api/bootstrap"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -999,7 +999,7 @@ async fn proxied_with_password_requires_auth() {
 // ── Cookie domain tests ─────────────────────────────────────────────────────
 
 /// Login via /api/auth/login with a Host header containing a .localhost
-/// subdomain (e.g. moltis.localhost) should set Domain=localhost on the
+/// subdomain (e.g. leetium.localhost) should set Domain=localhost on the
 /// session cookie so the cookie is shared across all loopback hostnames.
 #[cfg(feature = "web-ui")]
 #[tokio::test]
@@ -1014,7 +1014,7 @@ async fn login_cookie_includes_domain_for_localhost_subdomain() {
 
     let resp = client
         .post(format!("http://{addr}/api/auth/login"))
-        .header("Host", "moltis.localhost:18080")
+        .header("Host", "leetium.localhost:18080")
         .header("Content-Type", "application/json")
         .body(r#"{"password":"testpass123"}"#)
         .send()
@@ -1033,11 +1033,11 @@ async fn login_cookie_includes_domain_for_localhost_subdomain() {
         cookie_header.contains("Domain=localhost"),
         "session cookie should include Domain=localhost for .localhost host, got: {cookie_header}"
     );
-    assert!(cookie_header.contains("moltis_session="));
+    assert!(cookie_header.contains("leetium_session="));
 }
 
 /// Login with a plain localhost Host should also include Domain=localhost
-/// so the cookie works for both localhost and moltis.localhost.
+/// so the cookie works for both localhost and leetium.localhost.
 #[cfg(feature = "web-ui")]
 #[tokio::test]
 async fn login_cookie_includes_domain_for_plain_localhost() {
@@ -1115,7 +1115,7 @@ async fn login_endpoint_rate_limited_after_repeated_failures() {
     let (addr, store) = start_auth_server().await;
     store.set_initial_password("testpass123").await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
 
     for _ in 0..5 {
         let resp = client
@@ -1161,7 +1161,7 @@ async fn api_endpoint_rate_limited_after_high_request_volume() {
     let (addr, store) = start_auth_server().await;
     store.set_initial_password("testpass123").await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
 
     for _ in 0..180 {
         let resp = client
@@ -1270,7 +1270,7 @@ async fn onboarding_accessible_with_session_after_setup() {
 
     let resp = client
         .get(format!("http://{addr}/onboarding"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .send()
         .await
         .unwrap();
@@ -1297,12 +1297,12 @@ async fn setup_endpoint_rejected_after_setup_complete() {
     store.set_initial_password("testpass123").await.unwrap();
     let token = store.create_session().await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
 
     // Even with a valid session, /api/auth/setup must reject once setup is done.
     let resp = client
         .post(format!("http://{addr}/api/auth/setup"))
-        .header("Cookie", format!("moltis_session={token}"))
+        .header("Cookie", format!("leetium_session={token}"))
         .header("Content-Type", "application/json")
         .body(r#"{"password":"evil-new-password"}"#)
         .send()
@@ -1323,12 +1323,12 @@ async fn authenticated_api_endpoint_not_rate_limited() {
     store.set_initial_password("testpass123").await.unwrap();
     let token = store.create_session().await.unwrap();
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
 
     for _ in 0..220 {
         let resp = client
             .get(format!("http://{addr}/api/bootstrap"))
-            .header("Cookie", format!("moltis_session={token}"))
+            .header("Cookie", format!("leetium_session={token}"))
             .send()
             .await
             .unwrap();
@@ -1350,11 +1350,11 @@ async fn password_change_initializes_vault() {
     // Vault starts uninitialized.
     assert_eq!(
         vault.status().await.unwrap(),
-        moltis_vault::VaultStatus::Uninitialized
+        leetium_vault::VaultStatus::Uninitialized
     );
 
     // Set password via the change endpoint (no current password — first time).
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/password/change"))
         .header("Content-Type", "application/json")
@@ -1378,7 +1378,7 @@ async fn password_change_initializes_vault() {
     // Vault should now be unsealed.
     assert_eq!(
         vault.status().await.unwrap(),
-        moltis_vault::VaultStatus::Unsealed
+        leetium_vault::VaultStatus::Unsealed
     );
 
     // Password should be set.
@@ -1397,11 +1397,11 @@ async fn password_change_on_initialized_vault_no_recovery_key() {
     let _rk = vault.initialize("oldpass123").await.unwrap();
     assert_eq!(
         vault.status().await.unwrap(),
-        moltis_vault::VaultStatus::Unsealed
+        leetium_vault::VaultStatus::Unsealed
     );
 
     // Set a password (first credential store password, but vault already initialized).
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let resp = client
         .post(format!("http://{addr}/api/auth/password/change"))
         .header("Content-Type", "application/json")

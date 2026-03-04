@@ -1,12 +1,12 @@
 # Security Architecture
 
-Moltis is designed with a defense-in-depth security model. This document
+Leetium is designed with a defense-in-depth security model. This document
 explains the key security features and provides guidance for production
 deployments.
 
 ## Overview
 
-Moltis runs AI agents that can execute code and interact with external systems.
+Leetium runs AI agents that can execute code and interact with external systems.
 This power requires multiple layers of protection:
 
 1. **Human-in-the-loop approval** for dangerous commands
@@ -21,7 +21,7 @@ drift re-trust, dependency install guards, kill switch, audit log), see
 
 ## Command Execution Approval
 
-By default, Moltis requires explicit user approval before executing potentially
+By default, Leetium requires explicit user approval before executing potentially
 dangerous commands. This "human-in-the-loop" design ensures the AI cannot take
 destructive actions without consent.
 
@@ -36,7 +36,7 @@ When the agent wants to run a command:
 
 ### Approval Policies
 
-Configure approval behavior in `moltis.toml`:
+Configure approval behavior in `leetium.toml`:
 
 ```toml
 [tools.exec]
@@ -50,14 +50,14 @@ cases. Only use `"never"` in fully automated, sandboxed environments.
 
 ### Built-in Dangerous Command Blocklist
 
-Even with `approval_mode = "never"` or `security_level = "full"`, Moltis
+Even with `approval_mode = "never"` or `security_level = "full"`, Leetium
 maintains a safety floor: a hardcoded set of regex patterns for the most
 critical destructive commands (e.g. `rm -rf /`, `git reset --hard`,
 `DROP TABLE`, `mkfs`, `terraform destroy`). Matching commands always require
 approval regardless of configuration.
 
 Users can override specific patterns by adding matching entries to their
-`allowlist` in `moltis.toml`. The blocklist only applies to host execution;
+`allowlist` in `leetium.toml`. The blocklist only applies to host execution;
 sandboxed commands are already isolated.
 
 ### Destructive Command Guard (dcg)
@@ -104,7 +104,7 @@ network audit log for review.
 ## Channel Authorization
 
 Channels (Telegram, Slack, etc.) allow external parties to interact with your
-Moltis agent. This requires careful access control.
+Leetium agent. This requires careful access control.
 
 ### Sender Allowlisting
 
@@ -149,7 +149,7 @@ heartbeat) bypass this limit.
 
 ### Job Notifications
 
-When cron jobs are created, updated, or removed, Moltis broadcasts events:
+When cron jobs are created, updated, or removed, Leetium broadcasts events:
 
 - `cron.job.created` - A new job was created
 - `cron.job.updated` - An existing job was modified
@@ -195,7 +195,7 @@ The gateway API uses role-based access control with scopes:
 
 ### API Keys
 
-API keys authenticate external tools and scripts connecting to Moltis. Keys
+API keys authenticate external tools and scripts connecting to Leetium. Keys
 **must specify at least one scope** — keys without scopes are denied access
 (least-privilege by default).
 
@@ -212,9 +212,9 @@ API keys authenticate external tools and scripts connecting to Moltis. Keys
 
 ```bash
 # Scoped key (comma-separated scopes)
-moltis auth create-api-key --label "Monitor" --scopes "operator.read"
-moltis auth create-api-key --label "Automation" --scopes "operator.read,operator.write"
-moltis auth create-api-key --label "CI pipeline" --scopes "operator.admin"
+leetium auth create-api-key --label "Monitor" --scopes "operator.read"
+leetium auth create-api-key --label "Automation" --scopes "operator.read,operator.write"
+leetium auth create-api-key --label "CI pipeline" --scopes "operator.admin"
 ```
 
 #### Using API Keys
@@ -311,7 +311,7 @@ unless you understand the risk.
 
 ## Authentication
 
-Moltis uses a unified auth gate that applies a single `check_auth()`
+Leetium uses a unified auth gate that applies a single `check_auth()`
 function to every request. This prevents split-brain bugs where different
 code paths disagree on auth status.
 
@@ -329,7 +329,7 @@ dedicated [Authentication](authentication.md) page.
 
 ## HTTP Endpoint Throttling
 
-Moltis includes built-in per-IP endpoint throttling to reduce brute force
+Leetium includes built-in per-IP endpoint throttling to reduce brute force
 attempts and traffic spikes, but only when auth is required for the current
 request.
 
@@ -354,7 +354,7 @@ allowed.
 
 ### Reverse Proxy Behavior
 
-When `MOLTIS_BEHIND_PROXY=true`, throttling is keyed by forwarded client IP
+When `LEETIUM_BEHIND_PROXY=true`, throttling is keyed by forwarded client IP
 headers (`X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`) instead of the
 direct socket address.
 
@@ -366,13 +366,13 @@ burst controls, geo rules, bot filtering).
 
 ## Reverse Proxy Deployments
 
-Running Moltis behind a reverse proxy (Caddy, nginx, Traefik, etc.)
+Running Leetium behind a reverse proxy (Caddy, nginx, Traefik, etc.)
 requires understanding how authentication interacts with loopback
 connections.
 
 ### The problem
 
-When Moltis binds to `127.0.0.1` and a proxy on the same machine
+When Leetium binds to `127.0.0.1` and a proxy on the same machine
 forwards traffic to it, **every** incoming TCP connection appears to
 originate from `127.0.0.1` — including requests from the public
 internet.  A naive "trust all loopback connections" check would bypass
@@ -383,18 +383,18 @@ This is the same class of vulnerability as
 which allowed one-click remote code execution on OpenClaw through
 authentication token exfiltration and cross-site WebSocket hijacking.
 
-### How Moltis handles it
+### How Leetium handles it
 
-Moltis uses the per-request `is_local_connection()` check described
+Leetium uses the per-request `is_local_connection()` check described
 above.  Most reverse proxies add forwarding headers or change the
 `Host` header, which automatically triggers the "remote" classification.
 
 For proxies that **strip all signals** (e.g. a bare nginx `proxy_pass`
 that rewrites `Host` to the upstream address and adds no `X-Forwarded-For`),
-use the `MOLTIS_BEHIND_PROXY` environment variable as a hard override:
+use the `LEETIUM_BEHIND_PROXY` environment variable as a hard override:
 
 ```bash
-MOLTIS_BEHIND_PROXY=true moltis
+LEETIUM_BEHIND_PROXY=true leetium
 ```
 
 When this variable is set, **all** connections are treated as remote —
@@ -402,7 +402,7 @@ no loopback bypass, no exceptions.
 
 ### Deploying behind a proxy
 
-1. **Set `MOLTIS_BEHIND_PROXY=true`** if your proxy does not add
+1. **Set `LEETIUM_BEHIND_PROXY=true`** if your proxy does not add
    forwarding headers (safest option — eliminates any ambiguity).
 
 2. **Set a password or register a passkey** during initial setup.
@@ -410,27 +410,27 @@ no loopback bypass, no exceptions.
    for all traffic regardless of `is_local_connection()`.
 
 3. **WebSocket proxying** must preserve browser origin host info
-   (`Host`, or `X-Forwarded-Host` if `Host` is rewritten). Moltis
+   (`Host`, or `X-Forwarded-Host` if `Host` is rewritten). Leetium
    validates same-origin on WebSocket upgrades to prevent cross-site
    WebSocket hijacking (CSWSH).
 
-4. **TLS termination** should happen at the proxy. Run Moltis with
-   `--no-tls` (or `MOLTIS_NO_TLS=true`) in this mode.
+4. **TLS termination** should happen at the proxy. Run Leetium with
+   `--no-tls` (or `LEETIUM_NO_TLS=true`) in this mode.
 
    If your browser is being redirected to `https://<domain>:13131`,
-   Moltis TLS is still enabled while your proxy upstream is plain HTTP.
+   Leetium TLS is still enabled while your proxy upstream is plain HTTP.
 
 5. **Advanced TLS upstream mode** (optional): if your proxy connects to
-   Moltis using HTTPS upstream (or TCP TLS passthrough), you may keep
-   Moltis TLS enabled. Set `MOLTIS_ALLOW_TLS_BEHIND_PROXY=true` to
+   Leetium using HTTPS upstream (or TCP TLS passthrough), you may keep
+   Leetium TLS enabled. Set `LEETIUM_ALLOW_TLS_BEHIND_PROXY=true` to
    acknowledge this non-default setup.
 
 ### Nginx Proxy Manager (known-good headers)
 
 If WebSockets fail behind NPM while HTTP works, ensure:
 
-- Moltis runs with `MOLTIS_BEHIND_PROXY=true`
-- For standard edge TLS termination, Moltis runs with `--no-tls`
+- Leetium runs with `LEETIUM_BEHIND_PROXY=true`
+- For standard edge TLS termination, Leetium runs with `--no-tls`
 - NPM preserves browser host/origin context
 
 Use this in NPM's **Advanced** field:
@@ -446,10 +446,10 @@ proxy_set_header Connection "upgrade";
 
 Upstream scheme guidance:
 
-- **Edge TLS termination (most setups)**: proxy to `http://<moltis-host>:13131`
-  with Moltis started using `--no-tls`
-- **HTTPS upstream / TLS passthrough**: proxy to `https://<moltis-host>:13131`
-  and set `MOLTIS_ALLOW_TLS_BEHIND_PROXY=true`
+- **Edge TLS termination (most setups)**: proxy to `http://<leetium-host>:13131`
+  with Leetium started using `--no-tls`
+- **HTTPS upstream / TLS passthrough**: proxy to `https://<leetium-host>:13131`
+  and set `LEETIUM_ALLOW_TLS_BEHIND_PROXY=true`
 
 ### Passkeys Behind Proxies (Host Changes)
 
@@ -465,16 +465,16 @@ For stable proxy deployments, set explicit WebAuthn identity to your public
 domain:
 
 ```bash
-MOLTIS_BEHIND_PROXY=true
-MOLTIS_NO_TLS=true
-MOLTIS_WEBAUTHN_RP_ID=chat.example.com
-MOLTIS_WEBAUTHN_ORIGIN=https://chat.example.com
+LEETIUM_BEHIND_PROXY=true
+LEETIUM_NO_TLS=true
+LEETIUM_WEBAUTHN_RP_ID=chat.example.com
+LEETIUM_WEBAUTHN_ORIGIN=https://chat.example.com
 ```
 
 Migration guidance when changing host/domain:
 
 1. Keep password login enabled during migration.
-2. Deploy with the new `MOLTIS_WEBAUTHN_RP_ID`/`MOLTIS_WEBAUTHN_ORIGIN`.
+2. Deploy with the new `LEETIUM_WEBAUTHN_RP_ID`/`LEETIUM_WEBAUTHN_ORIGIN`.
 3. Ask users to register a new passkey on the new host.
 4. Remove old passkeys after new-host login is confirmed.
 
@@ -482,7 +482,7 @@ Migration guidance when changing host/domain:
 
 ### 1. Enable Authentication
 
-By default, Moltis requires a password when accessed from non-localhost:
+By default, Leetium requires a password when accessed from non-localhost:
 
 ```toml
 [auth]
@@ -524,7 +524,7 @@ Watch for these suspicious patterns:
 
 ### 6. Network Segmentation
 
-Run Moltis on a private network or behind a reverse proxy with:
+Run Leetium on a private network or behind a reverse proxy with:
 
 - IP allowlisting
 - Rate limiting

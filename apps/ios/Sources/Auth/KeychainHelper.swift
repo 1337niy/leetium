@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum KeychainHelper {
-    private static let service = "org.moltis.ios"
+    private static let service = "org.leetium.ios"
 
     static func save(key: String, data: Data) -> Bool {
         delete(key: key)

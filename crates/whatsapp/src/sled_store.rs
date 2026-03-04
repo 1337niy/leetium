@@ -9,7 +9,7 @@ use std::{fmt::Write, path::Path, sync::atomic::AtomicI32};
 
 use {
     async_trait::async_trait,
-    wacore::{
+    wa_rs_core::{
         appstate::{hash::HashState, processor::AppStateMutationMAC},
         store::{
             error::{Result, StoreError, db_err},
@@ -27,7 +27,7 @@ fn hex_encode(bytes: &[u8]) -> String {
     s
 }
 
-/// Persistent store backed by sled, implementing all wacore storage traits.
+/// Persistent store backed by sled, implementing all wa_rs_core storage traits.
 pub struct SledStore {
     #[allow(dead_code)]
     db: sled::Db,
@@ -324,20 +324,30 @@ impl AppSyncStore for SledStore {
 
 #[async_trait]
 impl ProtocolStore for SledStore {
-    async fn get_skdm_recipients(&self, group_jid: &str) -> Result<Vec<String>> {
+    async fn get_skdm_recipients(&self, group_jid: &str) -> Result<Vec<wa_rs::Jid>> {
         match self
             .skdm_recipients
             .get(group_jid.as_bytes())
             .map_err(db_err)?
         {
-            Some(v) => Ok(serde_json::from_slice(&v).map_err(json_err)?),
+            Some(v) => {
+                let jids: Vec<String> = serde_json::from_slice(&v).map_err(json_err)?;
+                Ok(jids.into_iter().filter_map(|s| s.parse().ok()).collect())
+            },
             None => Ok(Vec::new()),
         }
     }
 
-    async fn add_skdm_recipients(&self, group_jid: &str, device_jids: &[String]) -> Result<()> {
-        let mut current = self.get_skdm_recipients(group_jid).await?;
-        current.extend(device_jids.iter().cloned());
+    async fn add_skdm_recipients(&self, group_jid: &str, device_jids: &[wa_rs::Jid]) -> Result<()> {
+        let mut current: Vec<String> = match self
+            .skdm_recipients
+            .get(group_jid.as_bytes())
+            .map_err(db_err)?
+        {
+            Some(v) => serde_json::from_slice(&v).map_err(json_err)?,
+            None => Vec::new(),
+        };
+        current.extend(device_jids.iter().map(|jid: &wa_rs::Jid| jid.to_string()));
         let val = serde_json::to_vec(&current).map_err(json_err)?;
         self.skdm_recipients
             .insert(group_jid.as_bytes(), val.as_slice())
@@ -350,6 +360,26 @@ impl ProtocolStore for SledStore {
             .remove(group_jid.as_bytes())
             .map_err(db_err)?;
         Ok(())
+    }
+
+    async fn get_tc_token(&self, _jid: &str) -> Result<Option<TcTokenEntry>> {
+        Ok(None)
+    }
+
+    async fn put_tc_token(&self, _jid: &str, _token: &TcTokenEntry) -> Result<()> {
+        Ok(())
+    }
+
+    async fn delete_tc_token(&self, _jid: &str) -> Result<()> {
+        Ok(())
+    }
+
+    async fn get_all_tc_token_jids(&self) -> Result<Vec<String>> {
+        Ok(Vec::new())
+    }
+
+    async fn delete_expired_tc_tokens(&self, _timestamp: i64) -> Result<u32> {
+        Ok(0)
     }
 
     async fn get_lid_mapping(&self, lid: &str) -> Result<Option<LidPnMappingEntry>> {
@@ -469,7 +499,7 @@ impl ProtocolStore for SledStore {
 
 #[async_trait]
 impl DeviceStore for SledStore {
-    async fn save(&self, device: &wacore::store::Device) -> Result<()> {
+    async fn save(&self, device: &wa_rs_core::store::Device) -> Result<()> {
         let val = serde_json::to_vec(device).map_err(json_err)?;
         self.device_data
             .insert(b"device", val.as_slice())
@@ -477,7 +507,7 @@ impl DeviceStore for SledStore {
         Ok(())
     }
 
-    async fn load(&self) -> Result<Option<wacore::store::Device>> {
+    async fn load(&self) -> Result<Option<wa_rs_core::store::Device>> {
         match self.device_data.get(b"device").map_err(db_err)? {
             Some(v) => Ok(Some(serde_json::from_slice(&v).map_err(json_err)?)),
             None => Ok(None),
@@ -622,7 +652,10 @@ mod tests {
         assert!(recips.is_empty());
 
         store
-            .add_skdm_recipients("group1", &["dev1".into(), "dev2".into()])
+            .add_skdm_recipients(
+                "group1",
+                &["dev1".parse().unwrap(), "dev2".parse().unwrap()],
+            )
             .await
             .unwrap();
         let recips = store.get_skdm_recipients("group1").await.unwrap();

@@ -6,7 +6,7 @@ use std::pin::Pin;
 
 use {anyhow::Result, async_trait::async_trait, tokio_stream::Stream};
 
-use moltis_agents::model::{ChatMessage, CompletionResponse, StreamEvent};
+use leetium_agents::model::{ChatMessage, CompletionResponse, StreamEvent};
 
 use super::LocalLlmConfig;
 
@@ -248,7 +248,7 @@ pub mod gguf {
         tracing::{debug, info, warn},
     };
 
-    use moltis_agents::model::{ChatMessage, CompletionResponse, StreamEvent, ToolCall, Usage};
+    use leetium_agents::model::{ChatMessage, CompletionResponse, StreamEvent, ToolCall, Usage};
 
     use {
         super::{BackendType, LocalBackend, LocalLlmConfig},
@@ -518,7 +518,7 @@ pub mod gguf {
 
             // Parse tool calls from the generated text.
             let (parsed_calls, remaining_text) =
-                moltis_agents::tool_parsing::parse_tool_calls_from_text(&text);
+                leetium_agents::tool_parsing::parse_tool_calls_from_text(&text);
 
             let tool_calls: Vec<ToolCall> = parsed_calls
                 .into_iter()
@@ -717,7 +717,7 @@ pub mod mlx {
         tracing::{info, warn},
     };
 
-    use moltis_agents::model::{ChatMessage, CompletionResponse, StreamEvent, Usage};
+    use leetium_agents::model::{ChatMessage, CompletionResponse, StreamEvent, Usage};
 
     use {
         super::{BackendType, LocalBackend, LocalLlmConfig},

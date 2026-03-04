@@ -1,4 +1,4 @@
-//! Import data from an existing OpenClaw installation into Moltis.
+//! Import data from an existing OpenClaw installation into Leetium.
 //!
 //! Provides detection, scanning, and selective import of:
 //! - User/agent identity
@@ -130,7 +130,7 @@ pub fn scan(detection: &OpenClawDetection) -> ImportScan {
     }
 }
 
-/// Perform a selective import from OpenClaw into Moltis.
+/// Perform a selective import from OpenClaw into Leetium.
 ///
 /// Each category is independent — partial failures don't block others.
 /// Returns a detailed report of what was imported, skipped, and failed.
@@ -147,7 +147,7 @@ pub fn import(
     let agent_id_mapping: std::collections::HashMap<String, String> = imported_agents
         .agents
         .iter()
-        .map(|a| (a.openclaw_id.clone(), a.moltis_id.clone()))
+        .map(|a| (a.openclaw_id.clone(), a.leetium_id.clone()))
         .collect();
     report.imported_agents = Some(imported_agents.clone());
 
@@ -214,11 +214,11 @@ pub fn import(
             if let Some(ref source_ws) = agent.source_workspace
                 && (source_ws.join("MEMORY.md").is_file() || source_ws.join("memory").is_dir())
             {
-                let agent_data_dir = data_dir.join("agents").join(&agent.moltis_id);
+                let agent_data_dir = data_dir.join("agents").join(&agent.leetium_id);
                 let agent_report = memory::import_agent_memory(source_ws, &agent_data_dir);
                 if agent_report.items_imported > 0 {
                     debug!(
-                        agent = %agent.moltis_id,
+                        agent = %agent.leetium_id,
                         imported = agent_report.items_imported,
                         "imported per-agent memory"
                     );
@@ -240,12 +240,12 @@ pub fn import(
                     .any(|name| source_ws.join(name).is_file());
 
                 if has_files {
-                    let agent_data_dir = data_dir.join("agents").join(&agent.moltis_id);
+                    let agent_data_dir = data_dir.join("agents").join(&agent.leetium_id);
                     let agent_report =
                         workspace_files::import_agent_workspace_files(source_ws, &agent_data_dir);
                     if agent_report.items_imported > 0 {
                         debug!(
-                            agent = %agent.moltis_id,
+                            agent = %agent.leetium_id,
                             imported = agent_report.items_imported,
                             "imported per-agent workspace files"
                         );
@@ -302,7 +302,7 @@ pub fn import_sessions_only(detection: &OpenClawDetection, data_dir: &Path) -> C
     let agent_id_mapping: std::collections::HashMap<String, String> = imported_agents
         .agents
         .iter()
-        .map(|a| (a.openclaw_id.clone(), a.moltis_id.clone()))
+        .map(|a| (a.openclaw_id.clone(), a.leetium_id.clone()))
         .collect();
     sessions::import_sessions(
         detection,
@@ -347,11 +347,11 @@ fn save_import_state(path: &Path, report: &ImportReport) -> error::Result<()> {
     Ok(())
 }
 
-/// Persist imported identity data to `moltis.toml`.
+/// Persist imported identity data to `leetium.toml`.
 ///
 /// Loads any existing config, merges identity and timezone, and writes back.
 fn persist_identity(imported: &identity::ImportedIdentity, config_dir: &Path) -> error::Result<()> {
-    let config_path = config_dir.join("moltis.toml");
+    let config_path = config_dir.join("leetium.toml");
     let mut config = load_or_default_config(&config_path);
 
     info!(
@@ -377,8 +377,8 @@ fn persist_identity(imported: &identity::ImportedIdentity, config_dir: &Path) ->
     }
 
     if let Some(ref tz_str) = imported.user_timezone {
-        if let Ok(tz) = tz_str.parse::<moltis_config::Timezone>() {
-            debug!(timezone = tz_str, "persisting user timezone to moltis.toml");
+        if let Ok(tz) = tz_str.parse::<leetium_config::Timezone>() {
+            debug!(timezone = tz_str, "persisting user timezone to leetium.toml");
             config.user.timezone = Some(tz);
         } else {
             warn!(timezone = tz_str, "unknown timezone, skipping");
@@ -386,23 +386,23 @@ fn persist_identity(imported: &identity::ImportedIdentity, config_dir: &Path) ->
     }
 
     if let Some(ref user_name) = imported.user_name {
-        debug!(user_name, "persisting user name to moltis.toml");
+        debug!(user_name, "persisting user name to leetium.toml");
         config.user.name = Some(user_name.clone());
     }
 
     save_config_to_path(&config_path, &config)
 }
 
-/// Persist imported channel configs to `[channels.*]` in `moltis.toml`.
+/// Persist imported channel configs to `[channels.*]` in `leetium.toml`.
 fn persist_channels(imported: &channels::ImportedChannels, config_dir: &Path) -> error::Result<()> {
-    let config_path = config_dir.join("moltis.toml");
+    let config_path = config_dir.join("leetium.toml");
     let mut config = load_or_default_config(&config_path);
 
     for ch in &imported.telegram {
         ensure_channel_offered(&mut config.channels.offered, "telegram");
         let allowlist: Vec<String> = ch.allowed_users.iter().map(|id| id.to_string()).collect();
 
-        // Map OpenClaw dm_policy to Moltis format (default to "allowlist")
+        // Map OpenClaw dm_policy to Leetium format (default to "allowlist")
         let dm_policy = match ch.dm_policy.as_deref() {
             Some("pairing") => "pairing",
             Some("otp") => "otp",
@@ -417,7 +417,7 @@ fn persist_channels(imported: &channels::ImportedChannels, config_dir: &Path) ->
             "allowlist": allowlist,
         });
 
-        debug!(account_id = %ch.account_id, "persisting Telegram channel to moltis.toml");
+        debug!(account_id = %ch.account_id, "persisting Telegram channel to leetium.toml");
         config
             .channels
             .telegram
@@ -440,7 +440,7 @@ fn persist_channels(imported: &channels::ImportedChannels, config_dir: &Path) ->
             "guild_allowlist": ch.guild_allowlist,
         });
 
-        debug!(account_id = %ch.account_id, "persisting Discord channel to moltis.toml");
+        debug!(account_id = %ch.account_id, "persisting Discord channel to leetium.toml");
         config.channels.discord.insert(ch.account_id.clone(), value);
     }
 
@@ -481,19 +481,19 @@ fn map_discord_mention_mode(mode: Option<&str>) -> &'static str {
     }
 }
 
-/// Load a `MoltisConfig` from a TOML file, or return defaults if not found.
-fn load_or_default_config(path: &Path) -> moltis_config::MoltisConfig {
+/// Load a `LeetiumConfig` from a TOML file, or return defaults if not found.
+fn load_or_default_config(path: &Path) -> leetium_config::LeetiumConfig {
     if !path.is_file() {
-        return moltis_config::MoltisConfig::default();
+        return leetium_config::LeetiumConfig::default();
     }
     let Ok(content) = std::fs::read_to_string(path) else {
-        return moltis_config::MoltisConfig::default();
+        return leetium_config::LeetiumConfig::default();
     };
     toml::from_str(&content).unwrap_or_default()
 }
 
-/// Serialize a `MoltisConfig` to TOML and write it to the given path.
-fn save_config_to_path(path: &Path, config: &moltis_config::MoltisConfig) -> error::Result<()> {
+/// Serialize a `LeetiumConfig` to TOML and write it to the given path.
+fn save_config_to_path(path: &Path, config: &leetium_config::LeetiumConfig) -> error::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -505,13 +505,13 @@ fn save_config_to_path(path: &Path, config: &moltis_config::MoltisConfig) -> err
 fn add_todos(report: &mut ImportReport, detection: &OpenClawDetection) {
     report.add_todo(
         "Sub-agents",
-        "OpenClaw's agent delegation/sub-agent spawning is not yet supported in Moltis.",
+        "OpenClaw's agent delegation/sub-agent spawning is not yet supported in Leetium.",
     );
 
     for channel in &detection.unsupported_channels {
         report.add_todo(
             format!("{channel} channel"),
-            format!("The {channel} channel is not yet implemented in Moltis."),
+            format!("The {channel} channel is not yet implemented in Leetium."),
         );
     }
 
@@ -524,7 +524,7 @@ fn add_todos(report: &mut ImportReport, detection: &OpenClawDetection) {
 
     report.add_todo(
         "Tool policies",
-        "OpenClaw's tool policy format differs from Moltis's configuration.",
+        "OpenClaw's tool policy format differs from Leetium's configuration.",
     );
 }
 
@@ -870,12 +870,12 @@ mod tests {
         };
         let report = import(&detection, &selection, &config_dir, &data_dir);
 
-        // Identity should be persisted to moltis.toml
-        let config_path = config_dir.join("moltis.toml");
-        assert!(config_path.is_file(), "moltis.toml should be created");
+        // Identity should be persisted to leetium.toml
+        let config_path = config_dir.join("leetium.toml");
+        assert!(config_path.is_file(), "leetium.toml should be created");
 
         let content = std::fs::read_to_string(&config_path).unwrap();
-        let config: moltis_config::MoltisConfig = toml::from_str(&content).unwrap();
+        let config: leetium_config::LeetiumConfig = toml::from_str(&content).unwrap();
 
         assert_eq!(config.identity.name.as_deref(), Some("Claude"));
         assert_eq!(config.identity.theme.as_deref(), Some("wise owl"));
@@ -912,12 +912,12 @@ mod tests {
         };
         let report = import(&detection, &selection, &config_dir, &data_dir);
 
-        // Channels should be persisted to moltis.toml
-        let config_path = config_dir.join("moltis.toml");
-        assert!(config_path.is_file(), "moltis.toml should be created");
+        // Channels should be persisted to leetium.toml
+        let config_path = config_dir.join("leetium.toml");
+        assert!(config_path.is_file(), "leetium.toml should be created");
 
         let content = std::fs::read_to_string(&config_path).unwrap();
-        let config: moltis_config::MoltisConfig = toml::from_str(&content).unwrap();
+        let config: leetium_config::LeetiumConfig = toml::from_str(&content).unwrap();
 
         assert!(
             !config.channels.telegram.is_empty(),
@@ -979,11 +979,11 @@ mod tests {
         };
         let report = import(&detection, &selection, &config_dir, &data_dir);
 
-        let config_path = config_dir.join("moltis.toml");
-        assert!(config_path.is_file(), "moltis.toml should be created");
+        let config_path = config_dir.join("leetium.toml");
+        assert!(config_path.is_file(), "leetium.toml should be created");
 
         let content = std::fs::read_to_string(&config_path).unwrap();
-        let config: moltis_config::MoltisConfig = toml::from_str(&content).unwrap();
+        let config: leetium_config::LeetiumConfig = toml::from_str(&content).unwrap();
 
         assert!(
             config
@@ -1038,15 +1038,15 @@ mod tests {
         std::fs::create_dir_all(&data_dir).unwrap();
 
         // Pre-existing config with theme already set
-        let existing = moltis_config::MoltisConfig {
-            identity: moltis_config::AgentIdentity {
+        let existing = leetium_config::LeetiumConfig {
+            identity: leetium_config::AgentIdentity {
                 theme: Some("chill cat".to_string()),
                 ..Default::default()
             },
             ..Default::default()
         };
         let toml_str = toml::to_string_pretty(&existing).unwrap();
-        std::fs::write(config_dir.join("moltis.toml"), &toml_str).unwrap();
+        std::fs::write(config_dir.join("leetium.toml"), &toml_str).unwrap();
 
         let detection = detect::detect_at(home).unwrap();
         let selection = ImportSelection {
@@ -1055,8 +1055,8 @@ mod tests {
         };
         import(&detection, &selection, &config_dir, &data_dir);
 
-        let content = std::fs::read_to_string(config_dir.join("moltis.toml")).unwrap();
-        let config: moltis_config::MoltisConfig = toml::from_str(&content).unwrap();
+        let content = std::fs::read_to_string(config_dir.join("leetium.toml")).unwrap();
+        let config: leetium_config::LeetiumConfig = toml::from_str(&content).unwrap();
 
         // Imported name should be set
         assert_eq!(config.identity.name.as_deref(), Some("Claude"));
@@ -1078,9 +1078,9 @@ mod tests {
         let detection = detect::detect_at(home).unwrap();
         let report = import(&detection, &ImportSelection::all(), &config_dir, &data_dir);
 
-        // moltis.toml should contain both identity and channels
-        let content = std::fs::read_to_string(config_dir.join("moltis.toml")).unwrap();
-        let config: moltis_config::MoltisConfig = toml::from_str(&content).unwrap();
+        // leetium.toml should contain both identity and channels
+        let content = std::fs::read_to_string(config_dir.join("leetium.toml")).unwrap();
+        let config: leetium_config::LeetiumConfig = toml::from_str(&content).unwrap();
 
         assert_eq!(config.identity.name.as_deref(), Some("Claude"));
         assert_eq!(config.user.name.as_deref(), Some("Penso"));

@@ -1,4 +1,4 @@
-//! Re-export OTP module from moltis-channels.
+//! Re-export OTP module from leetium-channels.
 //!
 //! The OTP state machine is platform-agnostic and shared across channel plugins.
-pub use moltis_channels::otp::*;
+pub use leetium_channels::otp::*;

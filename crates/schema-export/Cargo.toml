@@ -1,11 +1,11 @@
 [package]
 edition.workspace    = true
-name                 = "moltis-schema-export"
+name                 = "leetium-schema-export"
 repository.workspace = true
 version.workspace    = true
 
 [build-dependencies]
-moltis-graphql        = { workspace = true }
-moltis-service-traits = { workspace = true }
+leetium-graphql        = { workspace = true }
+leetium-service-traits = { workspace = true }
 serde_json            = { workspace = true }
 tokio                 = { workspace = true }

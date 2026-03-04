@@ -8,7 +8,7 @@ use {
 };
 
 #[cfg(feature = "metrics")]
-use moltis_metrics::{counter, oauth as oauth_metrics};
+use leetium_metrics::{counter, oauth as oauth_metrics};
 
 use crate::{
     Error, Result,
@@ -33,7 +33,7 @@ impl OAuthFlow {
     pub fn new(config: OAuthConfig) -> Self {
         Self {
             config,
-            client: reqwest::Client::new(),
+            client: leetium_common::http::shared_http_client().clone(),
         }
     }
 

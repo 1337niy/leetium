@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Theme (matching macOS app / web UI)
 
-enum MoltisTheme {
+enum LeetiumTheme {
     static let userBg = Color(
         light: Color(red: 0xf0 / 255, green: 0xf0 / 255, blue: 0xf0 / 255),
         dark: Color(red: 0x1e / 255, green: 0x20 / 255, blue: 0x28 / 255)
@@ -92,12 +92,12 @@ struct MessageBubble: View {
 
     private func speedColor(for message: ChatMessage) -> Color {
         guard let outTok = message.outputTokens, let ms = message.durationMs, ms > 0 else {
-            return MoltisTheme.muted
+            return LeetiumTheme.muted
         }
         let tokPerSec = Double(outTok) / (Double(ms) / 1000.0)
-        if tokPerSec >= 25 { return MoltisTheme.ok }
-        if tokPerSec < 10 { return MoltisTheme.error }
-        return MoltisTheme.muted
+        if tokPerSec >= 25 { return LeetiumTheme.ok }
+        if tokPerSec < 10 { return LeetiumTheme.error }
+        return LeetiumTheme.muted
     }
 
     var body: some View {
@@ -128,14 +128,14 @@ struct MessageBubble: View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.caption)
-                .foregroundStyle(MoltisTheme.error)
+                .foregroundStyle(LeetiumTheme.error)
             Text(message.text)
                 .font(.caption)
-                .foregroundStyle(MoltisTheme.error)
+                .foregroundStyle(LeetiumTheme.error)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(MoltisTheme.error.opacity(0.08), in: Capsule())
+        .background(LeetiumTheme.error.opacity(0.08), in: Capsule())
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.vertical, 4)
     }
@@ -178,11 +178,11 @@ struct MessageBubble: View {
                 }
             }
             .padding(10)
-            .background(isUser ? MoltisTheme.userBg : MoltisTheme.assistantBg)
+            .background(isUser ? LeetiumTheme.userBg : LeetiumTheme.assistantBg)
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(
-                        isUser ? MoltisTheme.userBorder : MoltisTheme.assistantBorder,
+                        isUser ? LeetiumTheme.userBorder : LeetiumTheme.assistantBorder,
                         lineWidth: 1
                     )
             }

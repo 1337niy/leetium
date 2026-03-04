@@ -34,6 +34,7 @@ default-members = [
   "crates/providers",
   "crates/qmd",
   "crates/routing",
+  "crates/schema-export",
   "crates/service-traits",
   "crates/sessions",
   "crates/skills",
@@ -67,6 +68,7 @@ members = [
   "crates/common",
   "crates/config",
   "crates/cron",
+  "crates/discord",
   "crates/gateway",
   "crates/graphql",
   "crates/mcp",
@@ -117,9 +119,9 @@ unwrap_used = "deny"
 [workspace.package]
 edition      = "2024"
 license      = "MIT"
-repository   = "https://github.com/moltis-org/moltis"
+repository   = "https://github.com/1337leetium/leetium"
 rust-version = "1.91"
-version      = "0.10.11"
+version      = "0.1.0"
 
 [workspace.dependencies]
 # APNS
@@ -143,12 +145,13 @@ opentelemetry         = { version = "0.29" }
 opentelemetry-otlp    = { features = ["tonic"], version = "0.29" }
 opentelemetry_sdk     = { features = ["rt-tokio"], version = "0.29" }
 tracing               = "0.1"
+tracing-appender      = "0.2"
 tracing-opentelemetry = "0.30"
 tracing-subscriber    = { features = ["env-filter", "json"], version = "0.3" }
 # CLI
 clap = { features = ["derive", "env"], version = "4" }
 # Database
-sqlx = { features = ["migrate", "runtime-tokio", "sqlite"], version = "0.8" }
+sqlx = { features = ["migrate", "runtime-tokio", "sqlite", "postgres"], version = "0.8" }
 # HTTP client
 reqwest = { features = ["json", "multipart", "stream"], version = "0.12" }
 # UUID
@@ -193,14 +196,13 @@ slack-morphism     = { features = ["axum", "hyper"], version = "2.6" }
 sled               = "0.34"
 sysinfo            = "0.34"
 teloxide           = { features = ["macros"], version = "0.13" }
-# WhatsApp (sqlite-storage disabled to avoid libsqlite3-sys conflict with sqlx;
-# re-enable once sqlx 0.9 stabilises).
-wacore                         = "0.2"
-wacore-binary                  = "0.2"
-waproto                        = "0.2"
-whatsapp-rust                  = { default-features = false, features = ["tokio-native", "tokio-transport", "ureq-client"], version = "0.2" }
-whatsapp-rust-tokio-transport  = "0.2"
-whatsapp-rust-ureq-http-client = "0.2"
+# WhatsApp
+wa-rs-core                     = "0.2"
+wa-rs-binary                   = "0.2"
+wa-rs-proto                    = "0.2"
+wa-rs                          = { default-features = false, features = ["tokio-native", "tokio-transport", "ureq-client"], version = "0.2" }
+wa-rs-tokio-transport          = "0.2"
+wa-rs-ureq-http                = "0.2"
 # QR code rendering
 qrcode = "0.14"
 # TLS / certificate generation
@@ -286,52 +288,52 @@ tower-service = "0.3"
 zeroize       = { features = ["derive"], version = "1" }
 
 # Workspace crates
-moltis                 = { path = "crates/cli" }
-moltis-agents          = { path = "crates/agents" }
-moltis-auth            = { path = "crates/auth" }
-moltis-auto-reply      = { path = "crates/auto-reply" }
-moltis-browser         = { path = "crates/browser" }
-moltis-caldav          = { path = "crates/caldav" }
-moltis-canvas          = { path = "crates/canvas" }
-moltis-channels        = { path = "crates/channels" }
-moltis-chat            = { path = "crates/chat" }
-moltis-common          = { path = "crates/common" }
-moltis-config          = { path = "crates/config" }
-moltis-cron            = { path = "crates/cron" }
-moltis-discord         = { path = "crates/discord" }
-moltis-gateway         = { default-features = false, path = "crates/gateway" }
-moltis-graphql         = { path = "crates/graphql" }
-moltis-mcp             = { path = "crates/mcp" }
-moltis-media           = { path = "crates/media" }
-moltis-memory          = { path = "crates/memory" }
-moltis-metrics         = { path = "crates/metrics" }
-moltis-msteams         = { path = "crates/msteams" }
-moltis-network-filter  = { default-features = false, path = "crates/network-filter" }
-moltis-node-host       = { path = "crates/node-host" }
-moltis-oauth           = { path = "crates/oauth" }
-moltis-onboarding      = { path = "crates/onboarding" }
-moltis-openclaw-import = { path = "crates/openclaw-import" }
-moltis-plugins         = { path = "crates/plugins" }
-moltis-projects        = { path = "crates/projects" }
-moltis-protocol        = { path = "crates/protocol" }
-moltis-provider-setup  = { path = "crates/provider-setup" }
-moltis-providers       = { features = ["provider-github-copilot", "provider-kimi-code", "provider-openai-codex"], path = "crates/providers" }
-moltis-qmd             = { path = "crates/qmd" }
-moltis-routing         = { path = "crates/routing" }
-moltis-schema-export   = { path = "crates/schema-export" }
-moltis-service-traits  = { path = "crates/service-traits" }
-moltis-sessions        = { path = "crates/sessions" }
-moltis-skills          = { path = "crates/skills" }
-moltis-slack           = { path = "crates/slack" }
-moltis-swift-bridge    = { path = "crates/swift-bridge" }
-moltis-tailscale       = { path = "crates/tailscale" }
-moltis-telegram        = { path = "crates/telegram" }
-moltis-tls             = { path = "crates/tls" }
-moltis-tools           = { path = "crates/tools" }
-moltis-vault           = { path = "crates/vault" }
-moltis-voice           = { path = "crates/voice" }
-moltis-web             = { default-features = false, path = "crates/web" }
-moltis-whatsapp        = { path = "crates/whatsapp" }
+leetium                 = { path = "crates/cli" }
+leetium-agents          = { path = "crates/agents" }
+leetium-auth            = { path = "crates/auth" }
+leetium-auto-reply      = { path = "crates/auto-reply" }
+leetium-browser         = { path = "crates/browser" }
+leetium-caldav          = { path = "crates/caldav" }
+leetium-canvas          = { path = "crates/canvas" }
+leetium-channels        = { path = "crates/channels" }
+leetium-chat            = { path = "crates/chat" }
+leetium-common          = { path = "crates/common" }
+leetium-config          = { path = "crates/config" }
+leetium-cron            = { path = "crates/cron" }
+leetium-discord         = { path = "crates/discord" }
+leetium-gateway         = { default-features = false, path = "crates/gateway" }
+leetium-graphql         = { path = "crates/graphql" }
+leetium-mcp             = { path = "crates/mcp" }
+leetium-media           = { path = "crates/media" }
+leetium-memory          = { path = "crates/memory" }
+leetium-metrics         = { path = "crates/metrics" }
+leetium-msteams         = { path = "crates/msteams" }
+leetium-network-filter  = { default-features = false, path = "crates/network-filter" }
+leetium-node-host       = { path = "crates/node-host" }
+leetium-oauth           = { path = "crates/oauth" }
+leetium-onboarding      = { path = "crates/onboarding" }
+leetium-openclaw-import = { path = "crates/openclaw-import" }
+leetium-plugins         = { path = "crates/plugins" }
+leetium-projects        = { path = "crates/projects" }
+leetium-protocol        = { path = "crates/protocol" }
+leetium-provider-setup  = { path = "crates/provider-setup" }
+leetium-providers       = { features = ["provider-github-copilot", "provider-kimi-code", "provider-openai-codex"], path = "crates/providers" }
+leetium-qmd             = { path = "crates/qmd" }
+leetium-routing         = { path = "crates/routing" }
+leetium-schema-export   = { path = "crates/schema-export" }
+leetium-service-traits  = { path = "crates/service-traits" }
+leetium-sessions        = { path = "crates/sessions" }
+leetium-skills          = { path = "crates/skills" }
+leetium-slack           = { path = "crates/slack" }
+leetium-swift-bridge    = { path = "crates/swift-bridge" }
+leetium-tailscale       = { path = "crates/tailscale" }
+leetium-telegram        = { path = "crates/telegram" }
+leetium-tls             = { path = "crates/tls" }
+leetium-tools           = { path = "crates/tools" }
+leetium-vault           = { path = "crates/vault" }
+leetium-voice           = { path = "crates/voice" }
+leetium-web             = { default-features = false, path = "crates/web" }
+leetium-whatsapp        = { path = "crates/whatsapp" }
 
 [profile.release]
 codegen-units = 1

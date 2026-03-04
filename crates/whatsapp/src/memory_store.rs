@@ -1,10 +1,10 @@
-//! In-memory storage backend for whatsapp-rust.
+//! In-memory storage backend for wa-rs.
 //!
-//! This is a temporary solution while `whatsapp-rust-sqlite-storage` has a
+//! This is a temporary solution while `wa-rs-sqlite-storage` has a
 //! `libsqlite3-sys` version conflict with `sqlx`. Session state does NOT
 //! persist across restarts — the user must re-scan the QR code.
 //!
-//! TODO: Replace with `whatsapp-rust-sqlite-storage` once sqlx 0.9 stabilises
+//! TODO: Replace with `wa-rs-sqlite-storage` once sqlx 0.9 stabilises
 //! (it uses a range-based libsqlite3-sys dep that resolves the conflict).
 
 use std::{fmt::Write, sync::Arc};
@@ -12,7 +12,7 @@ use std::{fmt::Write, sync::Arc};
 use {
     async_trait::async_trait,
     dashmap::DashMap,
-    wacore::{
+    wa_rs_core::{
         appstate::{hash::HashState, processor::AppStateMutationMAC},
         store::{error::Result, traits::*},
     },
@@ -27,7 +27,7 @@ fn hex_encode(bytes: &[u8]) -> String {
     s
 }
 
-/// In-memory store implementing all wacore storage traits.
+/// In-memory store implementing all wa_rs_core storage traits.
 #[derive(Clone, Default)]
 pub struct MemoryStore {
     identities: Arc<DashMap<String, Vec<u8>>>,
@@ -41,7 +41,7 @@ pub struct MemoryStore {
     mutation_macs: Arc<DashMap<String, Vec<u8>>>,
     /// Keyed by `"{name}:{version}"` → list of index_macs stored at that version.
     mutation_mac_indexes: Arc<DashMap<String, Vec<Vec<u8>>>>,
-    device_data: Arc<tokio::sync::RwLock<Option<wacore::store::Device>>>,
+    device_data: Arc<tokio::sync::RwLock<Option<wa_rs_core::store::Device>>>,
     device_id: Arc<std::sync::atomic::AtomicI32>,
     skdm_recipients: Arc<DashMap<String, Vec<String>>>,
     lid_mappings: Arc<DashMap<String, LidPnMappingEntry>>,
@@ -229,25 +229,45 @@ impl AppSyncStore for MemoryStore {
 
 #[async_trait]
 impl ProtocolStore for MemoryStore {
-    async fn get_skdm_recipients(&self, group_jid: &str) -> Result<Vec<String>> {
+    async fn get_skdm_recipients(&self, group_jid: &str) -> Result<Vec<wa_rs::Jid>> {
         Ok(self
             .skdm_recipients
             .get(group_jid)
-            .map(|v| v.value().clone())
+            .map(|v| v.value().iter().filter_map(|s| s.parse().ok()).collect())
             .unwrap_or_default())
     }
 
-    async fn add_skdm_recipients(&self, group_jid: &str, device_jids: &[String]) -> Result<()> {
+    async fn add_skdm_recipients(&self, group_jid: &str, device_jids: &[wa_rs::Jid]) -> Result<()> {
         self.skdm_recipients
             .entry(group_jid.to_string())
             .or_default()
-            .extend(device_jids.iter().cloned());
+            .extend(device_jids.iter().map(|jid: &wa_rs::Jid| jid.to_string()));
         Ok(())
     }
 
     async fn clear_skdm_recipients(&self, group_jid: &str) -> Result<()> {
         self.skdm_recipients.remove(group_jid);
         Ok(())
+    }
+
+    async fn get_tc_token(&self, _jid: &str) -> Result<Option<TcTokenEntry>> {
+        Ok(None)
+    }
+
+    async fn put_tc_token(&self, _jid: &str, _token: &TcTokenEntry) -> Result<()> {
+        Ok(())
+    }
+
+    async fn delete_tc_token(&self, _jid: &str) -> Result<()> {
+        Ok(())
+    }
+
+    async fn get_all_tc_token_jids(&self) -> Result<Vec<String>> {
+        Ok(Vec::new())
+    }
+
+    async fn delete_expired_tc_tokens(&self, _timestamp: i64) -> Result<u32> {
+        Ok(0)
     }
 
     async fn get_lid_mapping(&self, lid: &str) -> Result<Option<LidPnMappingEntry>> {
@@ -348,13 +368,13 @@ impl ProtocolStore for MemoryStore {
 
 #[async_trait]
 impl DeviceStore for MemoryStore {
-    async fn save(&self, device: &wacore::store::Device) -> Result<()> {
+    async fn save(&self, device: &wa_rs_core::store::Device) -> Result<()> {
         let mut data = self.device_data.write().await;
         *data = Some(device.clone());
         Ok(())
     }
 
-    async fn load(&self) -> Result<Option<wacore::store::Device>> {
+    async fn load(&self) -> Result<Option<wa_rs_core::store::Device>> {
         let data = self.device_data.read().await;
         Ok(data.clone())
     }
@@ -478,7 +498,10 @@ mod tests {
         assert!(recips.is_empty());
 
         store
-            .add_skdm_recipients("group1", &["dev1".into(), "dev2".into()])
+            .add_skdm_recipients(
+                "group1",
+                &["dev1".parse().unwrap(), "dev2".parse().unwrap()],
+            )
             .await
             .unwrap();
         let recips = store.get_skdm_recipients("group1").await.unwrap();

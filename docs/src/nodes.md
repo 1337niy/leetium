@@ -1,6 +1,6 @@
 # Multi-Node
 
-Moltis can distribute work across multiple machines. A **node** is a remote
+Leetium can distribute work across multiple machines. A **node** is a remote
 device that connects to your gateway and executes commands on your behalf.
 This lets the AI agent run shell commands on a Linux server, query a Raspberry
 Pi, or leverage a GPU machine — all from a single chat session.
@@ -9,18 +9,18 @@ Pi, or leverage a GPU machine — all from a single chat session.
 
 ```
 ┌──────────────┐    WebSocket     ┌─────────────────┐
-│  Your laptop │◄────────────────►│  Moltis gateway  │
-│  (browser)   │                  │  (moltis)        │
+│  Your laptop │◄────────────────►│  Leetium gateway  │
+│  (browser)   │                  │  (leetium)        │
 └──────────────┘                  └────────┬─────────┘
                                            │ WebSocket
                                   ┌────────▼─────────┐
                                   │  Remote machine   │
-                                  │  (moltis node)    │
+                                  │  (leetium node)    │
                                   └──────────────────┘
 ```
 
 1. The gateway runs on your primary machine (or a server).
-2. On the remote machine, run `moltis node add` to register it with the gateway.
+2. On the remote machine, run `leetium node add` to register it with the gateway.
 3. The gateway authenticates the node using a **device token** from the pairing flow.
 4. Once connected, the agent can execute commands on the node, query its
    telemetry, and discover its LLM providers.
@@ -46,16 +46,16 @@ connection. Tokens can be revoked from the Nodes page at any time.
 On the remote machine, register it as a node:
 
 ```bash
-moltis node add --host ws://your-gateway:9090/ws --token <device-token> --name "Build Server"
+leetium node add --host ws://your-gateway:9090/ws --token <device-token> --name "Build Server"
 ```
 
-This saves the connection parameters to `~/.moltis/node.json` and installs an
+This saves the connection parameters to `~/.leetium/node.json` and installs an
 OS service that starts on boot and reconnects on failure:
 
 | Platform | Service file |
 |----------|-------------|
-| macOS | `~/Library/LaunchAgents/org.moltis.node.plist` |
-| Linux | `~/.config/systemd/user/moltis-node.service` |
+| macOS | `~/Library/LaunchAgents/org.leetium.node.plist` |
+| Linux | `~/.config/systemd/user/leetium-node.service` |
 
 Options:
 
@@ -69,7 +69,7 @@ Options:
 | `--timeout` | Max command timeout in seconds | `300` |
 | `--foreground` | Run in the terminal instead of installing a service | off |
 
-You can also set `MOLTIS_GATEWAY_URL` and `MOLTIS_DEVICE_TOKEN` as
+You can also set `LEETIUM_GATEWAY_URL` and `LEETIUM_DEVICE_TOKEN` as
 environment variables instead of passing `--host` and `--token`.
 
 ### Foreground mode
@@ -78,7 +78,7 @@ For debugging or one-off use, pass `--foreground` to run the node in the
 current terminal session instead of installing a service:
 
 ```bash
-moltis node add --host ws://your-gateway:9090/ws --token <device-token> --foreground
+leetium node add --host ws://your-gateway:9090/ws --token <device-token> --foreground
 ```
 
 Press `Ctrl+C` to disconnect.
@@ -88,16 +88,16 @@ Press `Ctrl+C` to disconnect.
 To disconnect this machine and remove the background service:
 
 ```bash
-moltis node remove
+leetium node remove
 ```
 
 This stops the service, removes the service file, and deletes the saved
-configuration from `~/.moltis/node.json`.
+configuration from `~/.leetium/node.json`.
 
 ## Checking Status
 
 ```bash
-moltis node status
+leetium node status
 ```
 
 Shows the gateway URL, display name, and whether the background service is
@@ -106,9 +106,9 @@ running.
 ## Logs
 
 ```bash
-moltis node logs
+leetium node logs
 # Tail the log:
-tail -f $(moltis node logs)
+tail -f $(leetium node logs)
 ```
 
 ## Selecting a Node in Chat
@@ -142,13 +142,13 @@ This data is visible on the Nodes page and available to the agent via the
 
 | Command | Description |
 |---------|-------------|
-| `moltis node generate-token` | Generate a device token and print the `add` command |
-| `moltis node list` | List all connected nodes |
-| `moltis node add --host <url> --token <tok>` | Join this machine to a gateway as a node |
-| `moltis node add ... --foreground` | Run in the terminal instead of installing a service |
-| `moltis node remove` | Disconnect this machine and remove the service |
-| `moltis node status` | Show connection info and service status |
-| `moltis node logs` | Print log file path |
+| `leetium node generate-token` | Generate a device token and print the `add` command |
+| `leetium node list` | List all connected nodes |
+| `leetium node add --host <url> --token <tok>` | Join this machine to a gateway as a node |
+| `leetium node add ... --foreground` | Run in the terminal instead of installing a service |
+| `leetium node remove` | Disconnect this machine and remove the service |
+| `leetium node status` | Show connection info and service status |
+| `leetium node logs` | Print log file path |
 
 ## Security
 

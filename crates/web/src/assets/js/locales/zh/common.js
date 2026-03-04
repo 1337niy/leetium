@@ -61,7 +61,7 @@ export default {
 		signOut: "退出登录",
 	},
 	banners: {
-		authDisabled: "身份验证已禁用。任何具有网络访问权限的人都可以控制 moltis 和您的计算机。",
+		authDisabled: "身份验证已禁用。任何具有网络访问权限的人都可以控制 leetium 和您的计算机。",
 		setupAuthentication: "设置身份验证",
 		updateAvailable: "有可用更新",
 		viewRelease: "查看版本",

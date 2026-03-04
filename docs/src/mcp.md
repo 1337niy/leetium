@@ -1,6 +1,6 @@
 # MCP Servers
 
-Moltis supports the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) for connecting to external tool servers. MCP servers extend your agent's capabilities without modifying Moltis itself.
+Leetium supports the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) for connecting to external tool servers. MCP servers extend your agent's capabilities without modifying Leetium itself.
 
 ## What is MCP?
 
@@ -28,7 +28,7 @@ MCP is an open protocol that lets AI assistants connect to external tools and da
 
 ### Via Configuration
 
-Add servers to `moltis.toml`:
+Add servers to `leetium.toml`:
 
 ```toml
 [mcp.servers.filesystem]
@@ -97,7 +97,7 @@ url = "https://mcp.example.com/mcp"  # Required when transport = "sse"
 
 ### Health Monitoring
 
-Moltis monitors MCP servers and automatically:
+Leetium monitors MCP servers and automatically:
 
 - Detects crashes via process exit
 - Restarts with exponential backoff
@@ -159,7 +159,7 @@ const transport = new StdioServerTransport();
 await server.connect(transport);
 ```
 
-### Configure in Moltis
+### Configure in Leetium
 
 ```toml
 [mcp.servers.my_server]
@@ -179,11 +179,11 @@ In the web UI, go to **Settings** → **MCP Servers** to see:
 
 ### View Logs
 
-MCP server stderr is captured in Moltis logs:
+MCP server stderr is captured in Leetium logs:
 
 ```bash
 # View gateway logs
-tail -f ~/.moltis/logs.jsonl | grep -i mcp
+tail -f ~/.leetium/logs.jsonl | grep -i mcp
 ```
 
 ### Test Locally
@@ -196,14 +196,14 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node server.js
 
 ## OAuth Authentication
 
-Remote MCP servers can require OAuth 2.1 authentication. Moltis handles this automatically — when a server returns `401 Unauthorized`, the OAuth flow starts without any manual configuration.
+Remote MCP servers can require OAuth 2.1 authentication. Leetium handles this automatically — when a server returns `401 Unauthorized`, the OAuth flow starts without any manual configuration.
 
 ### How It Works
 
-1. Moltis connects to the remote MCP server
+1. Leetium connects to the remote MCP server
 2. The server returns `401 Unauthorized` with a `WWW-Authenticate` header
-3. Moltis discovers the authorization server via [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) (Protected Resource Metadata)
-4. Moltis performs [dynamic client registration](https://www.rfc-editor.org/rfc/rfc7591) (RFC 7591)
+3. Leetium discovers the authorization server via [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) (Protected Resource Metadata)
+4. Leetium performs [dynamic client registration](https://www.rfc-editor.org/rfc/rfc7591) (RFC 7591)
 5. A PKCE authorization code flow opens your browser for login
 6. After login, tokens are stored and used for all subsequent requests
 
@@ -227,12 +227,12 @@ scopes = ["mcp:read", "mcp:write"]
 
 ### Re-authentication
 
-If your session expires or tokens are revoked, Moltis automatically re-authenticates on the next `401` response. You can also trigger re-authentication manually via the `mcp.reauth` RPC method.
+If your session expires or tokens are revoked, Leetium automatically re-authenticates on the next `401` response. You can also trigger re-authentication manually via the `mcp.reauth` RPC method.
 
 ## Security Considerations
 
 ```admonish warning
-MCP servers run with the same permissions as Moltis. Only use servers from trusted sources.
+MCP servers run with the same permissions as Leetium. Only use servers from trusted sources.
 ```
 
 - **Review server code** before running

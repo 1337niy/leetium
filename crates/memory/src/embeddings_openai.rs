@@ -7,7 +7,7 @@ use {
 };
 
 #[cfg(feature = "metrics")]
-use moltis_metrics::{counter, histogram, labels, memory as mem_metrics};
+use leetium_metrics::{counter, histogram, labels, memory as mem_metrics};
 
 use crate::embeddings::EmbeddingProvider;
 
@@ -60,7 +60,7 @@ impl OpenAiEmbeddingProvider {
         let model = "text-embedding-3-small".to_string();
         let provider_key = compute_provider_key(&base_url, &model);
         Self {
-            client: reqwest::Client::new(),
+            client: leetium_common::http::shared_http_client().clone(),
             api_key: secrecy::Secret::new(api_key),
             base_url,
             model,
@@ -134,7 +134,7 @@ impl EmbeddingProvider for OpenAiEmbeddingProvider {
 
         #[cfg(feature = "metrics")]
         histogram!(
-            "moltis_memory_embedding_duration_seconds",
+            "leetium_memory_embedding_duration_seconds",
             labels::PROVIDER => "openai"
         )
         .record(start.elapsed().as_secs_f64());

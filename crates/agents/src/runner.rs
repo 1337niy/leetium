@@ -6,9 +6,9 @@ use {
 };
 
 #[cfg(feature = "metrics")]
-use moltis_metrics::{counter, histogram, labels, llm as llm_metrics};
+use leetium_metrics::{counter, histogram, labels, llm as llm_metrics};
 
-use moltis_common::hooks::{HookAction, HookPayload, HookRegistry};
+use leetium_common::hooks::{HookAction, HookPayload, HookRegistry};
 
 use crate::{
     model::{
@@ -605,7 +605,7 @@ pub async fn run_agent_loop_with_context(
     hook_registry: Option<Arc<HookRegistry>>,
 ) -> Result<AgentRunResult, AgentRunError> {
     let native_tools = provider.supports_tools();
-    let config = moltis_config::discover_and_load();
+    let config = leetium_config::discover_and_load();
     let max_tool_result_bytes = config.tools.max_tool_result_bytes;
     let max_iterations = resolve_agent_max_iterations(config.tools.agent_max_iterations);
     let tool_schemas = tools.list_schemas();
@@ -1130,7 +1130,7 @@ pub async fn run_agent_loop_streaming(
     hook_registry: Option<Arc<HookRegistry>>,
 ) -> Result<AgentRunResult, AgentRunError> {
     let native_tools = provider.supports_tools();
-    let config = moltis_config::discover_and_load();
+    let config = leetium_config::discover_and_load();
     let max_tool_result_bytes = config.tools.max_tool_result_bytes;
     let max_iterations = resolve_agent_max_iterations(config.tools.agent_max_iterations);
     let tool_schemas = tools.list_schemas();
@@ -1865,7 +1865,7 @@ mod tests {
 
     #[test]
     fn test_explicit_shell_command_supports_telegram_style_bot_mention() {
-        let uc = UserContent::text("/sh@MoltisBot uname -a");
+        let uc = UserContent::text("/sh@LeetiumBot uname -a");
         assert_eq!(
             explicit_shell_command_from_user_content(&uc).as_deref(),
             Some("uname -a")

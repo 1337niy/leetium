@@ -55,12 +55,12 @@ New startup script (similar to existing `start-gateway.sh`) that:
 - Starts the mock OAuth server first, captures its port
 - Sets env vars to override the built-in OAuth config:
   ```bash
-  export MOLTIS_OAUTH_OPENAI_CODEX_AUTH_URL="http://127.0.0.1:${MOCK_PORT}/authorize"
-  export MOLTIS_OAUTH_OPENAI_CODEX_TOKEN_URL="http://127.0.0.1:${MOCK_PORT}/token"
-  export MOLTIS_OAUTH_OPENAI_CODEX_CLIENT_ID="test-client-id"
-  export MOLTIS_OAUTH_OPENAI_CODEX_REDIRECT_URI="http://localhost:1455/auth/callback"
+  export LEETIUM_OAUTH_OPENAI_CODEX_AUTH_URL="http://127.0.0.1:${MOCK_PORT}/authorize"
+  export LEETIUM_OAUTH_OPENAI_CODEX_TOKEN_URL="http://127.0.0.1:${MOCK_PORT}/token"
+  export LEETIUM_OAUTH_OPENAI_CODEX_CLIENT_ID="test-client-id"
+  export LEETIUM_OAUTH_OPENAI_CODEX_REDIRECT_URI="http://localhost:1455/auth/callback"
   ```
-- Starts the moltis gateway as usual (isolated data dir, no TLS)
+- Starts the leetium gateway as usual (isolated data dir, no TLS)
 - Seeds identity/user files like the default script
 
 #### 3. Add Playwright project in `playwright.config.js`
@@ -69,7 +69,7 @@ New startup script (similar to existing `start-gateway.sh`) that:
 {
   name: "oauth",
   testMatch: /oauth\.spec/,
-  use: { baseURL: `http://127.0.0.1:${process.env.MOLTIS_E2E_OAUTH_PORT || 4010}` },
+  use: { baseURL: `http://127.0.0.1:${process.env.LEETIUM_E2E_OAUTH_PORT || 4010}` },
 }
 ```
 
@@ -151,16 +151,16 @@ Create a GitHub Environment called `e2e-oauth` with **required reviewers**
 
 | Secret name | Description |
 |-------------|-------------|
-| `MOLTIS_OAUTH_OPENAI_CODEX_ACCESS_TOKEN` | Valid access token from a test OpenAI account |
-| `MOLTIS_OAUTH_OPENAI_CODEX_REFRESH_TOKEN` | Refresh token for the same account |
-| `MOLTIS_OAUTH_GITHUB_COPILOT_ACCESS_TOKEN` | Valid Copilot token (optional) |
-| `MOLTIS_OAUTH_GITHUB_COPILOT_REFRESH_TOKEN` | Copilot refresh token (optional) |
+| `LEETIUM_OAUTH_OPENAI_CODEX_ACCESS_TOKEN` | Valid access token from a test OpenAI account |
+| `LEETIUM_OAUTH_OPENAI_CODEX_REFRESH_TOKEN` | Refresh token for the same account |
+| `LEETIUM_OAUTH_GITHUB_COPILOT_ACCESS_TOKEN` | Valid Copilot token (optional) |
+| `LEETIUM_OAUTH_GITHUB_COPILOT_REFRESH_TOKEN` | Copilot refresh token (optional) |
 
 #### Obtaining test tokens
 
-1. Run moltis locally: `cargo run -- serve`
+1. Run leetium locally: `cargo run -- serve`
 2. Connect the provider via the UI (triggers real OAuth flow)
-3. Copy tokens from `~/.config/moltis/oauth_tokens.json`
+3. Copy tokens from `~/.config/leetium/oauth_tokens.json`
 4. Store in GitHub Secrets
 
 Tokens will need periodic rotation when the refresh token expires (provider
@@ -179,7 +179,7 @@ e2e-oauth-integration:
   steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: cargo build --bin moltis
+      run: cargo build --bin leetium
     - name: Setup Node
       uses: actions/setup-node@v4
       with: { node-version: 22 }
@@ -191,12 +191,12 @@ e2e-oauth-integration:
       working-directory: crates/gateway/ui
     - name: Seed OAuth tokens
       run: |
-        mkdir -p target/e2e-runtime-oauth/.config/moltis
-        cat > target/e2e-runtime-oauth/.config/moltis/oauth_tokens.json << 'SEED'
+        mkdir -p target/e2e-runtime-oauth/.config/leetium
+        cat > target/e2e-runtime-oauth/.config/leetium/oauth_tokens.json << 'SEED'
         {
           "openai-codex": {
-            "access_token": "${{ secrets.MOLTIS_OAUTH_OPENAI_CODEX_ACCESS_TOKEN }}",
-            "refresh_token": "${{ secrets.MOLTIS_OAUTH_OPENAI_CODEX_REFRESH_TOKEN }}",
+            "access_token": "${{ secrets.LEETIUM_OAUTH_OPENAI_CODEX_ACCESS_TOKEN }}",
+            "refresh_token": "${{ secrets.LEETIUM_OAUTH_OPENAI_CODEX_REFRESH_TOKEN }}",
             "expires_at": 0
           }
         }

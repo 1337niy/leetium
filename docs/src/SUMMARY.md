@@ -21,7 +21,7 @@
   - [Anthropic OAuth (FAQ)](anthropic-oauth.md)
 - [MCP Servers](mcp.md)
 - [Memory](memory.md)
-  - [Moltis vs OpenClaw](memory-comparison.md)
+  - [Leetium vs OpenClaw](memory-comparison.md)
 - [Hooks](hooks.md)
 - [Local LLMs](local-llm.md)
 - [Sandbox](sandbox.md)
@@ -71,6 +71,7 @@
 - [Tool Registry](tool-registry.md)
 - [Agent Presets](agent-presets.md)
 - [Session Tools](session-tools.md)
+- [ADR-001: Date/Time Crate](ADR-001-datetime.md)
 
 ---
 

@@ -2,16 +2,16 @@ use std::sync::Arc;
 
 use {
     async_trait::async_trait,
-    moltis_tools::image_cache::ImageBuilder,
+    leetium_tools::image_cache::ImageBuilder,
     tracing::{debug, error, info, warn},
 };
 
 use {
-    moltis_channels::{
+    leetium_channels::{
         ChannelAttachment, ChannelEvent, ChannelEventSink, ChannelMessageMeta, ChannelReplyTarget,
         Error as ChannelError, Result as ChannelResult,
     },
-    moltis_sessions::metadata::SqliteSessionMetadata,
+    leetium_sessions::metadata::SqliteSessionMetadata,
 };
 
 use crate::{
@@ -132,6 +132,7 @@ impl GatewayChannelEventSink {
 impl ChannelEventSink for GatewayChannelEventSink {
     async fn emit(&self, event: ChannelEvent) {
         if let Some(state) = self.state.get() {
+            #[allow(unused_mut)]
             let mut payload = match serde_json::to_value(&event) {
                 Ok(v) => v,
                 Err(e) => {
@@ -155,10 +156,15 @@ impl ChannelEventSink for GatewayChannelEventSink {
                 }
             }
 
-            broadcast(state, "channel", payload, BroadcastOpts {
-                drop_if_slow: true,
-                ..Default::default()
-            })
+            broadcast(
+                state,
+                "channel",
+                payload,
+                BroadcastOpts {
+                    drop_if_slow: true,
+                    ..Default::default()
+                },
+            )
             .await;
         }
     }
@@ -200,10 +206,15 @@ impl ChannelEventSink for GatewayChannelEventSink {
                 "channel": &meta,
                 "sessionKey": &session_key,
             });
-            broadcast(state, "chat", payload, BroadcastOpts {
-                drop_if_slow: true,
-                ..Default::default()
-            })
+            broadcast(
+                state,
+                "chat",
+                payload,
+                BroadcastOpts {
+                    drop_if_slow: true,
+                    ..Default::default()
+                },
+            )
             .await;
 
             // Persist channel binding so web UI messages on this session
@@ -424,12 +435,12 @@ impl ChannelEventSink for GatewayChannelEventSink {
 
         if let Some(state) = self.state.get() {
             // Note: We intentionally do NOT remove the channel from the database.
-            // The channel config should remain persisted so other moltis instances
+            // The channel config should remain persisted so other leetium instances
             // sharing the same database can still use it. The polling loop will
             // cancel itself after this call returns.
 
             // Broadcast an event so the UI can update.
-            let channel_type: moltis_channels::ChannelType = match channel_type.parse() {
+            let channel_type: leetium_channels::ChannelType = match channel_type.parse() {
                 Ok(ct) => ct,
                 Err(e) => {
                     warn!("request_disable_account: {e}");
@@ -448,10 +459,15 @@ impl ChannelEventSink for GatewayChannelEventSink {
                     return;
                 },
             };
-            broadcast(state, "channel", payload, BroadcastOpts {
-                drop_if_slow: true,
-                ..Default::default()
-            })
+            broadcast(
+                state,
+                "channel",
+                payload,
+                BroadcastOpts {
+                    drop_if_slow: true,
+                    ..Default::default()
+                },
+            )
             .await;
         } else {
             warn!("request_disable_account: gateway not ready");
@@ -602,13 +618,13 @@ impl ChannelEventSink for GatewayChannelEventSink {
         };
 
         // Update in-memory cache.
-        let geo = moltis_config::GeoLocation::now(latitude, longitude, None);
+        let geo = leetium_config::GeoLocation::now(latitude, longitude, None);
         state.inner.write().await.cached_location = Some(geo.clone());
 
         // Persist to USER.md (best-effort).
-        let mut user = moltis_config::load_user().unwrap_or_default();
+        let mut user = leetium_config::load_user().unwrap_or_default();
         user.location = Some(geo);
-        if let Err(e) = moltis_config::save_user(&user) {
+        if let Err(e) = leetium_config::save_user(&user) {
             warn!(error = %e, "failed to persist location to USER.md");
         }
 
@@ -663,12 +679,12 @@ impl ChannelEventSink for GatewayChannelEventSink {
             .remove(&pending_key);
         if let Some(invoke) = pending {
             // Cache and persist only when we resolved an explicit request.
-            let geo = moltis_config::GeoLocation::now(latitude, longitude, None);
+            let geo = leetium_config::GeoLocation::now(latitude, longitude, None);
             state.inner.write().await.cached_location = Some(geo.clone());
 
-            let mut user = moltis_config::load_user().unwrap_or_default();
+            let mut user = leetium_config::load_user().unwrap_or_default();
             user.location = Some(geo);
-            if let Err(e) = moltis_config::save_user(&user) {
+            if let Err(e) = leetium_config::save_user(&user) {
                 warn!(error = %e, "failed to persist location to USER.md");
             }
 
@@ -760,10 +776,15 @@ impl ChannelEventSink for GatewayChannelEventSink {
             "sessionKey": &session_key,
             "hasAttachments": true,
         });
-        broadcast(state, "chat", payload, BroadcastOpts {
-            drop_if_slow: true,
-            ..Default::default()
-        })
+        broadcast(
+            state,
+            "chat",
+            payload,
+            BroadcastOpts {
+                drop_if_slow: true,
+                ..Default::default()
+            },
+        )
         .await;
 
         // Persist channel binding (ensure session row exists first —
@@ -1474,7 +1495,7 @@ impl ChannelEventSink for GatewayChannelEventSink {
                                 if let Some(ref router) = state.sandbox_router {
                                     router.default_image().await
                                 } else {
-                                    moltis_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string()
+                                    leetium_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string()
                                 }
                             },
                         }
@@ -1487,10 +1508,10 @@ impl ChannelEventSink for GatewayChannelEventSink {
                     };
 
                     // List available images.
-                    let builder = moltis_tools::image_cache::DockerImageBuilder::new();
+                    let builder = leetium_tools::image_cache::DockerImageBuilder::new();
                     let cached = builder.list_cached().await.unwrap_or_default();
 
-                    let default_img = moltis_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string();
+                    let default_img = leetium_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string();
                     let mut images: Vec<(String, Option<String>)> =
                         vec![(default_img.clone(), None)];
                     for img in &cached {
@@ -1555,8 +1576,8 @@ impl ChannelEventSink for GatewayChannelEventSink {
                         ChannelError::invalid_input("usage: /sandbox image [number]")
                     })?;
 
-                    let default_img = moltis_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string();
-                    let builder = moltis_tools::image_cache::DockerImageBuilder::new();
+                    let default_img = leetium_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_string();
+                    let builder = leetium_tools::image_cache::DockerImageBuilder::new();
                     let cached = builder.list_cached().await.unwrap_or_default();
                     let mut images: Vec<String> = vec![default_img];
                     for img in &cached {
@@ -1735,7 +1756,7 @@ fn format_model_list(
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod tests {
-    use {super::*, moltis_channels::ChannelType};
+    use {super::*, leetium_channels::ChannelType};
 
     #[test]
     fn channel_event_serialization() {

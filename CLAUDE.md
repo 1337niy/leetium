@@ -1,5 +1,5 @@
 ---
-description: "Moltis engineering guide for Claude/Codex agents: Rust architecture, testing, security, and release workflows"
+description: "Leetium engineering guide for Claude/Codex agents: Rust architecture, testing, security, and release workflows"
 alwaysApply: true
 ---
 
@@ -14,7 +14,7 @@ Enable new feature flags **by default** in `crates/cli/Cargo.toml` (opt-out, not
 ```toml
 [features]
 default = ["foo", ...]
-foo = ["moltis-gateway/foo"]
+foo = ["leetium-gateway/foo"]
 ```
 
 ## Workspace Dependencies
@@ -24,7 +24,7 @@ Never add versions directly in crate `Cargo.toml`. Use latest stable crates.io v
 
 ## Config Schema and Validation
 
-When adding/renaming fields in `MoltisConfig` (`crates/config/src/schema.rs`), also update
+When adding/renaming fields in `LeetiumConfig` (`crates/config/src/schema.rs`), also update
 `build_schema_map()` in `crates/config/src/validate.rs`. New enum variants for string-typed
 fields need updates in `check_semantic_warnings()`.
 
@@ -41,8 +41,8 @@ fields need updates in `check_semantic_warnings()`.
 - **Forbidden:** `Mutex<()>` / `Arc<Mutex<()>>` — mutex must guard actual state.
 - Use `anyhow::Result` for app errors, `thiserror` for library errors. Propagate with `?`.
 - **Never `.unwrap()`/`.expect()` in production.** Workspace lints deny these. Use `?`, `ok_or_else`, `unwrap_or_default`, `unwrap_or_else(|e| e.into_inner())` for locks.
-- Use `time` crate (workspace dep) for date/time — no manual epoch math or magic constants like `86400`.
-- Prefer `chrono` only if already imported in the crate; default to `time` for new code.
+- Use `time` crate (workspace dep) for date/time — (See `docs/src/ADR-001-datetime.md` for discussion).
+- Prefer `chrono` only if already heavily imported in the module; default to `time` for new code.
 - Prefer crates over subprocesses (`std::process::Command`). Use subprocesses only when no mature crate exists.
 - Prefer guard clauses (early returns) over nested `if` blocks.
 - Prefer iterators/combinators over manual loops. Use `Cow<'_, str>` when allocation is conditional.
@@ -84,7 +84,7 @@ States: `.selected`, `.disabled`, default. Badges: `.recommended-badge`, `.tier-
 
 ### Provider Config Storage
 
-Provider keys in `~/.config/moltis/provider_keys.json` via `KeyStore` in `provider_setup.rs`.
+Provider keys in `~/.config/leetium/provider_keys.json` via `KeyStore` in `provider_setup.rs`.
 When adding fields, update: `ProviderConfig` struct, `available()` response, `save_key()`.
 
 ### Server-Injected Data (gon pattern)
@@ -116,7 +116,7 @@ middleware in `auth_middleware.rs`. Setup code printed to terminal on first run.
 `RequireAuth` middleware protects `/api/*` except `/api/auth/*` and `/api/gon`.
 `CredentialStore` persists argon2-hashed passwords, passkeys, API keys, sessions to JSON.
 
-CLI: `moltis auth reset-password`, `moltis auth reset-identity`.
+CLI: `leetium auth reset-password`, `leetium auth reset-identity`.
 
 ## Testing
 
@@ -160,7 +160,7 @@ Containers (Docker or Apple Container) in `crates/tools/src/sandbox.rs` (trait +
 `exec.rs` (ExecTool), `crates/cli/src/sandbox_commands.rs` (CLI), `crates/config/src/schema.rs` (config).
 
 Pre-built images use deterministic hash tags from base image + packages. Default packages
-in `default_sandbox_packages()`. CLI: `moltis sandbox {list,build,remove,clean}`.
+in `default_sandbox_packages()`. CLI: `leetium sandbox {list,build,remove,clean}`.
 
 ## Logging Levels
 
@@ -178,9 +178,9 @@ in `default_sandbox_packages()`. CLI: `moltis sandbox {list,build,remove,clean}`
 
 ## Data and Config Directories
 
-- **Config**: `moltis_config::config_dir()` (`~/.moltis/`). Contains `moltis.toml`, `credentials.json`, `mcp-servers.json`.
-- **Data**: `moltis_config::data_dir()` (`~/.moltis/`). Contains DBs, sessions, logs, memory files.
-- **Never** use `directories::BaseDirs` outside `moltis-config`. Never use `std::env::current_dir()` for storage.
+- **Config**: `leetium_config::config_dir()` (`~/.config/leetium/`). Contains `leetium.toml`, `credentials.json`, `mcp-servers.json`.
+- **Data**: `leetium_config::data_dir()` (`~/.leetium/`). Contains DBs, sessions, logs, memory files.
+- **Never** use `directories::BaseDirs` outside `leetium-config`. Never use `std::env::current_dir()` for storage.
 - Workspace-scoped files (`MEMORY.md`, `memory/*.md`, etc.) resolve relative to `data_dir()`.
 - Gateway resolves `data_dir` once at startup; prefer that value over repeated calls.
 
@@ -190,11 +190,11 @@ sqlx migrations, each crate owns its `migrations/` directory. See `docs/sqlite-m
 
 | Crate | Tables |
 |-------|--------|
-| `moltis-projects` | `projects` |
-| `moltis-sessions` | `sessions`, `channel_sessions` |
-| `moltis-cron` | `cron_jobs`, `cron_runs` |
-| `moltis-gateway` | `auth_*`, `passkeys`, `api_keys`, `env_variables`, `message_log`, `channels` |
-| `moltis-memory` | `files`, `chunks`, `embedding_cache`, `chunks_fts` |
+| `leetium-projects` | `projects` |
+| `leetium-sessions` | `sessions`, `channel_sessions` |
+| `leetium-cron` | `cron_jobs`, `cron_runs` |
+| `leetium-gateway` | `auth_*`, `passkeys`, `api_keys`, `env_variables`, `message_log`, `channels` |
+| `leetium-memory` | `files`, `chunks`, `embedding_cache`, `chunks_fts` |
 
 New migration: `crates/<crate>/migrations/YYYYMMDDHHMMSS_description.sql` (use `IF NOT EXISTS`).
 New crate: add `run_migrations()` to `lib.rs`, call from `server.rs` in dependency order.
@@ -236,8 +236,8 @@ Exact commands (must match `local-validate.sh`):
 - Fmt: `cargo +nightly-2025-11-30 fmt --all -- --check`
 - Clippy: `cargo +nightly-2025-11-30 clippy -Z unstable-options --workspace --all-features --all-targets --timings -- -D warnings`
 - macOS without `nvcc`: clippy without `--all-features`
-- macOS app (Darwin hosts): `./scripts/build-swift-bridge.sh && ./scripts/generate-swift-project.sh && ./scripts/lint-swift.sh && xcodebuild -project apps/macos/Moltis.xcodeproj -scheme Moltis -configuration Release -destination "platform=macOS" -derivedDataPath apps/macos/.derivedData-local-validate build`
-- iOS app (Darwin hosts): `cargo run -p moltis-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls && ./scripts/generate-ios-graphql.sh && ./scripts/generate-ios-project.sh && xcodebuild -project apps/ios/Moltis.xcodeproj -scheme Moltis -configuration Debug -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO build`
+- macOS app (Darwin hosts): `./scripts/build-swift-bridge.sh && ./scripts/generate-swift-project.sh && ./scripts/lint-swift.sh && xcodebuild -project apps/macos/Leetium.xcodeproj -scheme Leetium -configuration Release -destination "platform=macOS" -derivedDataPath apps/macos/.derivedData-local-validate build`
+- iOS app (Darwin hosts): `cargo run -p leetium-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls && ./scripts/generate-ios-graphql.sh && ./scripts/generate-ios-project.sh && xcodebuild -project apps/ios/Leetium.xcodeproj -scheme Leetium -configuration Debug -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO build`
 
 ### PR Descriptions
 
@@ -259,7 +259,7 @@ with exact commands), `## Manual QA`. Include concrete test steps.
 
 ## Documentation
 
-Source in `docs/src/` (mdBook). Auto-deployed to docs.moltis.org on push to main.
+Source in `docs/src/` (mdBook). Auto-deployed to docs.leetnex.ru on push to main.
 Update `docs/src/SUMMARY.md` when adding pages. Preview: `cd docs && mdbook serve`.
 
 ## Session Completion
@@ -274,8 +274,9 @@ Update `docs/src/SUMMARY.md` when adding pages. Preview: `cd docs && mdbook serv
 
 ## Issue Tracking
 
-Uses **bd (beads)**: `bd ready`, `bd create "Title" --type task --priority 2`,
-`bd close <id>`, `bd sync` (run at session end). Full details: `bd prime`.
+Uses **bd (beads)** internally: `bd ready`, `bd create "Title" --type task --priority 2`,
+`bd close <id>`, `bd sync` (run at session end). 
+For external contributors, standard **GitHub Issues** are fully supported and preferred.
 
 ## Plans and Session History
 

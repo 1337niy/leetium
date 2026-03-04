@@ -447,7 +447,7 @@ pub struct BrowserConfig {
     pub profile_dir: Option<String>,
     /// Hostname or IP used to connect to the browser container.
     /// Default: "127.0.0.1". Set to e.g. "host.docker.internal" when
-    /// Moltis runs inside Docker alongside a sibling browser container.
+    /// Leetium runs inside Docker alongside a sibling browser container.
     pub container_host: String,
 }
 
@@ -456,7 +456,7 @@ fn default_sandbox_image() -> String {
 }
 
 fn default_container_prefix() -> String {
-    "moltis-browser".to_string()
+    "leetium-browser".to_string()
 }
 
 impl Default for BrowserConfig {
@@ -495,15 +495,15 @@ impl BrowserConfig {
         if let Some(ref dir) = self.profile_dir {
             Some(std::path::PathBuf::from(dir))
         } else if self.persist_profile {
-            Some(moltis_config::data_dir().join("browser").join("profile"))
+            Some(leetium_config::data_dir().join("browser").join("profile"))
         } else {
             None
         }
     }
 }
 
-impl From<&moltis_config::schema::BrowserConfig> for BrowserConfig {
-    fn from(cfg: &moltis_config::schema::BrowserConfig) -> Self {
+impl From<&leetium_config::schema::BrowserConfig> for BrowserConfig {
+    fn from(cfg: &leetium_config::schema::BrowserConfig) -> Self {
         Self {
             enabled: cfg.enabled,
             chrome_path: cfg.chrome_path.clone(),

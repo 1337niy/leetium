@@ -1,4 +1,4 @@
-use moltis_channels::gating::{self, DmPolicy, GroupPolicy};
+use leetium_channels::gating::{self, DmPolicy, GroupPolicy};
 
 use crate::config::WhatsAppAccountConfig;
 

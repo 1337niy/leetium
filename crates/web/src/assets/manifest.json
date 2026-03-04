@@ -1,6 +1,6 @@
 {
-  "name": "moltis",
-  "short_name": "moltis",
+  "name": "leetium",
+  "short_name": "leetium",
   "description": "AI-powered command gateway",
   "start_url": "/chats",
   "scope": "/",

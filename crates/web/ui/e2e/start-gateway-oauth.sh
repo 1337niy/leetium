@@ -9,8 +9,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../../.." && pwd)"
 
-PORT="${MOLTIS_E2E_OAUTH_PORT:-0}"
-RUNTIME_ROOT="${MOLTIS_E2E_OAUTH_RUNTIME_DIR:-${REPO_ROOT}/target/e2e-runtime-oauth}"
+PORT="${LEETIUM_E2E_OAUTH_PORT:-0}"
+RUNTIME_ROOT="${LEETIUM_E2E_OAUTH_RUNTIME_DIR:-${REPO_ROOT}/target/e2e-runtime-oauth}"
 CONFIG_DIR="${RUNTIME_ROOT}/config"
 DATA_DIR="${RUNTIME_ROOT}/data"
 HOME_DIR="${RUNTIME_ROOT}/home"
@@ -26,7 +26,7 @@ name: e2e-bot
 
 # IDENTITY.md
 
-This file is managed by Moltis settings.
+This file is managed by Leetium settings.
 EOF
 
 cat > "${DATA_DIR}/USER.md" <<'EOF'
@@ -36,7 +36,7 @@ name: e2e-user
 
 # USER.md
 
-This file is managed by Moltis settings.
+This file is managed by Leetium settings.
 EOF
 
 # Mark onboarding as complete so the app skips the wizard.
@@ -76,9 +76,9 @@ trap cleanup EXIT
 
 cd "${REPO_ROOT}"
 
-export MOLTIS_CONFIG_DIR="${CONFIG_DIR}"
-export MOLTIS_DATA_DIR="${DATA_DIR}"
-export MOLTIS_SERVER__PORT="${PORT}"
+export LEETIUM_CONFIG_DIR="${CONFIG_DIR}"
+export LEETIUM_DATA_DIR="${DATA_DIR}"
+export LEETIUM_SERVER__PORT="${PORT}"
 export HOME="${HOME_DIR}"
 export XDG_CONFIG_HOME="${HOME_DIR}/.config"
 
@@ -87,17 +87,17 @@ export XDG_CONFIG_HOME="${HOME_DIR}/.config"
 # spawning a local CallbackServer on port 1455 (the upstream-registered URI).
 # This lets the e2e test observe token-exchange errors in the popup because
 # the gateway completes the exchange synchronously before responding.
-export MOLTIS_OAUTH_OPENAI_CODEX_AUTH_URL="http://127.0.0.1:${MOCK_PORT}/authorize"
-export MOLTIS_OAUTH_OPENAI_CODEX_TOKEN_URL="http://127.0.0.1:${MOCK_PORT}/token"
-export MOLTIS_OAUTH_OPENAI_CODEX_CLIENT_ID="test-client-id"
-export MOLTIS_OAUTH_OPENAI_CODEX_REDIRECT_URI=""
+export LEETIUM_OAUTH_OPENAI_CODEX_AUTH_URL="http://127.0.0.1:${MOCK_PORT}/authorize"
+export LEETIUM_OAUTH_OPENAI_CODEX_TOKEN_URL="http://127.0.0.1:${MOCK_PORT}/token"
+export LEETIUM_OAUTH_OPENAI_CODEX_CLIENT_ID="test-client-id"
+export LEETIUM_OAUTH_OPENAI_CODEX_REDIRECT_URI=""
 # Ensure the Add LLM picker shows the OpenAI Codex provider in this e2e project.
-export MOLTIS_PROVIDERS__OFFERED='["openai-codex","openai","github-copilot"]'
+export LEETIUM_PROVIDERS__OFFERED='["openai-codex","openai","github-copilot"]'
 
 # Prefer a pre-built binary to avoid recompiling every test run.
-BINARY="${MOLTIS_BINARY:-}"
+BINARY="${LEETIUM_BINARY:-}"
 if [ -z "${BINARY}" ]; then
-	for candidate in target/debug/moltis target/release/moltis; do
+	for candidate in target/debug/leetium target/release/leetium; do
 		if [ -x "${candidate}" ] && { [ -z "${BINARY}" ] || [ "${candidate}" -nt "${BINARY}" ]; }; then
 			BINARY="${candidate}"
 		fi
@@ -107,5 +107,5 @@ fi
 if [ -n "${BINARY}" ]; then
 	exec "${BINARY}" --no-tls --bind 127.0.0.1 --port "${PORT}"
 else
-	exec cargo run --bin moltis -- --no-tls --bind 127.0.0.1 --port "${PORT}"
+	exec cargo run --bin leetium -- --no-tls --bind 127.0.0.1 --port "${PORT}"
 fi

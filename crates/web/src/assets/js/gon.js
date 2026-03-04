@@ -1,6 +1,6 @@
 // ── Server-injected data (gon pattern) ────────────────────
 //
-// The server injects `window.__MOLTIS__ = { ... }` into every
+// The server injects `window.__LEETIUM__ = { ... }` into every
 // page <head> before any module script runs.  This module
 // provides typed access, runtime updates, and a refresh
 // mechanism that re-fetches the data from `/api/gon`.
@@ -8,7 +8,7 @@
 // Register listeners with `onChange(key, fn)` to react when
 // a key is updated (via `set()` or `refresh()`).
 
-var gon = window.__MOLTIS__ || {};
+var gon = window.__LEETIUM__ || {};
 var listeners = {};
 
 export function get(key) {

@@ -57,7 +57,7 @@ mod tests {
             homepage: None,
             dockerfile: None,
             requires: Default::default(),
-            path: PathBuf::from("/home/user/.moltis/skills/commit"),
+            path: PathBuf::from("/home/user/.leetium/skills/commit"),
             source: None,
         }];
         let prompt = generate_skills_prompt(&skills);

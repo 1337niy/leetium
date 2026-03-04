@@ -120,7 +120,7 @@ export class Session {
 
 // ── Store signals ────────────────────────────────────────────
 export var sessions = signal([]);
-export var activeSessionKey = signal(localStorage.getItem("moltis-session") || "main");
+export var activeSessionKey = signal(localStorage.getItem("leetium-session") || "main");
 export var switchInProgress = signal(false);
 export var refreshInProgressKey = signal("");
 
@@ -200,7 +200,7 @@ export function getByKey(key) {
 /** Set the active session key. Persists to localStorage. */
 export function setActive(key) {
 	activeSessionKey.value = key;
-	localStorage.setItem("moltis-session", key);
+	localStorage.setItem("leetium-session", key);
 }
 
 export var sessionStore = {

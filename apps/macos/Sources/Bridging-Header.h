@@ -1,6 +1,6 @@
-#ifndef Moltis_Bridging_Header_h
-#define Moltis_Bridging_Header_h
+#ifndef Leetium_Bridging_Header_h
+#define Leetium_Bridging_Header_h
 
-#include "moltis_bridge.h"
+#include "leetium_bridge.h"
 
 #endif

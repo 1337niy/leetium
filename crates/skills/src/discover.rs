@@ -31,10 +31,10 @@ impl FsSkillDiscoverer {
     ///
     /// Workspace root is always the configured data directory.
     pub fn default_paths() -> Vec<(PathBuf, SkillSource)> {
-        let workspace_root = moltis_config::data_dir();
+        let workspace_root = leetium_config::data_dir();
         let data = workspace_root.clone();
         vec![
-            (workspace_root.join(".moltis/skills"), SkillSource::Project),
+            (workspace_root.join(".leetium/skills"), SkillSource::Project),
             (data.join("skills"), SkillSource::Personal),
             (data.join("installed-skills"), SkillSource::Registry),
             (data.join("installed-plugins"), SkillSource::Plugin),
@@ -117,7 +117,7 @@ fn discover_flat(base_path: &Path, source: &SkillSource, skills: &mut Vec<SkillM
 /// Plugin skills don't have SKILL.md — they are normalized by format adapters.
 /// This returns lightweight metadata from the manifest for prompt injection.
 fn discover_plugins(install_dir: &Path, skills: &mut Vec<SkillMetadata>) {
-    let manifest_path = moltis_config::data_dir().join("plugins-manifest.json");
+    let manifest_path = leetium_config::data_dir().join("plugins-manifest.json");
     let store = ManifestStore::new(manifest_path);
     let manifest = match store.load() {
         Ok(m) => m,

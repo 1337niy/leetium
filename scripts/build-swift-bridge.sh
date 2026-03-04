@@ -23,9 +23,9 @@ rustup target add x86_64-apple-darwin aarch64-apple-darwin
 rustup target add wasm32-wasip2
 
 # Build and pre-compile embedded WASM guest components before release host builds.
-# moltis-tools includes these bytes at compile time in release mode.
-cargo build --target wasm32-wasip2 -p moltis-wasm-calc -p moltis-wasm-web-fetch -p moltis-wasm-web-search --release
-cargo run -p moltis-wasm-precompile --release
+# leetium-tools includes these bytes at compile time in release mode.
+cargo build --target wasm32-wasip2 -p leetium-wasm-calc -p leetium-wasm-web-fetch -p leetium-wasm-web-search --release
+cargo run -p leetium-wasm-precompile --release
 
 # Keep Rust and C/C++ deps aligned with Xcode app link settings to avoid min-version mismatch.
 export MACOSX_DEPLOYMENT_TARGET="${MACOS_DEPLOYMENT_TARGET}"
@@ -37,21 +37,21 @@ export CFLAGS_aarch64_apple_darwin="${CFLAGS_aarch64_apple_darwin:-} -mmacosx-ve
 export CXXFLAGS_x86_64_apple_darwin="${CXXFLAGS_x86_64_apple_darwin:-} -mmacosx-version-min=${MACOS_DEPLOYMENT_TARGET}"
 export CXXFLAGS_aarch64_apple_darwin="${CXXFLAGS_aarch64_apple_darwin:-} -mmacosx-version-min=${MACOS_DEPLOYMENT_TARGET}"
 
-cargo build -p moltis-swift-bridge --release --target x86_64-apple-darwin
-cargo build -p moltis-swift-bridge --release --target aarch64-apple-darwin
+cargo build -p leetium-swift-bridge --release --target x86_64-apple-darwin
+cargo build -p leetium-swift-bridge --release --target aarch64-apple-darwin
 
 mkdir -p "${UNIVERSAL_DIR}" "${OUTPUT_DIR}"
 
 lipo -create \
-  "${REPO_ROOT}/target/x86_64-apple-darwin/release/libmoltis_swift_bridge.a" \
-  "${REPO_ROOT}/target/aarch64-apple-darwin/release/libmoltis_swift_bridge.a" \
-  -output "${UNIVERSAL_DIR}/libmoltis_bridge.a"
+  "${REPO_ROOT}/target/x86_64-apple-darwin/release/libleetium_swift_bridge.a" \
+  "${REPO_ROOT}/target/aarch64-apple-darwin/release/libleetium_swift_bridge.a" \
+  -output "${UNIVERSAL_DIR}/libleetium_bridge.a"
 
 cbindgen "${BRIDGE_CRATE_DIR}" \
   --config "${BRIDGE_CRATE_DIR}/cbindgen.toml" \
-  --crate moltis-swift-bridge \
-  --output "${OUTPUT_DIR}/moltis_bridge.h"
+  --crate leetium-swift-bridge \
+  --output "${OUTPUT_DIR}/leetium_bridge.h"
 
-cp "${UNIVERSAL_DIR}/libmoltis_bridge.a" "${OUTPUT_DIR}/libmoltis_bridge.a"
+cp "${UNIVERSAL_DIR}/libleetium_bridge.a" "${OUTPUT_DIR}/libleetium_bridge.a"
 
 echo "Built Rust bridge artifacts in ${OUTPUT_DIR}"

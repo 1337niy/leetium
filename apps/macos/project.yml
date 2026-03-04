@@ -1,4 +1,4 @@
-name: Moltis
+name: Leetium
 options:
   minimumXcodeGenVersion: 2.42.0
   deploymentTarget:
@@ -22,7 +22,7 @@ settings:
 packages: {}
 
 targets:
-  Moltis:
+  Leetium:
     type: application
     platform: macOS
     sources:
@@ -30,13 +30,13 @@ targets:
       - path: Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.moltis.app
+        PRODUCT_BUNDLE_IDENTIFIER: org.leetium.app
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_EMIT_LOC_STRINGS: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_OBJC_BRIDGING_HEADER: Sources/Bridging-Header.h
         OTHER_LDFLAGS:
-          - "-lmoltis_bridge"
+          - "-lleetium_bridge"
           - "-lsqlite3"
           - "-lz"
           - "-lc++"
@@ -54,29 +54,29 @@ targets:
           - "CoreServices"
     scheme:
       testTargets:
-        - MoltisTests
-        - MoltisUITests
+        - LeetiumTests
+        - LeetiumUITests
 
-  MoltisTests:
+  LeetiumTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: Tests
     dependencies:
-      - target: Moltis
+      - target: Leetium
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.moltis.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: org.leetium.app.tests
         GENERATE_INFOPLIST_FILE: YES
 
-  MoltisUITests:
+  LeetiumUITests:
     type: bundle.ui-testing
     platform: macOS
     sources:
       - path: UITests
     dependencies:
-      - target: Moltis
+      - target: Leetium
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.moltis.app.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: org.leetium.app.uitests
         GENERATE_INFOPLIST_FILE: YES

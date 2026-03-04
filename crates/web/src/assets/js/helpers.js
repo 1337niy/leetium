@@ -155,12 +155,12 @@ export function renderMarkdown(raw) {
 	var codeBlocks = [];
 	s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
 		codeBlocks.push({ lang: lang, code: code });
-		return `@@MOLTIS_CODE_BLOCK_${codeBlocks.length - 1}@@`;
+		return `@@LEETIUM_CODE_BLOCK_${codeBlocks.length - 1}@@`;
 	});
 	s = renderTables(s);
 	s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
 	s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-	s = s.replace(/@@MOLTIS_CODE_BLOCK_(\d+)@@/g, (_, idx) => {
+	s = s.replace(/@@LEETIUM_CODE_BLOCK_(\d+)@@/g, (_, idx) => {
 		var block = codeBlocks[Number(idx)];
 		if (!block) return "";
 		var langAttr = block.lang ? ` data-lang="${block.lang}"` : "";

@@ -1,3 +1,3 @@
-//! Re-export TLS functionality from the `moltis-tls` crate.
+//! Re-export TLS functionality from the `leetium-tls` crate.
 
-pub use moltis_tls::*;
+pub use leetium_tls::*;

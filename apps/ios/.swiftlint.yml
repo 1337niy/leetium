@@ -3,7 +3,7 @@ included:
   - Widget
 
 excluded:
-  - Moltis.xcodeproj
+  - Leetium.xcodeproj
 
 line_length:
   warning: 120

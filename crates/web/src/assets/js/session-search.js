@@ -80,7 +80,7 @@ function renderSearchResults(query) {
 		el.addEventListener("click", () => {
 			var ctx = { query: query, messageIndex: hit.messageIndex };
 			if (currentPrefix !== "/chats") {
-				sessionStorage.setItem("moltis-search-ctx", JSON.stringify(ctx));
+				sessionStorage.setItem("leetium-search-ctx", JSON.stringify(ctx));
 				navigate(sessionPath(hit.sessionKey));
 			} else {
 				switchSession(hit.sessionKey, ctx);
@@ -124,7 +124,7 @@ searchInput.addEventListener("keydown", (e) => {
 				messageIndex: h.messageIndex,
 			};
 			if (currentPrefix !== "/chats") {
-				sessionStorage.setItem("moltis-search-ctx", JSON.stringify(ctx));
+				sessionStorage.setItem("leetium-search-ctx", JSON.stringify(ctx));
 				navigate(sessionPath(h.sessionKey));
 			} else {
 				switchSession(h.sessionKey, ctx);

@@ -1,6 +1,6 @@
 [package]
 edition.workspace    = true
-name                 = "moltis-chat"
+name                 = "leetium-chat"
 repository.workspace = true
 version.workspace    = true
 
@@ -11,21 +11,21 @@ base64                = { workspace = true }
 chrono                = { features = ["serde"], optional = true, workspace = true }
 chrono-tz             = { workspace = true }
 futures               = { workspace = true }
-moltis-agents         = { workspace = true }
-moltis-channels       = { workspace = true }
-moltis-common         = { workspace = true }
-moltis-config         = { workspace = true }
-moltis-memory         = { workspace = true }
-moltis-metrics        = { optional = true, workspace = true }
-moltis-plugins        = { workspace = true }
-moltis-projects       = { workspace = true }
-moltis-providers      = { workspace = true }
-moltis-service-traits = { workspace = true }
-moltis-sessions       = { workspace = true }
-moltis-skills         = { workspace = true }
-moltis-telegram       = { workspace = true }
-moltis-tools          = { workspace = true }
-moltis-voice          = { workspace = true }
+leetium-agents         = { workspace = true }
+leetium-channels       = { workspace = true }
+leetium-common         = { workspace = true }
+leetium-config         = { workspace = true }
+leetium-memory         = { workspace = true }
+leetium-metrics        = { optional = true, workspace = true }
+leetium-plugins        = { workspace = true }
+leetium-projects       = { workspace = true }
+leetium-providers      = { workspace = true }
+leetium-service-traits = { workspace = true }
+leetium-sessions       = { workspace = true }
+leetium-skills         = { workspace = true }
+leetium-telegram       = { workspace = true }
+leetium-tools          = { workspace = true }
+leetium-voice          = { workspace = true }
 serde                 = { workspace = true }
 serde_json            = { workspace = true }
 thiserror             = { workspace = true }
@@ -36,12 +36,12 @@ uuid                  = { workspace = true }
 
 [features]
 local-llm          = []
-metrics            = ["dep:moltis-metrics", "moltis-metrics/sqlite"]
+metrics            = ["dep:leetium-metrics", "leetium-metrics/sqlite"]
 push-notifications = ["dep:chrono"]
 web-ui             = ["dep:chrono"]
 
 [dev-dependencies]
-moltis-channels = { workspace = true }
+leetium-channels = { workspace = true }
 sqlx            = { workspace = true }
 tempfile        = { workspace = true }
 tokio           = { workspace = true }

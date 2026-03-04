@@ -3,26 +3,26 @@
 # and will be lost on each redeploy. For persistent storage, use a
 # Droplet with Docker instead.
 spec:
-  name: moltis
+  name: leetium
   services:
-    - name: moltis
+    - name: leetium
       image:
         registry_type: GHCR
         registry: ghcr.io
-        repository: moltis-org/moltis
-        tag: "0.10.11"
+        repository: 1337leetium/leetium
+        tag: "0.1.0"
       instance_count: 1
       instance_size_slug: basic-xxs
       http_port: 8080
-      run_command: moltis --bind 0.0.0.0 --port 8080 --no-tls
+      run_command: leetium --bind 0.0.0.0 --port 8080 --no-tls
       health_check:
         http_path: /health
       envs:
-        - key: MOLTIS_DATA_DIR
+        - key: LEETIUM_DATA_DIR
           value: /data
-        - key: MOLTIS_DEPLOY_PLATFORM
+        - key: LEETIUM_DEPLOY_PLATFORM
           value: digitalocean
-        - key: MOLTIS_WEBAUTHN_RP_ID
+        - key: LEETIUM_WEBAUTHN_RP_ID
           value: ${APP_DOMAIN}
-        - key: MOLTIS_WEBAUTHN_ORIGIN
+        - key: LEETIUM_WEBAUTHN_ORIGIN
           value: ${APP_URL}

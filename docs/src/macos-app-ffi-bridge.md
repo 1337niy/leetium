@@ -10,7 +10,7 @@ This page documents how `apps/macos` currently bridges Swift to Rust through FFI
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ Moltis.app (single macOS process)                                        │
+│ Leetium.app (single macOS process)                                        │
 │                                                                          │
 │  SwiftUI Views                                                           │
 │  (ContentView, OnboardingView, SettingsView, ...)                        │
@@ -20,16 +20,16 @@ This page documents how `apps/macos` currently bridges Swift to Rust through FFI
 │  (ChatStore, ProviderStore, LogStore)                                    │
 │                    │                                                     │
 │                    ▼                                                     │
-│  Swift FFI facade: MoltisClient.swift                                    │
+│  Swift FFI facade: LeetiumClient.swift                                    │
 │  - encodes requests to JSON                                              │
-│  - calls C symbols from `moltis_bridge.h`                                │
+│  - calls C symbols from `leetium_bridge.h`                                │
 │  - decodes JSON responses / bridge errors                                │
 └────────────────────┬─────────────────────────────────────────────────────┘
                      │
-                     │ C ABI (`moltis_*`)
+                     │ C ABI (`leetium_*`)
                      ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ Rust bridge static library: `libmoltis_bridge.a`                         │
+│ Rust bridge static library: `libleetium_bridge.a`                         │
 │ crate: `crates/swift-bridge`                                             │
 │                                                                          │
 │  `extern "C"` exports                                                    │
@@ -44,14 +44,14 @@ This page documents how `apps/macos` currently bridges Swift to Rust through FFI
                      │
                      ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ Reused Moltis crates                                                     │
-│ (`moltis-providers`, `moltis-sessions`, `moltis-gateway`, etc.)          │
+│ Reused Leetium crates                                                     │
+│ (`leetium-providers`, `leetium-sessions`, `leetium-gateway`, etc.)          │
 └──────────────────────────────────────────────────────────────────────────┘
 
 Reverse direction callbacks:
-- Rust logs: `moltis_set_log_callback(...)` -> Swift `LogStore`
-- Rust streaming events: `moltis_*_chat_stream(...)` callback -> Swift closures
-- Rust session events: `moltis_set_session_event_callback(...)` -> Swift `ChatStore`
+- Rust logs: `leetium_set_log_callback(...)` -> Swift `LogStore`
+- Rust streaming events: `leetium_*_chat_stream(...)` callback -> Swift closures
+- Rust session events: `leetium_set_session_event_callback(...)` -> Swift `ChatStore`
 ```
 
 ## Build and Link Pipeline
@@ -61,10 +61,10 @@ Reverse direction callbacks:
         │
         ▼
 scripts/build-swift-bridge.sh
-  1) cargo build -p moltis-swift-bridge --target x86_64-apple-darwin
-  2) cargo build -p moltis-swift-bridge --target aarch64-apple-darwin
-  3) lipo -create -> universal `libmoltis_bridge.a`
-  4) cbindgen -> `moltis_bridge.h`
+  1) cargo build -p leetium-swift-bridge --target x86_64-apple-darwin
+  2) cargo build -p leetium-swift-bridge --target aarch64-apple-darwin
+  3) lipo -create -> universal `libleetium_bridge.a`
+  4) cbindgen -> `leetium_bridge.h`
   5) copy both artifacts into `apps/macos/Generated/`
         │
         ▼
@@ -74,14 +74,14 @@ scripts/build-swift-bridge.sh
 Xcode build
   - header search path: `apps/macos/Generated`
   - library search path: `apps/macos/Generated`
-  - links `-lmoltis_bridge`
-  - uses `Sources/Bridging-Header.h` -> includes `moltis_bridge.h`
+  - links `-lleetium_bridge`
+  - uses `Sources/Bridging-Header.h` -> includes `leetium_bridge.h`
 ```
 
 ## Main FFI Touchpoints
 
 - Swift header import: `apps/macos/Sources/Bridging-Header.h`
-- Swift facade: `apps/macos/Sources/MoltisClient.swift`
+- Swift facade: `apps/macos/Sources/LeetiumClient.swift`
 - Rust exports: `crates/swift-bridge/src/lib.rs`
 - Artifact builder: `scripts/build-swift-bridge.sh`
 - Xcode linking config: `apps/macos/project.yml`
@@ -109,11 +109,11 @@ so both share the same channel. Events:
 
 | Kind      | Trigger                                    |
 |-----------|--------------------------------------------|
-| `created` | `sessions.resolve` (new), `sessions.fork`, bridge `moltis_create_session` |
+| `created` | `sessions.resolve` (new), `sessions.fork`, bridge `leetium_create_session` |
 | `patched` | `sessions.patch`                           |
 | `deleted` | `sessions.delete`                          |
 
-Swift receives events via `moltis_set_session_event_callback` — each event is a
+Swift receives events via `leetium_set_session_event_callback` — each event is a
 JSON object `{"kind":"created","sessionKey":"..."}` dispatched to
 `ChatStore.handleSessionEvent()` on the main thread.
 

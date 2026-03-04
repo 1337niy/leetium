@@ -1,7 +1,7 @@
 //! Configuration loading, validation, env substitution, and legacy migration.
 //!
-//! Config files: `moltis.toml`, `moltis.yaml`, or `moltis.json`
-//! Searched in `./` then `~/.config/moltis/`.
+//! Config files: `leetium.toml`, `leetium.yaml`, or `leetium.json`
+//! Searched in `./` then `~/.config/leetium/`.
 //!
 //! Supports `${ENV_VAR}` substitution in all string values.
 
@@ -11,6 +11,7 @@ pub mod error;
 pub mod loader;
 pub mod migrate;
 pub mod schema;
+pub mod store;
 pub mod template;
 pub mod validate;
 
@@ -31,7 +32,7 @@ pub use {
     },
     schema::{
         AgentIdentity, AgentPreset, AgentsConfig, AuthConfig, CalDavAccountConfig, CalDavConfig,
-        ChatConfig, GeoLocation, MemoryScope, MessageQueueMode, MoltisConfig, PresetMemoryConfig,
+        ChatConfig, GeoLocation, LeetiumConfig, MemoryScope, MessageQueueMode, PresetMemoryConfig,
         PresetToolPolicy, ResolvedIdentity, SessionAccessPolicyConfig, Timezone, ToolMode,
         UserProfile, VoiceConfig, VoiceElevenLabsConfig, VoiceOpenAiConfig, VoiceSttConfig,
         VoiceSttProvider, VoiceTtsConfig, VoiceWhisperConfig,

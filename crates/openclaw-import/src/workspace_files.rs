@@ -2,7 +2,7 @@
 //!
 //! Copies `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `AGENTS.md`,
 //! `HEARTBEAT.md`, and `BOOT.md` from the OpenClaw workspace directory to the
-//! Moltis data directory, preserving any user-customized files at the destination.
+//! Leetium data directory, preserving any user-customized files at the destination.
 
 use std::path::Path;
 
@@ -136,11 +136,11 @@ fn import_single_file(
 /// Check whether the destination file contains only the auto-seeded default.
 ///
 /// Currently only `SOUL.md` has auto-seeding via `DEFAULT_SOUL` in
-/// `moltis_config::loader`. For other files the function returns `false`
+/// `leetium_config::loader`. For other files the function returns `false`
 /// (they are only overwritten if empty).
 fn is_default_content(file_name: &str, content: &str) -> bool {
     if file_name == "SOUL.md" {
-        return content == moltis_config::DEFAULT_SOUL.trim();
+        return content == leetium_config::DEFAULT_SOUL.trim();
     }
     false
 }
@@ -171,7 +171,7 @@ mod tests {
     fn import_new_soul_file() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         std::fs::create_dir_all(home.join("workspace")).unwrap();
         std::fs::write(
@@ -193,7 +193,7 @@ mod tests {
     fn import_multiple_files() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
 
@@ -214,14 +214,14 @@ mod tests {
     fn skip_existing_customized_files() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
         std::fs::create_dir_all(&dest).unwrap();
 
         std::fs::write(ws.join("SOUL.md"), "openclaw soul").unwrap();
         // Pre-existing user-customized file
-        std::fs::write(dest.join("SOUL.md"), "my moltis soul").unwrap();
+        std::fs::write(dest.join("SOUL.md"), "my leetium soul").unwrap();
 
         let detection = make_detection(home);
         let report = import_workspace_files(&detection, &dest);
@@ -230,21 +230,21 @@ mod tests {
         assert_eq!(report.items_skipped, 1);
         // Content should be preserved
         let content = std::fs::read_to_string(dest.join("SOUL.md")).unwrap();
-        assert_eq!(content, "my moltis soul");
+        assert_eq!(content, "my leetium soul");
     }
 
     #[test]
     fn replace_default_soul() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
         std::fs::create_dir_all(&dest).unwrap();
 
         std::fs::write(ws.join("SOUL.md"), "imported soul").unwrap();
         // Destination has the auto-seeded default
-        std::fs::write(dest.join("SOUL.md"), moltis_config::DEFAULT_SOUL).unwrap();
+        std::fs::write(dest.join("SOUL.md"), leetium_config::DEFAULT_SOUL).unwrap();
 
         let detection = make_detection(home);
         let report = import_workspace_files(&detection, &dest);
@@ -258,7 +258,7 @@ mod tests {
     fn skip_empty_source_files() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
 
@@ -304,7 +304,7 @@ mod tests {
     fn replace_empty_destination() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
         std::fs::create_dir_all(&dest).unwrap();
@@ -325,7 +325,7 @@ mod tests {
     fn idempotent_import() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
         let ws = home.join("workspace");
         std::fs::create_dir_all(&ws).unwrap();
 

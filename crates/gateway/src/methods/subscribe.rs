@@ -1,4 +1,4 @@
-use moltis_protocol::{ErrorShape, error_codes};
+use leetium_protocol::{ErrorShape, error_codes};
 
 use super::MethodRegistry;
 

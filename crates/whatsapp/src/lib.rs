@@ -1,6 +1,6 @@
-//! WhatsApp channel plugin for moltis.
+//! WhatsApp channel plugin for leetium.
 //!
-//! Implements `ChannelPlugin` using the `whatsapp-rust` library to receive and
+//! Implements `ChannelPlugin` using the `wa-rs` library to receive and
 //! send messages via WhatsApp Linked Devices (QR code pairing).
 
 pub mod access;

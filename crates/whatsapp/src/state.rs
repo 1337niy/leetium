@@ -3,9 +3,9 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
-use {tokio_util::sync::CancellationToken, whatsapp_rust::client::Client};
+use {tokio_util::sync::CancellationToken, wa_rs::client::Client};
 
-use moltis_channels::{ChannelEventSink, message_log::MessageLog};
+use leetium_channels::{ChannelEventSink, message_log::MessageLog};
 
 use crate::{config::WhatsAppAccountConfig, otp::OtpState};
 
@@ -75,8 +75,8 @@ impl AccountState {
     /// Appends an invisible watermark to text messages for secondary loop detection.
     pub async fn send_message(
         &self,
-        to: wacore_binary::jid::Jid,
-        mut msg: waproto::whatsapp::Message,
+        to: wa_rs_binary::jid::Jid,
+        mut msg: wa_rs_proto::whatsapp::Message,
     ) -> crate::Result<()> {
         watermark_message(&mut msg);
         let msg_id =
@@ -92,7 +92,7 @@ impl AccountState {
 }
 
 /// Append the invisible bot watermark to a message's text content.
-pub(crate) fn watermark_message(msg: &mut waproto::whatsapp::Message) {
+pub(crate) fn watermark_message(msg: &mut wa_rs_proto::whatsapp::Message) {
     if let Some(ref mut text) = msg.conversation {
         text.push_str(BOT_WATERMARK);
     }
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn watermark_appended_to_conversation() {
-        let mut msg = waproto::whatsapp::Message {
+        let mut msg = wa_rs_proto::whatsapp::Message {
             conversation: Some("Hello".into()),
             ..Default::default()
         };
@@ -182,9 +182,9 @@ mod tests {
 
     #[test]
     fn watermark_appended_to_extended_text() {
-        let mut msg = waproto::whatsapp::Message {
+        let mut msg = wa_rs_proto::whatsapp::Message {
             extended_text_message: Some(Box::new(
-                waproto::whatsapp::message::ExtendedTextMessage {
+                wa_rs_proto::whatsapp::message::ExtendedTextMessage {
                     text: Some("Hello".into()),
                     ..Default::default()
                 },
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn watermark_skips_message_without_text() {
-        let mut msg = waproto::whatsapp::Message::default();
+        let mut msg = wa_rs_proto::whatsapp::Message::default();
         watermark_message(&mut msg);
         assert!(msg.conversation.is_none());
         assert!(msg.extended_text_message.is_none());

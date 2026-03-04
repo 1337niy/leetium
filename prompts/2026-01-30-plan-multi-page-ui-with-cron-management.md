@@ -12,7 +12,7 @@ Replace the explicit `GET /` route with a fallback handler so `/`, `/crons`, `/m
 
 ### 2. `crates/gateway/src/assets/index.html` — Shell restructure
 
-- Add burger menu button (hamburger icon) left of the "moltis" title
+- Add burger menu button (hamburger icon) left of the "leetium" title
 - Add burger dropdown `<nav>` with links: Chat `/`, Crons `/crons`, Methods `/methods`
 - Wrap the chat column + methods panel in a `<div id="pageContent">` container
 - Sessions sidebar stays outside `pageContent` (persists across pages)
@@ -49,7 +49,7 @@ Add to `@layer components`:
 ## Verification
 
 1. `cargo check` — compiles
-2. `cargo test -p moltis-gateway` — existing tests pass
+2. `cargo test -p leetium-gateway` — existing tests pass
 3. Manual: open `http://localhost:PORT/`, verify chat works as before
 4. Manual: click burger → Crons, verify `/crons` URL and page renders
 5. Manual: on crons page — add a job, see it in list, toggle enabled, edit, delete, run now, view history

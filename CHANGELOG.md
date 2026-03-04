@@ -139,44 +139,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Gemini first-class provider**: Google Gemini is now registered via the OpenAI-compatible endpoint with native tool calling, vision/multimodal support, streaming, and model discovery. Replaces the previous genai-backed fallback that lacked tool support. Supports both `GEMINI_API_KEY` and `GOOGLE_API_KEY` environment variables
 - **Podman sandbox backend** — Podman as a first-class sandbox backend. Set `backend = "podman"` or let auto-detection prefer it over Docker (Apple Container → Podman → Docker → restricted-host). Uses the `podman` CLI directly (no socket compatibility needed)
-- **Trusted network mode**: sandbox containers now default to `sandbox.network = "trusted"`, routing outbound traffic through an HTTP CONNECT proxy with full audit logging. When `trusted_domains` is empty (the default), all domains are allowed (audit-only mode); when configured, only listed domains pass without approval. Includes real-time network audit log with domain, protocol, and action filtering via Settings > Network Audit. Configurable via `sandbox.trusted_domains` in `moltis.toml`. Proxy env vars (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`) are now automatically injected into both Docker and Apple Container sandboxes, and the proxy binds to `0.0.0.0` so it is reachable from container VMs. The proxy rejects connections from non-private IPs (only loopback, RFC 1918, link-local, and CGNAT ranges are accepted)
-- **New `moltis-network-filter` crate**: domain filtering, proxy, and audit buffer logic extracted from `moltis-tools` and `moltis-gateway` into a standalone crate with feature flags (`proxy`, `service`, `metrics`). The macOS app can now depend on it directly for network audit log display via `moltis-swift-bridge`
-- **macOS Network Audit pane**: new Settings > Network Audit section with real-time log display, action filtering (allowed/denied), search, pause/resume, clipboard export, and JSONL download — matching the web UI pattern. New FFI callback `moltis_set_network_audit_callback` bridges Rust audit entries to Swift
+- **Trusted network mode**: sandbox containers now default to `sandbox.network = "trusted"`, routing outbound traffic through an HTTP CONNECT proxy with full audit logging. When `trusted_domains` is empty (the default), all domains are allowed (audit-only mode); when configured, only listed domains pass without approval. Includes real-time network audit log with domain, protocol, and action filtering via Settings > Network Audit. Configurable via `sandbox.trusted_domains` in `leetium.toml`. Proxy env vars (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`) are now automatically injected into both Docker and Apple Container sandboxes, and the proxy binds to `0.0.0.0` so it is reachable from container VMs. The proxy rejects connections from non-private IPs (only loopback, RFC 1918, link-local, and CGNAT ranges are accepted)
+- **New `leetium-network-filter` crate**: domain filtering, proxy, and audit buffer logic extracted from `leetium-tools` and `leetium-gateway` into a standalone crate with feature flags (`proxy`, `service`, `metrics`). The macOS app can now depend on it directly for network audit log display via `leetium-swift-bridge`
+- **macOS Network Audit pane**: new Settings > Network Audit section with real-time log display, action filtering (allowed/denied), search, pause/resume, clipboard export, and JSONL download — matching the web UI pattern. New FFI callback `leetium_set_network_audit_callback` bridges Rust audit entries to Swift
 - **Proxy-compliant HTTP tools**: all HTTP tools (`web_fetch`, `web_search`, `location`, `map`) now route through the trusted-network proxy when active, so their traffic appears in the Network Audit log and respects domain filtering. The shared `reqwest` client is initialized with proxy config at gateway startup; `web_fetch` uses a per-tool proxy setting for its custom redirect-following client
 - **Network policy rename**: `sandbox.network = "open"` has been renamed to `"bypass"` to make explicit that traffic bypasses the proxy entirely (no audit logging)
 - **Real WASM sandbox** (`wasm` feature, default on) — Wasmtime + WASI sandbox with filesystem isolation, fuel metering, epoch-based timeouts, and ~20 built-in coreutils (echo, cat, ls, mkdir, rm, cp, mv, etc.). Two execution tiers: built-in commands operate on a sandboxed directory tree; `.wasm` modules run via Wasmtime with preopened dirs and captured I/O. Backend: `"wasm"` in config
 - **Restricted-host sandbox** — new `"restricted-host"` backend (extracted from the old `WasmtimeSandbox`) providing honest naming for what it does: env clearing, restricted PATH, and `ulimit` resource wrappers without containers or WASM. Always compiled (no feature gate)
 - **Docker security hardening** — containers now launch with `--cap-drop ALL`, `--security-opt no-new-privileges`, tmpfs mounts for `/tmp` and `/run`, and `--read-only` root filesystem for prebuilt images
 - **Generic sandbox failover chain** — auto-detection now tries Apple Container → Docker → Restricted Host. Failover uses restricted-host as the final fallback instead of NoSandbox
-- Discord channel integration via new `moltis-discord` crate using serenity Gateway API (persistent WebSocket, no public URL required). Supports DM and group messaging with allowlist/OTP gating, mention mode, guild allowlist, and 2000-char message chunking. Web UI: connect/edit/remove Discord bots in Settings > Channels and onboarding flow
+- Discord channel integration via new `leetium-discord` crate using serenity Gateway API (persistent WebSocket, no public URL required). Supports DM and group messaging with allowlist/OTP gating, mention mode, guild allowlist, and 2000-char message chunking. Web UI: connect/edit/remove Discord bots in Settings > Channels and onboarding flow
 - Discord reply-to-message support: set `reply_to_message = true` to have the bot send responses as Discord threaded replies to the user's message
 - Discord ack reactions: set `ack_reaction = "👀"` to add an emoji reaction while processing (removed on completion)
 - Discord bot token import from OpenClaw installations during onboarding (both flat and multi-account configs)
 - Discord bot presence/activity: configure `activity`, `activity_type` (playing/listening/watching/competing/custom), and `status` (online/idle/dnd/invisible) in bot config
 - Discord OTP self-approval for DMs: non-allowlisted users receive a 6-digit challenge code (visible in web UI) to self-approve access, matching Telegram's existing OTP flow
 - Discord native slash commands: `/new`, `/clear`, `/compact`, `/context`, `/model`, `/sessions`, `/agent`, `/help` registered as Discord application commands with ephemeral responses
-- OTP module moved from `moltis-telegram` to shared `moltis-channels` crate for cross-platform reuse
-- Real-time session sync between macOS app and web UI via `SessionEventBus` (`tokio::sync::broadcast`). Sessions created, deleted, or patched in one UI instantly appear in the other. New FFI callback `moltis_set_session_event_callback` and WebSocket `"session"` events for create/delete/fork operations.
-- Swift bridge: persistent session storage via FFI — `moltis_list_sessions`, `moltis_switch_session`, `moltis_create_session`, `moltis_session_chat_stream` functions backed by JSONL files and shared SQLite metadata (`moltis.db`) across all UIs (macOS app, web, TUI)
+- OTP module moved from `leetium-telegram` to shared `leetium-channels` crate for cross-platform reuse
+- Real-time session sync between macOS app and web UI via `SessionEventBus` (`tokio::sync::broadcast`). Sessions created, deleted, or patched in one UI instantly appear in the other. New FFI callback `leetium_set_session_event_callback` and WebSocket `"session"` events for create/delete/fork operations.
+- Swift bridge: persistent session storage via FFI — `leetium_list_sessions`, `leetium_switch_session`, `leetium_create_session`, `leetium_session_chat_stream` functions backed by JSONL files and shared SQLite metadata (`leetium.db`) across all UIs (macOS app, web, TUI)
 - **Internationalization (i18n)**: web UI now supports runtime language switching via `i18next` with English and French locales. Error codes use structured constants with locale-aware error messages across API handlers, terminal, chat, and environment routes. Onboarding step labels, navigation buttons, and page strings use translation keys (`t()` calls)
 - **Vault UI**: recovery key display during onboarding password setup, vault status/unlock controls in Settings > Security, encrypted/plaintext badges on environment variables
 - **Encryption-at-rest vault** (`vault` feature, default on) — environment variables are encrypted with XChaCha20-Poly1305 AEAD using Argon2id-derived keys. Vault is initialized on first password setup and auto-unsealed on login. Recovery key provided at initialization for emergency access. API: `/api/auth/vault/status`, `/api/auth/vault/unlock`, `/api/auth/vault/recovery`
 - `send_image` tool for sending local image files (PNG, JPEG, GIF, WebP) to channel targets like Telegram, with optional caption support
 - GraphQL API at `/graphql` (GET serves GraphiQL playground and WebSocket subscriptions, POST handles queries/mutations) exposing all RPC methods as typed operations
-- New `moltis-graphql` crate with queries, mutations, subscriptions, custom `Json` scalar, and `ServiceCaller` trait abstraction
-- New `moltis-providers` crate that owns provider integrations and model registry/catalog logic (OpenAI, Anthropic, OpenAI-compatible, OpenAI Codex, GitHub Copilot, Kimi Code, local GGUF, local LLM)
+- New `leetium-graphql` crate with queries, mutations, subscriptions, custom `Json` scalar, and `ServiceCaller` trait abstraction
+- New `leetium-providers` crate that owns provider integrations and model registry/catalog logic (OpenAI, Anthropic, OpenAI-compatible, OpenAI Codex, GitHub Copilot, Kimi Code, local GGUF, local LLM)
 - `graphql` feature flag (default on) in gateway and CLI crates for compile-time opt-out
 - Settings > GraphQL page embedding GraphiQL playground at `/settings/graphql`
-- Gateway startup now seeds a built-in `dcg-guard` hook in `~/.moltis/hooks/dcg-guard/` (manifest + handler), so destructive command guarding is available out of the box once `dcg` is installed
-- Swift embedding POC scaffold with a new `moltis-swift-bridge` static library crate, XcodeGen YAML project (`apps/macos/project.yml`), and SwiftLint wiring for SwiftUI frontend code quality
-- New `moltis-openclaw-import` crate for detecting OpenClaw installations and selectively importing identity, providers, skills, memory files, Telegram channels, sessions, and MCP servers
+- Gateway startup now seeds a built-in `dcg-guard` hook in `~/.leetium/hooks/dcg-guard/` (manifest + handler), so destructive command guarding is available out of the box once `dcg` is installed
+- Swift embedding POC scaffold with a new `leetium-swift-bridge` static library crate, XcodeGen YAML project (`apps/macos/project.yml`), and SwiftLint wiring for SwiftUI frontend code quality
+- New `leetium-openclaw-import` crate for detecting OpenClaw installations and selectively importing identity, providers, skills, memory files, Telegram channels, sessions, and MCP servers
 - New onboarding RPC methods: `openclaw.detect`, `openclaw.scan`, and `openclaw.import`
-- New `moltis import` CLI commands (`detect`, `all`, `select`) with `--dry-run` and `--json` output options
+- New `leetium import` CLI commands (`detect`, `all`, `select`) with `--dry-run` and `--json` output options
 - Onboarding now includes a conditional OpenClaw Import step with category selection, import execution, and detailed per-category results/TODO reporting
 - Settings now includes an OpenClaw Import section (shown only when OpenClaw is detected) for scan-and-import workflows after onboarding
-- Microsoft Teams channel integration via new `moltis-msteams` plugin crate with webhook ingress and OAuth client-credentials outbound messaging
+- Microsoft Teams channel integration via new `leetium-msteams` plugin crate with webhook ingress and OAuth client-credentials outbound messaging
 - Teams channel management in the web UI (add/edit/remove accounts, sender review, session/channel badges)
-- Guided Teams bootstrap tooling via `moltis channels teams bootstrap` plus an in-UI endpoint generator in Settings → Channels
+- Guided Teams bootstrap tooling via `leetium channels teams bootstrap` plus an in-UI endpoint generator in Settings → Channels
 - Multi-agent personas with per-agent workspaces (`data_dir()/agents/<id>/`), `agents.*` RPC methods, and session-level `agent_id` binding/switching across web + Telegram flows
 - `chat.peek` RPC method returning real-time session state (active flag, thinking text, active tool calls) for any session key
 - Active tool call tracking per-session in `LiveChatService` with camelCase-serialized `ActiveToolCall` structs
@@ -184,8 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Channel commands: `/peek` (shows thinking text and active tool calls) and `/stop` (aborts active generation)
 ### Changed
 
-- **Crate restructure**: gateway crate reduced from ~42K to ~29K lines by extracting `moltis-chat` (chat engine, agent orchestration), `moltis-auth` (password + passkey auth), `moltis-tls` (TLS/HTTPS termination), `moltis-service-traits` (shared service interfaces), and moving share rendering into `moltis-web`
-- Provider wiring now routes through `moltis-providers` instead of `moltis-agents::providers`, and local LLM feature flags (`local-llm`, `local-llm-cuda`, `local-llm-metal`) now resolve via `moltis-providers`
+- **Crate restructure**: gateway crate reduced from ~42K to ~29K lines by extracting `leetium-chat` (chat engine, agent orchestration), `leetium-auth` (password + passkey auth), `leetium-tls` (TLS/HTTPS termination), `leetium-service-traits` (shared service interfaces), and moving share rendering into `leetium-web`
+- Provider wiring now routes through `leetium-providers` instead of `leetium-agents::providers`, and local LLM feature flags (`local-llm`, `local-llm-cuda`, `local-llm-metal`) now resolve via `leetium-providers`
 - Voice now auto-selects the first configured TTS/STT provider when no explicit
   provider is set.
 - Default voice template/settings now favor OpenAI TTS and Whisper STT in
@@ -199,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gateway and CLI now enable the `openclaw-import` feature in default builds
 - Providers now support `stream_transport = "sse" | "websocket" | "auto"` in config. OpenAI can stream via Responses API WebSocket mode, and `auto` falls back to SSE when WebSocket setup is unavailable.
 - Agent Identity emoji picker now includes 🐰 🐹 🦀 🦞 🦝 🦭 🧠 🧭 options
-- Added architecture docs for a native Swift UI app embedding Moltis Rust core through a C FFI bridge (`docs/src/native-swift-embedding.md`)
+- Added architecture docs for a native Swift UI app embedding Leetium Rust core through a C FFI bridge (`docs/src/native-swift-embedding.md`)
 - Channel persistence and message-log queries are now channel-type scoped (`channel_type + account_id`) so Telegram and Teams accounts can share the same account IDs safely
 - Chat/system prompt resolution is now agent-aware, loading `IDENTITY.md`, `SOUL.md`, `MEMORY.md`, `AGENTS.md`, and `TOOLS.md` from the active session agent workspace with backward-compatible fallbacks
 - Memory tool operations and compaction memory writes are now agent-scoped, preventing cross-agent memory leakage during search/read/write flows
@@ -214,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **OpenAI Codex OAuth in Docker**: the web UI no longer overrides the provider's pre-registered `redirect_uri`, which caused OpenAI to reject the authorization request with `unknown_error`. The OAuth callback server now also respects the gateway bind address (`0.0.0.0` in Docker) so the callback port (1455) is reachable from the host. Docker image now exposes port 1455 for OAuth callbacks (#207)
-- **Slow SQLite writes**: `moltis.db` and `memory.db` now use `journal_mode=WAL` and `synchronous=NORMAL` (matching `metrics.db`), eliminating multi-second write contention that caused 3–10 s INSERT times under concurrent access
+- **Slow SQLite writes**: `leetium.db` and `memory.db` now use `journal_mode=WAL` and `synchronous=NORMAL` (matching `metrics.db`), eliminating multi-second write contention that caused 3–10 s INSERT times under concurrent access
 - Channel image delivery now parses the actual MIME type from data URIs instead of hardcoding `image/png`
 - Docker image now installs Docker CLI from Docker’s official Debian repository (`docker-ce-cli`), avoiding API mismatches with newer host daemons during sandbox builds/exec
 - Chat UI now shows a first-run sandbox preparation status message before container/image setup begins, so startup delays are visible while sandbox resources are created
@@ -232,7 +232,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GraphQL channel and memory status bridges now return schema-compatible shapes for `channels.status`, `channels.list`, and `memory.status`
 - Provider errors with `insufficient_quota` now surface as explicit quota/billing failures (with the upstream message) instead of generic retrying/rate-limit behavior
 - Linux `aarch64` builds now skip `jemalloc` to prevent startup aborts on 16 KiB page-size kernels (for example Raspberry Pi 5 Debian images)
-- Gateway startup now blocks the common reverse-proxy TLS mismatch (`MOLTIS_BEHIND_PROXY=true` with Moltis TLS enabled) and explains using `--no-tls`; HTTPS-upstream proxy setups can explicitly opt in with `MOLTIS_ALLOW_TLS_BEHIND_PROXY=true`
+- Gateway startup now blocks the common reverse-proxy TLS mismatch (`LEETIUM_BEHIND_PROXY=true` with Leetium TLS enabled) and explains using `--no-tls`; HTTPS-upstream proxy setups can explicitly opt in with `LEETIUM_ALLOW_TLS_BEHIND_PROXY=true`
 - WebSocket same-origin checks now accept proxy deployments that rewrite `Host` by using `X-Forwarded-Host` in proxy mode, and treat implicit `:443`/`:80` as equivalent to default ports
 ### Security
 
@@ -412,7 +412,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MetricsHistory default reduced from 60,480 to 360 points (~170x less memory).
 - LogBuffer default reduced from 10,000 to 1,000 entries.
-- Shared `reqwest::Client` singleton in `moltis-agents` and `moltis-tools` replaces
+- Shared `reqwest::Client` singleton in `leetium-agents` and `leetium-tools` replaces
   per-call client creation, saving connection pools and TLS session caches.
 - WebSocket client channels changed from unbounded to bounded (512), adding
   backpressure for slow consumers.
@@ -480,7 +480,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Agent loop iteration limit is now configurable via
-  `tools.agent_max_iterations` in `moltis.toml` (default `25`) instead of
+  `tools.agent_max_iterations` in `leetium.toml` (default `25`) instead of
   being hardcoded at runtime.
 
 ### Security
@@ -516,7 +516,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Settings > Terminal now includes tmux window tabs for the managed
-  `moltis-host-terminal` session, plus a `+ Tab` action to create new tmux
+  `leetium-host-terminal` session, plus a `+ Tab` action to create new tmux
   windows from the UI.
 - New terminal window APIs: `GET /api/terminal/windows` and
   `POST /api/terminal/windows` to list and create host tmux windows.
@@ -532,7 +532,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings > Terminal now polls tmux windows and updates tabs automatically,
   so windows created inside tmux (for example `Ctrl-b c`) appear in the web UI.
 - Host terminal tmux integration now uses a dedicated tmux socket and applies
-  a Moltis-friendly profile (status off, mouse off, stable window naming).
+  a Leetium-friendly profile (status off, mouse off, stable window naming).
 - Settings > Terminal subtitle now omits the prompt symbol hint so it does not
   show stale `$`/`#` information after privilege changes inside the shell.
 
@@ -589,7 +589,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth 2.1 support for remote MCP servers — automatic discovery (RFC 9728/8414), dynamic client registration (RFC 7591), PKCE authorization code flow, and Bearer token injection with 401 retry
 - `McpOAuthOverride` config option for servers that don't implement standard OAuth discovery
 - `mcp.reauth` RPC method to manually trigger re-authentication for a server
-- Persistent storage of dynamic client registrations at `~/.config/moltis/mcp_oauth_registrations.json`
+- Persistent storage of dynamic client registrations at `~/.config/leetium/mcp_oauth_registrations.json`
 - **SSRF allowlist**: `tools.web.fetch.ssrf_allowlist` config field to exempt trusted
   CIDR ranges from SSRF blocking, enabling Docker inter-container networking.
 - Memory config: add `memory.disable_rag` to force keyword-only memory search while keeping markdown indexing and memory tools enabled
@@ -697,7 +697,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the UI immediately.
 
 - **Config `[env]` section**: environment variables defined in `[env]` in
-  `moltis.toml` are injected into the Moltis process at startup. This makes
+  `leetium.toml` are injected into the Leetium process at startup. This makes
   API keys (Brave, OpenRouter, etc.) available to features that read from
   `std::env::var()`. Process env vars (`docker -e`, host env) take precedence.
   Closes #107.
@@ -711,7 +711,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   model discovery via `/models` endpoint. Supports tool calling, streaming,
   vision (GLM-4.6V/4.5V), and reasoning content.
 - **Running Containers panel**: the Settings > Sandboxes page now shows a
-  "Running Containers" section listing all moltis-managed containers with
+  "Running Containers" section listing all leetium-managed containers with
   live state (running/stopped/exited), backend type (Apple Container/Docker),
   resource info, and Stop/Delete actions. Includes disk usage display
   (container/image counts, sizes, reclaimable space) and a "Clean All"
@@ -867,7 +867,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Config test env isolation**: Fixed spurious
   `save_config_to_path_removes_stale_keys_when_values_are_cleared` test
-  failure caused by `MOLTIS_IDENTITY__NAME` environment variable leaking
+  failure caused by `LEETIUM_IDENTITY__NAME` environment variable leaking
   into the test via `apply_env_overrides`.
 
 ### Security
@@ -984,7 +984,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Settings UI env vars now available process-wide**: environment variables
   set via Settings > Environment were previously only injected into sandbox
-  commands. They are now also injected into the Moltis process at startup,
+  commands. They are now also injected into the Leetium process at startup,
   making them available to web search, embeddings, and provider API calls.
 ## [0.8.14] - 2026-02-11
 
@@ -1007,7 +1007,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Auto-create SOUL.md on first run**: `SOUL.md` is now seeded with the
-  default soul text when the file doesn't exist, mirroring how `moltis.toml`
+  default soul text when the file doesn't exist, mirroring how `leetium.toml`
   is auto-created. If deleted, it re-seeds on next load.
 
 ### Fixed
@@ -1106,7 +1106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **CLI `--version` flag**: `moltis --version` now prints the version.
+- **CLI `--version` flag**: `leetium --version` now prints the version.
 - **Askama HTML rendering**: SPA index and social metadata templates use
   Askama instead of string replacement.
 
@@ -1117,7 +1117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   timer, fixing "WebSocket not connected" errors during identity save.
 - **Passkeys on Fly.io**: Auto-detect WebAuthn RP ID from `FLY_APP_NAME`
   environment variable (constructs `{app}.fly.dev`).
-- **PaaS proxy detection**: Added explicit `MOLTIS_BEHIND_PROXY=true` to
+- **PaaS proxy detection**: Added explicit `LEETIUM_BEHIND_PROXY=true` to
   `render.yaml` and `fly.toml` so auth middleware reliably detects remote
   connections behind the platform's reverse proxy.
 - **WebAuthn origin scheme on PaaS**: Non-localhost RP IDs now default to
@@ -1141,7 +1141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Localhost passkey compatibility**: Gateway startup URLs and TLS redirect
   hints now use `localhost` for loopback hosts, while WebAuthn also allows
-  `moltis.localhost` as an additional origin when RP ID is `localhost`.
+  `leetium.localhost` as an additional origin when RP ID is `localhost`.
 
 ## [0.8.3] - 2026-02-11
 
@@ -1174,7 +1174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Instance-scoped container naming**: Browser and sandbox container/image
-  prefixes now derive from the configured instance name, so multiple Moltis
+  prefixes now derive from the configured instance name, so multiple Leetium
   instances do not collide.
 
 ### Changed
@@ -1239,7 +1239,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **CalDAV integration**: New `moltis-caldav` crate providing calendar CRUD
+- **CalDAV integration**: New `leetium-caldav` crate providing calendar CRUD
   operations (list calendars, list/create/update/delete events) via the CalDAV
   protocol. Supports Fastmail, iCloud, and generic CalDAV servers with
   multi-account configuration under `[caldav.accounts.<name>]`. Enabled by
@@ -1248,9 +1248,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   before sending prompts to the LLM provider and after receiving responses
   (before tool execution). Enables prompt injection filtering, PII redaction,
   and response auditing via shell hooks.
-- **Config template**: The generated `moltis.toml` template now lists all 17
+- **Config template**: The generated `leetium.toml` template now lists all 17
   hook events with correct PascalCase names and one-line descriptions.
-- **Hook event validation**: `moltis config check` now warns on unknown hook
+- **Hook event validation**: `leetium config check` now warns on unknown hook
   event names in the config file.
 - **Authentication docs**: Comprehensive `docs/src/authentication.md` with
   decision matrix, credential types, API key scopes, session endpoints,
@@ -1298,7 +1298,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`moltis doctor` command**: Comprehensive health check that validates config,
+- **`leetium doctor` command**: Comprehensive health check that validates config,
   audits security (file permissions, API keys in config), checks directory and
   database health, verifies provider readiness (API keys via config or env vars),
   inspects TLS certificates, and validates MCP server commands on PATH.
@@ -1534,12 +1534,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Provider auto-detection observability**: When no explicit provider settings are present in `moltis.toml`, startup now logs each auto-detected provider with its source (`env`, config file key, OAuth token file, provider key file, or Codex auth file). Added `server.http_request_logs` (Axum HTTP traces) and `server.ws_request_logs` (WebSocket RPC request/response traces) config options (both default `false`) for on-demand transport debugging without code changes.
+- **Provider auto-detection observability**: When no explicit provider settings are present in `leetium.toml`, startup now logs each auto-detected provider with its source (`env`, config file key, OAuth token file, provider key file, or Codex auth file). Added `server.http_request_logs` (Axum HTTP traces) and `server.ws_request_logs` (WebSocket RPC request/response traces) config options (both default `false`) for on-demand transport debugging without code changes.
 - **Dynamic OpenAI Codex model catalog**: OpenAI Codex providers now load model IDs from `https://chatgpt.com/backend-api/codex/models` at startup (with fallback defaults), and the gateway refreshes Codex models hourly so long-running sessions pick up newly available models (for example `gpt-5.3`) without restart.
 - **Model availability probing UX**: Model support probing now runs in parallel with bounded concurrency, starts automatically after provider connect/startup, and streams live progress (`start`/`progress`/`complete`) over WebSocket so the Providers page can render a progress bar.
 - **Provider-scoped probing on connect**: Connecting a provider from the Providers UI now probes only that provider's models (instead of all providers), reducing noise and startup load when adding accounts one by one.
-- **Configurable model ordering**: Added `chat.priority_models` in `moltis.toml` to pin preferred models at the top of model selectors without rebuilding. Runtime model selectors (`models.list`, chat model dropdown, Telegram `/model`) hide unsupported models, while Providers diagnostics continue to show full catalog entries (including unsupported flags).
-- **Configurable provider offerings in UI**: Added `[providers] offered = [...]` allowlist in `moltis.toml` to control which providers are shown in onboarding/provider-picker UI. New config templates default this to `["openai", "github-copilot"]`; setting `offered = []` shows all known providers. Configured providers remain visible for management.
+- **Configurable model ordering**: Added `chat.priority_models` in `leetium.toml` to pin preferred models at the top of model selectors without rebuilding. Runtime model selectors (`models.list`, chat model dropdown, Telegram `/model`) hide unsupported models, while Providers diagnostics continue to show full catalog entries (including unsupported flags).
+- **Configurable provider offerings in UI**: Added `[providers] offered = [...]` allowlist in `leetium.toml` to control which providers are shown in onboarding/provider-picker UI. New config templates default this to `["openai", "github-copilot"]`; setting `offered = []` shows all known providers. Configured providers remain visible for management.
 
 ### Fixed
 
@@ -1549,7 +1549,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to ask the user about using the browser.
 
 - **Web onboarding flash and redirect timing**: The web server now performs onboarding redirects before rendering the main app shell. When onboarding is incomplete, non-onboarding routes redirect directly to `/onboarding`; once onboarding is complete, `/onboarding` redirects back to `/`. The onboarding route now serves a dedicated onboarding HTML/JS entry instead of the full app bundle, preventing duplicate bootstrap/navigation flashes in Safari.
-- **Local model cache path visibility**: Startup logs for local LLM providers now explicitly print the model cache directory and cached model IDs, making `MOLTIS_DATA_DIR` behavior easier to verify without noisy model-catalog output.
+- **Local model cache path visibility**: Startup logs for local LLM providers now explicitly print the model cache directory and cached model IDs, making `LEETIUM_DATA_DIR` behavior easier to verify without noisy model-catalog output.
 - **Kimi device-flow OAuth in web UI**: Kimi OAuth now uses provider-specific headers and prefers `verification_uri_complete` (or synthesizes `?user_code=` fallback) so mobile-device sign-in links no longer fail with missing `user_code`.
 - **Kimi Code provider authentication compatibility**: `kimi-code` is now API-key-first in the web UI (`KIMI_API_KEY`, default base URL `https://api.moonshot.ai/v1`), while still honoring previously stored OAuth tokens for backward compatibility. Provider errors now include a targeted hint to switch to API-key auth when Kimi returns `access_terminated_error`.
 - **Provider setup success feedback**: API-key provider setup now runs an immediate model probe after saving credentials. The onboarding and Providers modal only show success when at least one model validates, and otherwise display a validation failure message instead of a false-positive "configured" state.
@@ -1620,8 +1620,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Update checker repository configuration**: The update checker now reads
-  `server.update_repository_url` from `moltis.toml`, defaults new configs to
-  `https://github.com/moltis-org/moltis`, and treats an omitted/commented value
+  `server.update_repository_url` from `leetium.toml`, defaults new configs to
+  `https://github.com/1337leetium/leetium`, and treats an omitted/commented value
   as explicitly disabled.
 - **Mistral and other providers rejecting requests with HTTP 422**: Session metadata fields
   (`created_at`, `model`, `provider`, `inputTokens`, `outputTokens`) were leaking into
@@ -1701,7 +1701,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports browser, exec, web_fetch, web_search, and memory tools
 
 - **Log Target Display**: Logs now include the crate/module path for easier debugging
-  - Example: `INFO moltis_gateway::chat: tool execution succeeded tool=browser`
+  - Example: `INFO leetium_gateway::chat: tool execution succeeded tool=browser`
 
 - **Contributor docs: local validation**: Added documentation for the `./scripts/local-validate.sh` workflow, including published local status contexts, platform behavior, and CI fallback expectations.
 - **Hooks Web UI**: New `/hooks` page to manage lifecycle hooks from the browser
@@ -1712,9 +1712,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Live stats (call count, failures, avg latency) from the hook registry
   - WebSocket-driven auto-refresh via `hooks.status` event
   - RPC methods: `hooks.list`, `hooks.enable`, `hooks.disable`, `hooks.save`, `hooks.reload`
-- **Deploy platform detection**: New `MOLTIS_DEPLOY_PLATFORM` env var hides local-only providers (local-llm, Ollama) on cloud deployments. Pre-configured in Fly.io, DigitalOcean, and Render deploy templates.
+- **Deploy platform detection**: New `LEETIUM_DEPLOY_PLATFORM` env var hides local-only providers (local-llm, Ollama) on cloud deployments. Pre-configured in Fly.io, DigitalOcean, and Render deploy templates.
 - **Telegram OTP self-approval**: Non-allowlisted DM users receive a 6-digit verification code instead of being silently ignored. Correct code entry auto-approves the user to the allowlist. Includes flood protection (non-code messages silently ignored), lockout after 3 failed attempts (configurable cooldown), and 5-minute code expiry. OTP codes visible in web UI Senders tab. Controlled by `otp_self_approval` (default: true) and `otp_cooldown_secs` (default: 300) config fields.
-- **Update availability banner**: The web UI now checks GitHub releases hourly and shows a top banner when a newer version of moltis is available, with a direct link to the release page.
+- **Update availability banner**: The web UI now checks GitHub releases hourly and shows a top banner when a newer version of leetium is available, with a direct link to the release page.
 
 ### Changed
 
@@ -1723,8 +1723,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Versioning**: Bump workspace and snap baseline version to `0.2.0`.
 - **Onboarding auth flow**: Route first-run setup directly into `/onboarding` and remove the separate `/setup` web UI page.
 - **Startup observability**: Log each loaded context markdown (`CLAUDE.md` / `AGENTS.md` / `.claude/rules/*.md`), memory markdown (`MEMORY.md` and `memory/*.md`), and discovered `SKILL.md` to make startup/context loading easier to audit.
-- **Workspace root pathing**: Standardize workspace-scoped file discovery/loading on `moltis_config::data_dir()` instead of process cwd (affects BOOT.md, hook discovery, skill discovery, and compaction memory output paths).
-- **Soul storage**: Move agent personality text out of `moltis.toml` into workspace `SOUL.md`; identity APIs/UI still edit soul, but now persist it as a markdown file.
+- **Workspace root pathing**: Standardize workspace-scoped file discovery/loading on `leetium_config::data_dir()` instead of process cwd (affects BOOT.md, hook discovery, skill discovery, and compaction memory output paths).
+- **Soul storage**: Move agent personality text out of `leetium.toml` into workspace `SOUL.md`; identity APIs/UI still edit soul, but now persist it as a markdown file.
 - **Identity storage**: Persist agent identity fields (`name`, `emoji`, `creature`, `vibe`) to workspace `IDENTITY.md` using YAML frontmatter; settings UI continues to edit these fields through the same RPC/API.
 - **User profile storage**: Persist user profile fields (`name`, `timezone`) to workspace `USER.md` using YAML frontmatter; onboarding/settings continue to use the same API/UI while reading/writing the markdown file.
 - **Workspace markdown support**: Add `TOOLS.md` prompt injection from workspace root (`data_dir`), and keep startup injection sourced from `BOOT.md`.
@@ -1733,7 +1733,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BOOT.md onboarding aid**: Seed a default workspace `BOOT.md` with in-file guidance describing startup injection behavior and recommended usage.
 - **Workspace context parity**: Treat workspace `TOOLS.md` as general context (not only policy) and add workspace `AGENTS.md` injection support from `data_dir`.
 - **Heartbeat token guard**: Skip heartbeat LLM turns when `HEARTBEAT.md` exists but is empty/comment-only and there is no explicit `heartbeat.prompt` override, reducing unnecessary token consumption.
-- **Exec approval policy wiring**: Gateway now initializes exec approval mode/security level/allowlist from `moltis.toml` (`tools.exec.*`) instead of always using hardcoded defaults.
+- **Exec approval policy wiring**: Gateway now initializes exec approval mode/security level/allowlist from `leetium.toml` (`tools.exec.*`) instead of always using hardcoded defaults.
 - **Runtime tool enforcement**: Chat runs now apply configured tool policy (`tools.policy`) and skill `allowed_tools` constraints when selecting callable tools.
 - **Skill trust lifecycle**: Installed marketplace skills/plugins now track a `trusted` state and must be trusted before they can be enabled; the skills UI now surfaces untrusted status and supports trust-before-enable.
 - **Git metadata via gitoxide**: Gateway now resolves branch names, repo HEAD SHAs, and commit timestamps using `gix` (gitoxide) instead of shelling out to `git` for those read-only operations.
@@ -1744,7 +1744,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sandbox startup on hosted Docker environments**: Skip sandbox image pre-build when sandbox mode is off, and require Docker daemon accessibility (not just Docker CLI presence) before selecting the Docker sandbox backend.
 - **Homebrew release automation**: Run the tap update in the release workflow after all package/image jobs complete so formula publishing does not race missing tarball assets.
 - **Docker runtime**: Install `libgomp1` in the runtime image to satisfy OpenMP-linked binaries and prevent startup failures with `libgomp.so.1` missing.
-- **Release CI validation**: Add a Docker smoke test step (`moltis --help`) after image build/push so missing runtime libraries fail in CI before release.
+- **Release CI validation**: Add a Docker smoke test step (`leetium --help`) after image build/push so missing runtime libraries fail in CI before release.
 - **Web onboarding clarity**: Add setup-code guidance that points users to the process log (stdout).
 - **WebSocket auth (remote deployments)**: Accept existing session/API-key auth from WebSocket upgrade headers so browser connections don't immediately close after `connect` on hosted setups.
 - **Sandbox UX on unsupported hosts**: Disable sandbox controls in chat/images when no runtime backend is detected, with a tooltip explaining cloud deploy limitations.
@@ -1764,7 +1764,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Archive extraction hardening**: Skills/plugin tarball installs now reject unsafe archive paths (`..`, absolute/path-prefix escapes) and reject symlink/hardlink archive entries to prevent path traversal and link-based escapes.
 - **Install provenance**: Installed skill/plugin repo manifests now persist a pinned `commit_sha` (resolved from clone or API fallback) for future trust drift detection.
 - **Re-trust on source drift**: If an installed git-backed repo's HEAD commit changes from the pinned `commit_sha`, the gateway now marks its skills untrusted+disabled and requires trust again before re-enabling; the UI surfaces this as `source changed`.
-- **Security audit trail**: Skill/plugin install, remove, trust, enable/disable, dependency install, and source-drift events are now appended to `~/.moltis/logs/security-audit.jsonl` for incident review.
+- **Security audit trail**: Skill/plugin install, remove, trust, enable/disable, dependency install, and source-drift events are now appended to `~/.leetium/logs/security-audit.jsonl` for incident review.
 - **Emergency kill switch**: Added `skills.emergency_disable` to immediately disable all installed third-party skills and plugins; exposed in the Skills UI as a one-click emergency action.
 - **Risky dependency install blocking**: `skills.install_dep` now blocks suspicious install command patterns by default (e.g. piped shell payloads, base64 decode chains, quarantine bypass) unless explicitly overridden with `allow_risky_install=true`.
 - **Provenance visibility**: Skills UI now displays pinned install commit SHA in repo and detail views to make source provenance easier to verify.
@@ -1774,7 +1774,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Orphaned repo visibility**: Skills/plugins repo listing now surfaces manifest-missing directories found on disk as `orphaned` entries and allows removing them from the UI.
 - **Protected seed skills**: Discovered template skills (`template-skill` / `template`) are now marked protected and cannot be deleted from the web UI.
 - **License review links**: Skill/plugin license badges now link directly to repository license files when detectable (e.g. `LICENSE.txt`, `LICENSE.md`, `LICENSE`).
-- **Example skill seeding**: Gateway now seeds `~/.moltis/skills/template-skill/SKILL.md` on startup when missing, so users always have a starter personal skill template.
+- **Example skill seeding**: Gateway now seeds `~/.leetium/skills/template-skill/SKILL.md` on startup when missing, so users always have a starter personal skill template.
 - **Memory indexing scope tightened**: Memory sync now indexes only `MEMORY.md` / `memory.md` and `memory/` content by default (instead of scanning the entire data root), reducing irrelevant indexing noise from installed skills/plugins.
 - **Ollama embedding bootstrap**: When using Ollama for memory embeddings, gateway now auto-attempts to pull missing embedding models (default `nomic-embed-text`) via Ollama HTTP API.
 
@@ -1824,12 +1824,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`--no-tls` CLI flag**: `--no-tls` flag and `MOLTIS_NO_TLS` environment variable to disable
+- **`--no-tls` CLI flag**: `--no-tls` flag and `LEETIUM_NO_TLS` environment variable to disable
   TLS for cloud deployments where the provider handles TLS termination
 - **One-click cloud deploy**: Deploy configs for Fly.io (`fly.toml`), DigitalOcean
   (`.do/deploy.template.yaml`), Render (`render.yaml`), and Railway (`railway.json`)
   with deploy buttons in the README
-- **Config Check Command**: `moltis config check` validates the configuration file, detects unknown/misspelled fields with Levenshtein-based suggestions, warns about security misconfigurations, and checks file references
+- **Config Check Command**: `leetium config check` validates the configuration file, detects unknown/misspelled fields with Levenshtein-based suggestions, warns about security misconfigurations, and checks file references
 
 - **Memory Usage Indicator**: Display process RSS and system free memory in the header bar, updated every 30 seconds via the tick WebSocket broadcast
 
@@ -1843,7 +1843,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **LLM Reranking**: Use LLM to rerank search results for improved relevance (requires QMD)
 - **Memory Documentation**: Added `docs/src/memory.md` with comprehensive memory system documentation
 
-- **Mobile PWA Support**: Install moltis as a Progressive Web App on iOS, Android, and desktop
+- **Mobile PWA Support**: Install leetium as a Progressive Web App on iOS, Android, and desktop
   - Standalone mode with full-screen experience
   - Custom app icon (crab mascot)
   - Service worker for offline support and caching
@@ -1912,13 +1912,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TLS HTTP redirect port** now defaults to `gateway_port + 1` instead of
   the hardcoded port `18790`. This makes the Dockerfile simpler (both ports
   are adjacent) and avoids collisions when running multiple instances.
-  Override via `[tls] http_redirect_port` in `moltis.toml` or the
-  `MOLTIS_TLS__HTTP_REDIRECT_PORT` environment variable.
+  Override via `[tls] http_redirect_port` in `leetium.toml` or the
+  `LEETIUM_TLS__HTTP_REDIRECT_PORT` environment variable.
 
-- **TLS certificates use `moltis.localhost` domain.** Auto-generated server
-  certs now include `moltis.localhost`, `*.moltis.localhost`, `localhost`,
+- **TLS certificates use `leetium.localhost` domain.** Auto-generated server
+  certs now include `leetium.localhost`, `*.leetium.localhost`, `localhost`,
   `127.0.0.1`, and `::1` as SANs. Banner and redirect URLs use
-  `https://moltis.localhost:<port>` when bound to loopback, so the cert
+  `https://leetium.localhost:<port>` when bound to loopback, so the cert
   matches the displayed URL. Existing certs are automatically regenerated
   on next startup.
 
@@ -1938,7 +1938,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Push notifications not sending when chat uses agent mode (run_with_tools)
 - Missing space in Safari install instructions ("usingFile" → "using File")
 - **WebSocket origin validation** now treats `.localhost` subdomains
-  (e.g. `moltis.localhost`) as loopback equivalents per RFC 6761.
+  (e.g. `leetium.localhost`) as loopback equivalents per RFC 6761.
 - **Browser tool schema enforcement**: Added `strict: true` and `additionalProperties: false`
   to OpenAI-compatible tool schemas, improving model compliance with required fields
 - **Browser tool defaults**: When model sends URL without action, defaults to `navigate`
@@ -1967,7 +1967,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Fixed by mapping streaming indices to vector positions via a HashMap.
 - **Skill tools wrote to wrong directory**: `create_skill`, `update_skill`, and
   `delete_skill` used `std::env::current_dir()` captured at gateway startup,
-  writing skills to `<cwd>/.moltis/skills/` instead of `~/.moltis/skills/`.
+  writing skills to `<cwd>/.leetium/skills/` instead of `~/.leetium/skills/`.
   Skills now write to `<data_dir>/skills/` (Personal source), which is always
   discovered regardless of where the gateway was started.
 - **Skills page missing personal/project skills**: The `/api/skills` endpoint

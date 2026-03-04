@@ -14,7 +14,7 @@
 import { signal, useComputed } from "@preact/signals";
 import i18next from "i18next";
 
-var STORAGE_KEY = "moltis-locale";
+var STORAGE_KEY = "leetium-locale";
 var initPromise = null;
 var SUPPORTED_LOCALES = new Set(["en", "fr", "zh"]);
 export var supportedLocales = Object.freeze(["en", "fr", "zh"]);
@@ -183,7 +183,7 @@ export function setLocale(lng) {
 			applyDocumentLocale(normalized);
 			// Re-translate any static data-i18n elements.
 			translateStaticElements(document.documentElement);
-			window.dispatchEvent(new CustomEvent("moltis:locale-changed", { detail: { locale: normalized } }));
+			window.dispatchEvent(new CustomEvent("leetium:locale-changed", { detail: { locale: normalized } }));
 		}),
 	);
 }

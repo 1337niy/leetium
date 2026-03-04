@@ -55,11 +55,11 @@ mod tests {
     #[test]
     fn substitutes_known_var() {
         let lookup = |name: &str| match name {
-            "MOLTIS_TEST_VAR" => Some("hello".to_string()),
+            "LEETIUM_TEST_VAR" => Some("hello".to_string()),
             _ => None,
         };
         assert_eq!(
-            substitute_env_with("key=${MOLTIS_TEST_VAR}", lookup),
+            substitute_env_with("key=${LEETIUM_TEST_VAR}", lookup),
             "key=hello"
         );
     }
@@ -68,8 +68,8 @@ mod tests {
     fn leaves_unknown_var() {
         let lookup = |_: &str| None;
         assert_eq!(
-            substitute_env_with("${MOLTIS_NONEXISTENT_XYZ}", lookup),
-            "${MOLTIS_NONEXISTENT_XYZ}"
+            substitute_env_with("${LEETIUM_NONEXISTENT_XYZ}", lookup),
+            "${LEETIUM_NONEXISTENT_XYZ}"
         );
     }
 

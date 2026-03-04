@@ -35,7 +35,7 @@ impl FromMessage for Error {
     }
 }
 
-pub type MoltisError = Error;
+pub type LeetiumError = Error;
 pub type Result<T> = std::result::Result<T, Error>;
 
 // ── Shared context trait ────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ pub trait FromMessage: Sized {
 ///
 /// ```ignore
 /// // in crates/foo/src/error.rs
-/// moltis_common::impl_context!();
+/// leetium_common::impl_context!();
 /// ```
 #[macro_export]
 macro_rules! impl_context {

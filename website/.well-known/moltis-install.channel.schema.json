@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://moltis.org/.well-known/moltis-install.channel.schema.json",
-  "title": "Moltis Install Channel Manifest",
+  "$id": "https://leetnex.ru/.well-known/leetium-install.channel.schema.json",
+  "title": "Leetium Install Channel Manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [

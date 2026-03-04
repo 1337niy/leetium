@@ -223,7 +223,7 @@ async fn setup_handler(
                     run_vault_env_migration(&state).await;
                     Some(rk.phrase().to_owned())
                 },
-                Err(moltis_vault::VaultError::AlreadyInitialized) => {
+                Err(leetium_vault::VaultError::AlreadyInitialized) => {
                     tracing::debug!("vault already initialized, skipping");
                     None
                 },
@@ -390,7 +390,7 @@ async fn change_password_handler(
                             run_vault_env_migration(&state).await;
                             Some(rk.phrase().to_owned())
                         },
-                        Err(moltis_vault::VaultError::AlreadyInitialized) => {
+                        Err(leetium_vault::VaultError::AlreadyInitialized) => {
                             tracing::debug!("vault already initialized, unsealing");
                             let _ = vault.unseal(&body.new_password).await;
                             None
@@ -576,7 +576,7 @@ pub fn generate_setup_code() -> String {
 }
 
 /// Build a session cookie string, adding `Domain=localhost` when the request
-/// arrived on a `.localhost` subdomain (e.g. `moltis.localhost`) so the cookie
+/// arrived on a `.localhost` subdomain (e.g. `leetium.localhost`) so the cookie
 /// is shared across all loopback names per RFC 6761.
 fn session_response(token: String, headers: &axum::http::HeaderMap) -> axum::response::Response {
     let domain_attr = localhost_cookie_domain(headers);
@@ -604,10 +604,10 @@ fn clear_session_response(headers: &axum::http::HeaderMap) -> axum::response::Re
 }
 
 /// Return `; Domain=localhost` when the request's `Host` header is a
-/// `.localhost` subdomain (e.g. `moltis.localhost:8080`), otherwise `""`.
+/// `.localhost` subdomain (e.g. `leetium.localhost:8080`), otherwise `""`.
 ///
 /// Without this, a session cookie set on `localhost` isn't sent by the browser
-/// to `moltis.localhost` and vice versa because `Set-Cookie` without a `Domain`
+/// to `leetium.localhost` and vice versa because `Set-Cookie` without a `Domain`
 /// attribute is a host-only cookie.  Adding `Domain=localhost` makes the
 /// cookie available to `localhost` **and** all its subdomains (RFC 6265 §5.2.3).
 fn localhost_cookie_domain(headers: &axum::http::HeaderMap) -> &'static str {
@@ -973,7 +973,7 @@ async fn vault_unlock_handler(
             run_vault_env_migration(&state).await;
             Json(serde_json::json!({ "ok": true })).into_response()
         },
-        Err(moltis_vault::VaultError::BadCredential) => {
+        Err(leetium_vault::VaultError::BadCredential) => {
             (StatusCode::LOCKED, "invalid password").into_response()
         },
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
@@ -999,7 +999,7 @@ async fn vault_recovery_handler(
             run_vault_env_migration(&state).await;
             Json(serde_json::json!({ "ok": true })).into_response()
         },
-        Err(moltis_vault::VaultError::BadCredential) => {
+        Err(leetium_vault::VaultError::BadCredential) => {
             (StatusCode::LOCKED, "invalid recovery key").into_response()
         },
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
@@ -1011,7 +1011,7 @@ async fn vault_recovery_handler(
 async fn run_vault_env_migration(state: &AuthState) {
     if let Some(vault) = state.credential_store.vault() {
         let pool = state.credential_store.db_pool();
-        match moltis_vault::migration::migrate_env_vars(vault, pool).await {
+        match leetium_vault::migration::migrate_env_vars(vault, pool).await {
             Ok(n) if n > 0 => {
                 tracing::info!(count = n, "migrated env vars to encrypted");
             },
@@ -1044,8 +1044,8 @@ mod tests {
     }
 
     #[test]
-    fn localhost_cookie_domain_moltis_subdomain() {
-        let h = headers_with_host("moltis.localhost:59263");
+    fn localhost_cookie_domain_leetium_subdomain() {
+        let h = headers_with_host("leetium.localhost:59263");
         assert_eq!(localhost_cookie_domain(&h), "; Domain=localhost");
     }
 
@@ -1081,7 +1081,7 @@ mod tests {
 
     #[test]
     fn session_response_includes_domain_for_localhost() {
-        let h = headers_with_host("moltis.localhost:8080");
+        let h = headers_with_host("leetium.localhost:8080");
         let resp = session_response("test-token".into(), &h);
         let cookie = resp
             .headers()
@@ -1093,7 +1093,7 @@ mod tests {
             cookie.contains("; Domain=localhost"),
             "cookie should include Domain=localhost for .localhost host, got: {cookie}"
         );
-        assert!(cookie.contains("moltis_session=test-token"));
+        assert!(cookie.contains("leetium_session=test-token"));
     }
 
     #[test]

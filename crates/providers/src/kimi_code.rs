@@ -8,7 +8,7 @@ use std::pin::Pin;
 use {
     async_trait::async_trait,
     futures::StreamExt,
-    moltis_oauth::{OAuthTokens, TokenStore, kimi_headers},
+    leetium_oauth::{OAuthTokens, TokenStore, kimi_headers},
     secrecy::{ExposeSecret, Secret},
     tokio_stream::Stream,
     tracing::{debug, trace, warn},
@@ -19,7 +19,7 @@ use {
         SseLineResult, StreamingToolState, finalize_stream, parse_openai_compat_usage_from_payload,
         parse_tool_calls, process_openai_sse_line, to_openai_tools,
     },
-    moltis_agents::model::{ChatMessage, CompletionResponse, LlmProvider, StreamEvent},
+    leetium_agents::model::{ChatMessage, CompletionResponse, LlmProvider, StreamEvent},
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ impl KimiCodeProvider {
     pub fn new(model: String) -> Self {
         Self {
             model,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             base_url: KIMI_API_BASE.into(),
             auth_mode: AuthMode::OAuthTokenStore {
                 token_store: TokenStore::new(),
@@ -63,7 +63,7 @@ impl KimiCodeProvider {
     pub fn new_with_api_key(api_key: Secret<String>, model: String, base_url: String) -> Self {
         Self {
             model,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             base_url,
             auth_mode: AuthMode::ApiKey { api_key },
         }
@@ -87,7 +87,7 @@ impl KimiCodeProvider {
         };
         let tokens = token_store.load(PROVIDER_NAME).ok_or_else(|| {
             anyhow::anyhow!(
-                "not logged in to kimi-code — run `moltis auth login --provider kimi-code`"
+                "not logged in to kimi-code — run `leetium auth login --provider kimi-code`"
             )
         })?;
 
@@ -565,7 +565,7 @@ mod tests {
     fn mock_provider(base_url: &str, model: &str) -> MockKimiProvider {
         MockKimiProvider {
             model: model.to_string(),
-            client: reqwest::Client::new(),
+            client: leetium_common::http::shared_http_client().clone(),
             base_url: base_url.to_string(),
         }
     }

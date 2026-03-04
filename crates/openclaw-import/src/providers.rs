@@ -1,7 +1,7 @@
 //! Import LLM provider configuration from OpenClaw.
 //!
 //! Reads auth-profiles.json for API keys and openclaw.json for model selection,
-//! then maps to the Moltis `provider_keys.json` format.
+//! then maps to the Leetium `provider_keys.json` format.
 
 use std::{
     collections::{HashMap, HashSet},
@@ -9,7 +9,7 @@ use std::{
 };
 
 use {
-    moltis_oauth::{OAuthTokens, TokenStore},
+    leetium_oauth::{OAuthTokens, TokenStore},
     secrecy::Secret,
     serde::{Deserialize, Serialize},
     tracing::debug,
@@ -21,10 +21,10 @@ use crate::{
     types::{OpenClawAuthProfile, OpenClawAuthProfileStore, OpenClawConfig},
 };
 
-/// Moltis `provider_keys.json` entry (matches gateway `ProviderConfig`).
+/// Leetium `provider_keys.json` entry (matches gateway `ProviderConfig`).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MoltisProviderConfig {
+pub struct LeetiumProviderConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,7 +39,7 @@ pub struct MoltisProviderConfig {
 #[derive(Debug, Clone, Default)]
 pub struct ImportedProviders {
     /// Provider name → config (for `provider_keys.json`).
-    pub providers: HashMap<String, MoltisProviderConfig>,
+    pub providers: HashMap<String, LeetiumProviderConfig>,
     /// Provider name → OAuth token set (for `oauth_tokens.json`).
     pub oauth_tokens: HashMap<String, OAuthTokens>,
     /// Primary model reference (e.g. "claude-opus-4-6").
@@ -50,7 +50,7 @@ pub struct ImportedProviders {
     pub fallback_models: Vec<(String, String)>,
 }
 
-/// Map an OpenClaw provider name to a Moltis provider name.
+/// Map an OpenClaw provider name to a Leetium provider name.
 pub fn map_provider_name(oc_name: &str) -> String {
     match oc_name.to_lowercase().as_str() {
         "anthropic" => "anthropic".to_string(),
@@ -199,7 +199,7 @@ pub fn import_providers(detection: &OpenClawDetection) -> (CategoryReport, Impor
 
 /// Write imported providers to a `provider_keys.json` file.
 pub fn write_provider_keys(
-    providers: &HashMap<String, MoltisProviderConfig>,
+    providers: &HashMap<String, LeetiumProviderConfig>,
     dest: &Path,
 ) -> crate::error::Result<()> {
     if providers.is_empty() {
@@ -207,7 +207,7 @@ pub fn write_provider_keys(
     }
 
     // Load existing file if present
-    let mut existing: HashMap<String, MoltisProviderConfig> = if dest.is_file() {
+    let mut existing: HashMap<String, LeetiumProviderConfig> = if dest.is_file() {
         let content = std::fs::read_to_string(dest)?;
         serde_json::from_str(&content).unwrap_or_default()
     } else {
@@ -303,7 +303,7 @@ fn normalize_expiry(expires: Option<u64>) -> Option<u64> {
     }
 }
 
-/// Write imported OAuth tokens to Moltis `oauth_tokens.json`.
+/// Write imported OAuth tokens to Leetium `oauth_tokens.json`.
 pub fn write_oauth_tokens(tokens: &HashMap<String, OAuthTokens>) -> crate::error::Result<()> {
     let store = TokenStore::new();
     write_oauth_tokens_with_store(tokens, &store)
@@ -425,7 +425,7 @@ mod tests {
         let dest = tmp.path().join("provider_keys.json");
 
         let mut providers = HashMap::new();
-        providers.insert("anthropic".to_string(), MoltisProviderConfig {
+        providers.insert("anthropic".to_string(), LeetiumProviderConfig {
             api_key: Some("sk-test".to_string()),
             models: vec!["claude-opus-4-6".to_string()],
             ..Default::default()
@@ -435,7 +435,7 @@ mod tests {
         assert!(dest.is_file());
 
         let content = std::fs::read_to_string(&dest).unwrap();
-        let loaded: HashMap<String, MoltisProviderConfig> = serde_json::from_str(&content).unwrap();
+        let loaded: HashMap<String, LeetiumProviderConfig> = serde_json::from_str(&content).unwrap();
         assert_eq!(loaded["anthropic"].api_key.as_deref(), Some("sk-test"));
     }
 
@@ -452,7 +452,7 @@ mod tests {
         .unwrap();
 
         let mut providers = HashMap::new();
-        providers.insert("anthropic".to_string(), MoltisProviderConfig {
+        providers.insert("anthropic".to_string(), LeetiumProviderConfig {
             api_key: Some("sk-new".to_string()),
             ..Default::default()
         });
@@ -460,7 +460,7 @@ mod tests {
         write_provider_keys(&providers, &dest).unwrap();
 
         let content = std::fs::read_to_string(&dest).unwrap();
-        let loaded: HashMap<String, MoltisProviderConfig> = serde_json::from_str(&content).unwrap();
+        let loaded: HashMap<String, LeetiumProviderConfig> = serde_json::from_str(&content).unwrap();
         assert!(loaded.contains_key("openai"));
         assert!(loaded.contains_key("anthropic"));
     }
@@ -521,7 +521,7 @@ mod tests {
                 .map(|token| token.expose_secret().as_str()),
             Some("rt-456")
         );
-        // OpenClaw stores milliseconds; Moltis token store expects seconds.
+        // OpenClaw stores milliseconds; Leetium token store expects seconds.
         assert_eq!(tokens.expires_at, Some(1_770_231_225));
         assert_eq!(tokens.account_id.as_deref(), Some("acct-1"));
     }

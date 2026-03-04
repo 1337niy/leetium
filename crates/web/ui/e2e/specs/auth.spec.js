@@ -353,7 +353,7 @@ test.describe("Authentication", () => {
 
 		await page.evaluate(() => {
 			window.__e2eAuthStatus.hasPasskeyCredential = true;
-			window.dispatchEvent(new CustomEvent("moltis:auth-status-changed"));
+			window.dispatchEvent(new CustomEvent("leetium:auth-status-changed"));
 		});
 
 		await expect(logoutBtn).toBeVisible();
@@ -366,12 +366,12 @@ test.describe("Authentication", () => {
 		await page.waitForLoadState("networkidle");
 
 		const expected = await page.evaluate(() => {
-			var id = window.__MOLTIS__?.identity;
-			var name = (id?.name ? String(id.name).trim() : "") || "moltis";
+			var id = window.__LEETIUM__?.identity;
+			var name = (id?.name ? String(id.name).trim() : "") || "leetium";
 			var emoji = (id?.emoji ? String(id.emoji) : "").trim();
 			return {
 				title: name,
-				branch: window.__MOLTIS__?.git_branch || "",
+				branch: window.__LEETIUM__?.git_branch || "",
 				hasEmoji: !!emoji,
 				firstIconHref: document.querySelector('link[rel="icon"]')?.href || "",
 			};
@@ -467,8 +467,8 @@ test.describe("Login page", () => {
 		await expect(page.locator(".auth-card")).toBeVisible();
 
 		const expected = await page.evaluate(() => {
-			var id = window.__MOLTIS__?.identity;
-			var name = (id?.name ? String(id.name).trim() : "") || "moltis";
+			var id = window.__LEETIUM__?.identity;
+			var name = (id?.name ? String(id.name).trim() : "") || "leetium";
 			var emoji = (id?.emoji ? String(id.emoji) : "").trim();
 			return {
 				title: name,
@@ -501,12 +501,12 @@ test.describe("Login page", () => {
 		const pageErrors = watchPageErrors(page);
 		await mockAuthStatus(page);
 		await page.addInitScript(() => {
-			Object.defineProperty(window, "__MOLTIS__", {
+			Object.defineProperty(window, "__LEETIUM__", {
 				configurable: true,
 				set(value) {
 					var next = value || {};
 					next.vault_status = "sealed";
-					Object.defineProperty(window, "__MOLTIS__", {
+					Object.defineProperty(window, "__LEETIUM__", {
 						value: next,
 						writable: true,
 						configurable: true,

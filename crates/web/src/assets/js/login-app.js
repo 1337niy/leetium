@@ -11,7 +11,7 @@ var i18nReady = initI18n().catch((err) => {
 });
 
 // Read identity from server-injected gon data (name for title).
-var gon = window.__MOLTIS__ || {};
+var gon = window.__LEETIUM__ || {};
 var identity = gon.identity || null;
 
 // Set page branding from identity.

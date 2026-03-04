@@ -173,7 +173,7 @@ function InstallProgressBar() {
 }
 
 function SecurityWarning() {
-	var dismissed = useSignal(!!localStorage.getItem("moltis-skills-warning-dismissed"));
+	var dismissed = useSignal(!!localStorage.getItem("leetium-skills-warning-dismissed"));
 	if (dismissed.value) return null;
 	var threats = [
 		"Execute arbitrary shell commands on your machine (install malware, cryptominers, backdoors)",
@@ -182,7 +182,7 @@ function SecurityWarning() {
 		"Send your data to remote servers via curl/wget without your knowledge",
 	];
 	function dismiss() {
-		localStorage.setItem("moltis-skills-warning-dismissed", "1");
+		localStorage.setItem("leetium-skills-warning-dismissed", "1");
 		dismissed.value = true;
 	}
 

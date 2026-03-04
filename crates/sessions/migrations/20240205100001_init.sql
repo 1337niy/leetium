@@ -1,6 +1,6 @@
 -- Sessions table schema
--- Owned by: moltis-sessions crate
--- Depends on: moltis-projects (sessions.project_id references projects.id)
+-- Owned by: leetium-sessions crate
+-- Depends on: leetium-projects (sessions.project_id references projects.id)
 
 CREATE TABLE IF NOT EXISTS sessions (
     key             TEXT    PRIMARY KEY,

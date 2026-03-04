@@ -1,4 +1,4 @@
-pub use moltis_provider_setup::*;
+pub use leetium_provider_setup::*;
 
 use std::sync::Arc;
 

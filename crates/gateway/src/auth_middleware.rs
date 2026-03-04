@@ -21,7 +21,7 @@ use crate::{
 };
 
 /// Session cookie name.
-pub const SESSION_COOKIE: &str = "moltis_session";
+pub const SESSION_COOKIE: &str = "leetium_session";
 const AUTH_SETUP_REQUIRED: &str = "AUTH_SETUP_REQUIRED";
 const AUTH_NOT_AUTHENTICATED: &str = "AUTH_NOT_AUTHENTICATED";
 
@@ -218,7 +218,7 @@ pub async fn vault_guard(
         return next.run(request).await;
     }
     // Only block when Sealed (not Uninitialized).
-    if matches!(vault.status().await, Ok(moltis_vault::VaultStatus::Sealed)) {
+    if matches!(vault.status().await, Ok(leetium_vault::VaultStatus::Sealed)) {
         return (
             StatusCode::LOCKED,
             Json(serde_json::json!({"error": "vault is sealed", "status": "sealed"})),
@@ -307,15 +307,15 @@ mod tests {
     #[test]
     fn test_parse_cookie() {
         assert_eq!(
-            parse_cookie("moltis_session=abc123; other=def", "moltis_session"),
+            parse_cookie("leetium_session=abc123; other=def", "leetium_session"),
             Some("abc123")
         );
         assert_eq!(
-            parse_cookie("other=def; moltis_session=xyz", "moltis_session"),
+            parse_cookie("other=def; leetium_session=xyz", "leetium_session"),
             Some("xyz")
         );
-        assert_eq!(parse_cookie("other=def", "moltis_session"), None);
-        assert_eq!(parse_cookie("", "moltis_session"), None);
+        assert_eq!(parse_cookie("other=def", "leetium_session"), None);
+        assert_eq!(parse_cookie("", "leetium_session"), None);
     }
 
     #[cfg(feature = "web-ui")]

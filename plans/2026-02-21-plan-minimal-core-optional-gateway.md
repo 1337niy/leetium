@@ -1,6 +1,6 @@
 # Plan: Minimal Core with Optional Gateway
 
-**Goal**: Make `moltis-gateway` optional so the CLI can run a headless agent loop
+**Goal**: Make `leetium-gateway` optional so the CLI can run a headless agent loop
 (or a TUI client) without compiling 50.9K lines of gateway code and its 20
 workspace dependencies. Cut the default binary from 44 MB / ~150K LoC to
 ~20 MB / ~70K LoC for constrained devices and headless deployments.
@@ -12,27 +12,27 @@ workspace dependencies. Cut the default binary from 44 MB / ~150K LoC to
 ### Dependency graph (simplified)
 
 ```
-moltis (cli) 3.0K
-├── moltis-gateway 50.9K ← THE BOTTLENECK (20 workspace deps)
+leetium (cli) 3.0K
+├── leetium-gateway 50.9K ← THE BOTTLENECK (20 workspace deps)
 │   ├── agents, tools, config, sessions, plugins, common, skills
 │   ├── browser, canvas, channels, cron, mcp, media, memory
 │   ├── oauth, onboarding, projects, protocol, routing, telegram
 │   └── optional: metrics, qmd, voice
-├── moltis-agents 24.8K
-├── moltis-tools 15.9K
+├── leetium-agents 24.8K
+├── leetium-tools 15.9K
 │   ├── agents, browser*, cron*, common, config, sessions, skills
 │   └── optional: metrics
-├── moltis-plugins 1.8K
-├── moltis-sessions 3.2K
-├── moltis-memory 5.1K
-├── moltis-config 6.1K
-├── moltis-common 1.0K
-├── moltis-skills 3.7K
-├── moltis-browser 4.8K
-├── moltis-cron 3.8K
-├── moltis-oauth 2.1K
-├── moltis-onboarding 0.8K
-└── moltis-projects 1.6K
+├── leetium-plugins 1.8K
+├── leetium-sessions 3.2K
+├── leetium-memory 5.1K
+├── leetium-config 6.1K
+├── leetium-common 1.0K
+├── leetium-skills 3.7K
+├── leetium-browser 4.8K
+├── leetium-cron 3.8K
+├── leetium-oauth 2.1K
+├── leetium-onboarding 0.8K
+└── leetium-projects 1.6K
 ```
 
 ### What the TUI branch does
@@ -41,8 +41,8 @@ moltis (cli) 3.0K
 that connects to a running gateway. It does NOT replace the gateway; it replaces
 the web UI as the user interface. The TUI depends on:
 
-- `moltis-config` (resolve gateway URL)
-- `moltis-protocol` (message types)
+- `leetium-config` (resolve gateway URL)
+- `leetium-protocol` (message types)
 - ratatui, crossterm, tokio-tungstenite
 
 This means the TUI still needs a gateway process running somewhere. However, it
@@ -54,8 +54,8 @@ opens the door to a split architecture: headless gateway + TUI client.
 
 ### Two binary profiles
 
-1. **`moltis`** (full, default) — everything as today
-2. **`moltis --no-default-features --features headless`** — agent loop + tools,
+1. **`leetium`** (full, default) — everything as today
+2. **`leetium --no-default-features --features headless`** — agent loop + tools,
    no HTTP server, no web UI, no TLS stack
 
 ### Three build tiers
@@ -72,8 +72,8 @@ opens the door to a split architecture: headless gateway + TUI client.
 
 ### Phase 1: Decouple tools from browser and cron
 
-**Why**: `moltis-tools` is core, but it hard-depends on `moltis-browser` (4.8K)
-and `moltis-cron` (3.8K). These are only used in `browser.rs` and
+**Why**: `leetium-tools` is core, but it hard-depends on `leetium-browser` (4.8K)
+and `leetium-cron` (3.8K). These are only used in `browser.rs` and
 `cron_tool.rs` respectively — easy to feature-gate.
 
 **Files**:
@@ -83,16 +83,16 @@ and `moltis-cron` (3.8K). These are only used in `browser.rs` and
 - `crates/tools/src/lib.rs` (conditional module inclusion)
 
 **Changes**:
-1. Make `moltis-browser` and `moltis-cron` optional deps in tools:
+1. Make `leetium-browser` and `leetium-cron` optional deps in tools:
    ```toml
    [dependencies]
-   moltis-browser = { workspace = true, optional = true }
-   moltis-cron    = { workspace = true, optional = true }
+   leetium-browser = { workspace = true, optional = true }
+   leetium-cron    = { workspace = true, optional = true }
 
    [features]
    default = ["browser", "cron"]
-   browser = ["dep:moltis-browser"]
-   cron    = ["dep:moltis-cron"]
+   browser = ["dep:leetium-browser"]
+   cron    = ["dep:leetium-cron"]
    ```
 2. Gate `mod browser` and `mod cron_tool` with `#[cfg(feature = "browser")]` /
    `#[cfg(feature = "cron")]`
@@ -100,13 +100,13 @@ and `moltis-cron` (3.8K). These are only used in `browser.rs` and
    tools are registered)
 4. Propagate features from gateway and cli Cargo.toml
 
-**Tests**: `cargo test -p moltis-tools --no-default-features` must pass.
+**Tests**: `cargo test -p leetium-tools --no-default-features` must pass.
 
 ---
 
 ### Phase 2: Make gateway optional in the CLI
 
-**Why**: The CLI currently hard-depends on `moltis-gateway`. Making it optional
+**Why**: The CLI currently hard-depends on `leetium-gateway`. Making it optional
 lets us build without the entire HTTP/WS/web-UI stack.
 
 **Files**:
@@ -115,18 +115,18 @@ lets us build without the entire HTTP/WS/web-UI stack.
 - `crates/cli/src/lib.rs` (if exists)
 
 **Changes**:
-1. Make `moltis-gateway` optional:
+1. Make `leetium-gateway` optional:
    ```toml
    [dependencies]
-   moltis-gateway = { workspace = true, optional = true }
+   leetium-gateway = { workspace = true, optional = true }
 
    [features]
    default = ["gateway", "browser", "cron", ...]
    gateway = [
-     "dep:moltis-gateway",
-     "moltis-gateway/voice",
-     "moltis-gateway/web-ui",
-     "moltis-gateway/tls",
+     "dep:leetium-gateway",
+     "leetium-gateway/voice",
+     "leetium-gateway/web-ui",
+     "leetium-gateway/tls",
      ...
    ]
    headless = []  # intentionally empty — it's the absence of gateway
@@ -143,7 +143,7 @@ lets us build without the entire HTTP/WS/web-UI stack.
    - With `gateway` feature: default to `gateway` (current behavior)
    - Without `gateway` feature: default to `agent` REPL
 
-**Tests**: `cargo build -p moltis --no-default-features --features headless`
+**Tests**: `cargo build -p leetium --no-default-features --features headless`
 must compile and produce a working binary.
 
 ---
@@ -154,11 +154,11 @@ must compile and produce a working binary.
 the gateway, the CLI doesn't need them directly.
 
 **Crates to make optional (dep of gateway, not core)**:
-- `moltis-onboarding` — only used by gateway for web onboarding wizard
-- `moltis-oauth` — needed by agents (for Copilot/Codex providers) but could be
+- `leetium-onboarding` — only used by gateway for web onboarding wizard
+- `leetium-oauth` — needed by agents (for Copilot/Codex providers) but could be
   feature-gated if those providers aren't needed
-- `moltis-browser` — only for browser automation tool
-- `moltis-projects` — only for project UI in gateway
+- `leetium-browser` — only for browser automation tool
+- `leetium-projects` — only for project UI in gateway
 
 **Files**: `crates/cli/Cargo.toml`
 
@@ -177,10 +177,10 @@ plugins, common, skills, memory.
 
 **Design**:
 ```
-moltis agent "What is 2+2?"              # one-shot
-moltis agent --session my-session        # resume session
-echo "Fix the bug" | moltis agent        # pipe stdin
-moltis agent --repl                      # interactive REPL
+leetium agent "What is 2+2?"              # one-shot
+leetium agent --session my-session        # resume session
+echo "Fix the bug" | leetium agent        # pipe stdin
+leetium agent --repl                      # interactive REPL
 ```
 
 **Implementation**:
@@ -205,8 +205,8 @@ This is the most significant refactoring. Options:
 - **B**: Duplicate the minimal path in the CLI (simpler, less clean)
 - **C**: Make gateway's chat service usable without HTTP (extract from axum)
 
-Option A is cleanest long-term. Create `moltis-engine` or put it in
-`moltis-agents` as a higher-level `AgentSession` that handles the full
+Option A is cleanest long-term. Create `leetium-engine` or put it in
+`leetium-agents` as a higher-level `AgentSession` that handles the full
 orchestration without any HTTP dependency.
 
 ---
@@ -224,12 +224,12 @@ becomes a natural middle-ground tier.
 **Changes**:
 1. Add `tui` feature in cli:
    ```toml
-   tui = ["dep:moltis-tui"]
+   tui = ["dep:leetium-tui"]
    ```
 2. Add `tui` subcommand gated behind the feature
-3. The TUI still connects to a gateway — so `moltis tui` is a client command,
-   not a replacement for `moltis gateway`
-4. For fully headless + interactive: `moltis agent --repl` (no gateway needed)
+3. The TUI still connects to a gateway — so `leetium tui` is a client command,
+   not a replacement for `leetium gateway`
+4. For fully headless + interactive: `leetium agent --repl` (no gateway needed)
 
 ---
 
@@ -252,8 +252,8 @@ Current TUI state (`origin/tui-interface`, 7.7K LoC):
 - [ ] Error handling polish
 
 This is a separate workstream but becomes more valuable once the headless tier
-exists — users on constrained devices can run `moltis gateway --headless` +
-`moltis tui` for a lightweight full experience.
+exists — users on constrained devices can run `leetium gateway --headless` +
+`leetium tui` for a lightweight full experience.
 
 ---
 
@@ -262,44 +262,44 @@ exists — users on constrained devices can run `moltis gateway --headless` +
 ### Headless tier (~55K LoC)
 
 ```
-moltis (cli)
-├── moltis-agents      24.8K  (providers, agent loop)
-├── moltis-tools       15.9K  (tool exec, sandbox — no browser/cron)
-├── moltis-config       6.1K  (configuration)
-├── moltis-memory       5.1K  (embeddings, search)
-├── moltis-skills       3.7K  (skill loading)
-├── moltis-sessions     3.2K  (persistence)
-├── moltis-plugins      1.8K  (hook dispatch)
-└── moltis-common       1.0K  (shared utils)
+leetium (cli)
+├── leetium-agents      24.8K  (providers, agent loop)
+├── leetium-tools       15.9K  (tool exec, sandbox — no browser/cron)
+├── leetium-config       6.1K  (configuration)
+├── leetium-memory       5.1K  (embeddings, search)
+├── leetium-skills       3.7K  (skill loading)
+├── leetium-sessions     3.2K  (persistence)
+├── leetium-plugins      1.8K  (hook dispatch)
+└── leetium-common       1.0K  (shared utils)
 ```
 
 ### TUI tier (~63K LoC) — adds:
 
 ```
-├── moltis-tui          7.7K  (terminal UI client)
-└── moltis-protocol     0.3K  (message types)
+├── leetium-tui          7.7K  (terminal UI client)
+└── leetium-protocol     0.3K  (message types)
 ```
 
 ### Full tier (~150K LoC) — adds:
 
 ```
-├── moltis-gateway     50.9K  (HTTP/WS server, web UI, auth)
-├── moltis-browser      4.8K
-├── moltis-cron         3.8K
-├── moltis-telegram     5.7K
-├── moltis-channels     0.7K
-├── moltis-voice        6.0K
-├── moltis-mcp          3.7K
-├── moltis-oauth        2.1K
-├── moltis-onboarding   0.8K
-├── moltis-qmd          0.7K
-├── moltis-routing      0.03K
-├── moltis-projects     1.6K
-├── moltis-media        0.4K
-├── moltis-canvas       0.01K
-├── moltis-auto-reply   0.1K
-├── moltis-metrics      1.7K
-└── moltis-protocol     0.3K
+├── leetium-gateway     50.9K  (HTTP/WS server, web UI, auth)
+├── leetium-browser      4.8K
+├── leetium-cron         3.8K
+├── leetium-telegram     5.7K
+├── leetium-channels     0.7K
+├── leetium-voice        6.0K
+├── leetium-mcp          3.7K
+├── leetium-oauth        2.1K
+├── leetium-onboarding   0.8K
+├── leetium-qmd          0.7K
+├── leetium-routing      0.03K
+├── leetium-projects     1.6K
+├── leetium-media        0.4K
+├── leetium-canvas       0.01K
+├── leetium-auto-reply   0.1K
+├── leetium-metrics      1.7K
+└── leetium-protocol     0.3K
 ```
 
 ---

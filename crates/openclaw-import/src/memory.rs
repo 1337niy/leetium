@@ -9,7 +9,7 @@ use crate::{
     report::{CategoryReport, ImportCategory, ImportStatus},
 };
 
-/// Import memory files from OpenClaw workspace to Moltis data directory.
+/// Import memory files from OpenClaw workspace to Leetium data directory.
 ///
 /// - `MEMORY.md`: Merged if both exist (imported content appended with separator).
 /// - `memory/*.md`: All markdown files copied, skipping files that already exist.
@@ -198,7 +198,7 @@ mod tests {
     fn import_new_memory_file() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         std::fs::create_dir_all(home.join("workspace")).unwrap();
         std::fs::write(
@@ -220,20 +220,20 @@ mod tests {
     fn import_merges_existing_memory() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         std::fs::create_dir_all(home.join("workspace")).unwrap();
         std::fs::write(home.join("workspace").join("MEMORY.md"), "# From OpenClaw").unwrap();
 
         std::fs::create_dir_all(&dest).unwrap();
-        std::fs::write(dest.join("MEMORY.md"), "# Existing Moltis Memory").unwrap();
+        std::fs::write(dest.join("MEMORY.md"), "# Existing Leetium Memory").unwrap();
 
         let detection = make_detection(home);
         let report = import_memory(&detection, &dest);
 
         assert_eq!(report.items_imported, 1);
         let content = std::fs::read_to_string(dest.join("MEMORY.md")).unwrap();
-        assert!(content.contains("# Existing Moltis Memory"));
+        assert!(content.contains("# Existing Leetium Memory"));
         assert!(content.contains("<!-- Imported from OpenClaw -->"));
         assert!(content.contains("# From OpenClaw"));
     }
@@ -242,7 +242,7 @@ mod tests {
     fn import_idempotent_memory() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         std::fs::create_dir_all(home.join("workspace")).unwrap();
         std::fs::write(home.join("workspace").join("MEMORY.md"), "stuff").unwrap();
@@ -266,7 +266,7 @@ mod tests {
     fn import_daily_logs() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         let daily = home.join("workspace").join("memory");
         std::fs::create_dir_all(&daily).unwrap();
@@ -288,7 +288,7 @@ mod tests {
     fn import_all_markdown_memory_files() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis");
+        let dest = tmp.path().join("leetium");
 
         let mem_dir = home.join("workspace").join("memory");
         std::fs::create_dir_all(&mem_dir).unwrap();

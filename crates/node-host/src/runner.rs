@@ -9,7 +9,7 @@ use {
     tracing::{debug, error, info, warn},
 };
 
-use moltis_protocol::{
+use leetium_protocol::{
     ClientInfo, ConnectAuth, ConnectParamsV4, GatewayFrame, PROTOCOL_VERSION, ProtocolRange,
     RequestFrame, ResponseFrame, roles,
 };
@@ -168,7 +168,7 @@ impl NodeHost {
             extensions: {
                 let mut ext = std::collections::HashMap::new();
                 ext.insert(
-                    "moltis".into(),
+                    "leetium".into(),
                     serde_json::json!({
                         "caps": self.config.caps,
                         "commands": self.config.commands,
@@ -438,7 +438,7 @@ impl NodeHost {
         let mut providers = Vec::new();
 
         // Check Ollama at localhost:11434.
-        if let Ok(resp) = reqwest::Client::new()
+        if let Ok(resp) = leetium_common::http::shared_http_client().clone()
             .get("http://localhost:11434/api/tags")
             .timeout(Duration::from_secs(3))
             .send()

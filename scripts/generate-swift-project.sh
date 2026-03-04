@@ -13,4 +13,4 @@ fi
 cd "${MACOS_APP_DIR}"
 xcodegen generate --spec project.yml
 
-echo "Generated ${MACOS_APP_DIR}/Moltis.xcodeproj"
+echo "Generated ${MACOS_APP_DIR}/Leetium.xcodeproj"

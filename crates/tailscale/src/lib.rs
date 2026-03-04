@@ -474,7 +474,7 @@ pub fn validate_tailscale_config(
 
     if mode == TailscaleMode::Funnel && !auth_setup_complete {
         return Err(Error::message(
-            "tailscale funnel requires password authentication to be configured. Set a password first (via setup code or MOLTIS_PASSWORD) before enabling funnel.",
+            "tailscale funnel requires password authentication to be configured. Set a password first (via setup code or LEETIUM_PASSWORD) before enabling funnel.",
         ));
     }
 

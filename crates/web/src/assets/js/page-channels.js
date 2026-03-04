@@ -608,7 +608,7 @@ function AddTeamsModal() {
 	          <span class="text-xs font-medium text-[var(--text-strong)]">Microsoft Teams setup</span>
 	          <div class="text-xs text-[var(--muted)]">1. <a href="https://learn.microsoft.com/en-us/azure/bot-service/bot-service-quickstart-registration" target="_blank" class="text-[var(--accent)] underline">Create an Azure Bot registration</a> and copy the App ID + App Password.</div>
 	          <div class="text-xs text-[var(--muted)]">2. Use Bootstrap Teams below to generate the exact messaging endpoint.</div>
-	          <div class="text-xs text-[var(--muted)]">3. Optional CLI shortcut: <code>moltis channels teams bootstrap</code>.</div>
+	          <div class="text-xs text-[var(--muted)]">3. Optional CLI shortcut: <code>leetium channels teams bootstrap</code>.</div>
 	        </div>
 	      </div>
 	      <${ConnectionModeHint} type="msteams" />

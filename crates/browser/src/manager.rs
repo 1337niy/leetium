@@ -131,8 +131,8 @@ impl BrowserManager {
                     },
                     Err(e) => {
                         #[cfg(feature = "metrics")]
-                        moltis_metrics::counter!(
-                            moltis_metrics::browser::ERRORS_TOTAL,
+                        leetium_metrics::counter!(
+                            leetium_metrics::browser::ERRORS_TOTAL,
                             "type" => e.to_string()
                         )
                         .increment(1);
@@ -147,8 +147,8 @@ impl BrowserManager {
             },
             Err(_) => {
                 #[cfg(feature = "metrics")]
-                moltis_metrics::counter!(
-                    moltis_metrics::browser::ERRORS_TOTAL,
+                leetium_metrics::counter!(
+                    leetium_metrics::browser::ERRORS_TOTAL,
                     "type" => "timeout"
                 )
                 .increment(1);
@@ -301,7 +301,7 @@ impl BrowserManager {
 
         #[cfg(feature = "metrics")]
         {
-            moltis_metrics::histogram!(moltis_metrics::browser::NAVIGATION_DURATION_SECONDS)
+            leetium_metrics::histogram!(leetium_metrics::browser::NAVIGATION_DURATION_SECONDS)
                 .record(nav_start.elapsed().as_secs_f64());
         }
 
@@ -355,7 +355,7 @@ impl BrowserManager {
         let data_uri = format!("data:image/png;base64,{}", BASE64.encode(&screenshot));
 
         #[cfg(feature = "metrics")]
-        moltis_metrics::counter!(moltis_metrics::browser::SCREENSHOTS_TOTAL).increment(1);
+        leetium_metrics::counter!(leetium_metrics::browser::SCREENSHOTS_TOTAL).increment(1);
 
         // Calculate approximate dimensions from PNG data (width/height are in bytes 16-23)
         let (width, height) = if screenshot.len() > 24 {
@@ -539,7 +539,7 @@ impl BrowserManager {
         let js = if let Some(ref_) = ref_ {
             format!(
                 r#"(() => {{
-                    const el = document.querySelector(`[data-moltis-ref="{ref_}"]`);
+                    const el = document.querySelector(`[data-leetium-ref="{ref_}"]`);
                     if (el) el.scrollBy({x}, {y});
                     return !!el;
                 }})()"#
@@ -602,7 +602,7 @@ impl BrowserManager {
                 serde_json::to_string(selector).map_err(|e| Error::Cdp(e.to_string()))?
             )
         } else if let Some(ref_) = ref_ {
-            format!(r#"document.querySelector('[data-moltis-ref="{ref_}"]') !== null"#)
+            format!(r#"document.querySelector('[data-leetium-ref="{ref_}"]') !== null"#)
         } else {
             return Err(Error::InvalidAction("wait requires selector or ref".into()));
         };
@@ -758,7 +758,7 @@ impl BrowserManager {
     async fn highlight_element(&self, page: &Page, ref_: u32) -> Result<(), Error> {
         let js = format!(
             r#"(() => {{
-                const el = document.querySelector(`[data-moltis-ref="{ref_}"]`);
+                const el = document.querySelector(`[data-leetium-ref="{ref_}"]`);
                 if (el) {{
                     el.style.outline = '3px solid #ff0000';
                     el.style.outlineOffset = '2px';
@@ -776,7 +776,7 @@ impl BrowserManager {
     /// Remove all element highlights.
     async fn remove_highlights(&self, page: &Page) -> Result<(), Error> {
         let js = r#"
-            document.querySelectorAll('[data-moltis-ref]').forEach(el => {
+            document.querySelectorAll('[data-leetium-ref]').forEach(el => {
                 el.style.outline = '';
                 el.style.outlineOffset = '';
             });

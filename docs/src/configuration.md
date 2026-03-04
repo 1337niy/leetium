@@ -1,6 +1,6 @@
 # Configuration
 
-Moltis is configured through `moltis.toml`, located in `~/.config/moltis/` by default.
+Leetium is configured through `leetium.toml`, located in `~/.config/leetium/` by default.
 
 On first run, a complete configuration file is generated with sensible defaults. You can edit it to customize behavior.
 
@@ -8,8 +8,8 @@ On first run, a complete configuration file is generated with sensible defaults.
 
 | Platform | Default Path |
 |----------|--------------|
-| macOS/Linux | `~/.config/moltis/moltis.toml` |
-| Custom | Set via `--config-dir` or `MOLTIS_CONFIG_DIR` |
+| macOS/Linux | `~/.config/leetium/leetium.toml` |
+| Custom | Set via `--config-dir` or `LEETIUM_CONFIG_DIR` |
 
 ## Basic Settings
 
@@ -19,7 +19,7 @@ port = 13131                    # HTTP/WebSocket port
 bind = "0.0.0.0"               # Listen address
 
 [identity]
-name = "Moltis"                 # Agent display name
+name = "Leetium"                 # Agent display name
 
 [tools]
 agent_timeout_secs = 600        # Agent run timeout (seconds, 0 = no timeout)
@@ -28,7 +28,7 @@ agent_max_iterations = 25       # Max tool call iterations per run
 
 ## LLM Providers
 
-Configure providers through the web UI or directly in `moltis.toml`. API keys can be set
+Configure providers through the web UI or directly in `leetium.toml`. API keys can be set
 via environment variables (e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) or
 in the config file.
 
@@ -86,7 +86,7 @@ packages = [
 ```
 
 ```admonish info
-When you modify the packages list and restart, Moltis automatically rebuilds the sandbox image with a new tag.
+When you modify the packages list and restart, Leetium automatically rebuilds the sandbox image with a new tag.
 ```
 
 ## Web Search
@@ -111,12 +111,12 @@ duckduckgo_fallback = false      # Default: do not use DuckDuckGo fallback
 
 If no search API key is configured:
 
-- with `duckduckgo_fallback = false` (default), Moltis returns a clear hint to set `BRAVE_API_KEY` or `PERPLEXITY_API_KEY`
-- with `duckduckgo_fallback = true`, Moltis attempts DuckDuckGo HTML search, which may hit CAPTCHA/rate limits
+- with `duckduckgo_fallback = false` (default), Leetium returns a clear hint to set `BRAVE_API_KEY` or `PERPLEXITY_API_KEY`
+- with `duckduckgo_fallback = true`, Leetium attempts DuckDuckGo HTML search, which may hit CAPTCHA/rate limits
 
 ## Chat Message Queue
 
-When a new message arrives while an agent run is already active, Moltis can either
+When a new message arrives while an agent run is already active, Leetium can either
 replay queued messages one-by-one or merge them into a single follow-up message.
 
 ```toml
@@ -144,9 +144,9 @@ session_export = false
 
 ## Authentication
 
-Authentication is **only required when accessing Moltis from a non-localhost address**. When running on `localhost` or `127.0.0.1`, no authentication is needed by default.
+Authentication is **only required when accessing Leetium from a non-localhost address**. When running on `localhost` or `127.0.0.1`, no authentication is needed by default.
 
-When you access Moltis from a network address (e.g., `http://192.168.1.100:13131`), a one-time setup code is printed to the terminal. Use it to set up a password or passkey.
+When you access Leetium from a network address (e.g., `http://192.168.1.100:13131`), a one-time setup code is printed to the terminal. Use it to set up a password or passkey.
 
 ```toml
 [auth]
@@ -154,7 +154,7 @@ disabled = false                # Set true to disable auth entirely
 ```
 
 ```admonish warning
-Only set `disabled = true` if Moltis is running on a trusted private network. Never expose an unauthenticated instance to the internet.
+Only set `disabled = true` if Leetium is running on a trusted private network. Never expose an unauthenticated instance to the internet.
 ```
 
 ## Hooks
@@ -220,8 +220,8 @@ See [Discord](discord.md) for full configuration reference and setup instruction
 ```toml
 [tls]
 enabled = true
-cert_path = "~/.config/moltis/cert.pem"
-key_path = "~/.config/moltis/key.pem"
+cert_path = "~/.config/leetium/cert.pem"
+key_path = "~/.config/leetium/key.pem"
 # If paths don't exist, a self-signed certificate is generated
 
 # Port for the plain-HTTP redirect / CA-download server.
@@ -229,11 +229,11 @@ key_path = "~/.config/moltis/key.pem"
 # http_redirect_port = 13132
 ```
 
-Override via environment variable: `MOLTIS_TLS__HTTP_REDIRECT_PORT=8080`.
+Override via environment variable: `LEETIUM_TLS__HTTP_REDIRECT_PORT=8080`.
 
 ## Tailscale Integration
 
-Expose Moltis over your Tailscale network:
+Expose Leetium over your Tailscale network:
 
 ```toml
 [tailscale]
@@ -251,7 +251,7 @@ prometheus_endpoint = true
 
 ## Process Environment Variables (`[env]`)
 
-The `[env]` section injects variables into the Moltis process at startup.
+The `[env]` section injects variables into the Leetium process at startup.
 This is useful in Docker deployments where passing individual `-e` flags is
 inconvenient, or when you want API keys stored in the config file rather
 than the host environment.
@@ -269,7 +269,7 @@ If `BRAVE_API_KEY` is already set via `docker -e` or the host shell, the
 
 ```admonish info title="Settings UI vs [env]"
 Environment variables configured through the Settings UI (Settings >
-Environment) are also injected into the Moltis process at startup.
+Environment) are also injected into the Leetium process at startup.
 Precedence: host/`docker -e` > config `[env]` > Settings UI.
 ```
 
@@ -279,17 +279,17 @@ All settings can be overridden via environment variables:
 
 | Variable | Description |
 |----------|-------------|
-| `MOLTIS_CONFIG_DIR` | Configuration directory |
-| `MOLTIS_DATA_DIR` | Data directory |
-| `MOLTIS_SERVER__PORT` | Server port override |
-| `MOLTIS_SERVER__BIND` | Server bind address override |
-| `MOLTIS_TOOLS__AGENT_TIMEOUT_SECS` | Agent run timeout override |
-| `MOLTIS_TOOLS__AGENT_MAX_ITERATIONS` | Agent loop iteration cap override |
+| `LEETIUM_CONFIG_DIR` | Configuration directory |
+| `LEETIUM_DATA_DIR` | Data directory |
+| `LEETIUM_SERVER__PORT` | Server port override |
+| `LEETIUM_SERVER__BIND` | Server bind address override |
+| `LEETIUM_TOOLS__AGENT_TIMEOUT_SECS` | Agent run timeout override |
+| `LEETIUM_TOOLS__AGENT_MAX_ITERATIONS` | Agent loop iteration cap override |
 
 ## CLI Flags
 
 ```bash
-moltis --config-dir /path/to/config --data-dir /path/to/data
+leetium --config-dir /path/to/config --data-dir /path/to/data
 ```
 
 ## Complete Example

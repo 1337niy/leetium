@@ -31,7 +31,7 @@ impl BatchEmbeddingProvider {
     ) -> Self {
         Self {
             inner,
-            client: reqwest::Client::new(),
+            client: leetium_common::http::shared_http_client().clone(),
             api_key,
             base_url,
             batch_threshold,

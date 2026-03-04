@@ -1,5 +1,5 @@
 {
-  description = "Moltis - Personal AI gateway inspired by OpenClaw";
+  description = "Leetium - Personal AI gateway inspired by OpenClaw";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -13,17 +13,17 @@
       in
       {
         packages.default = pkgs.rustPlatform.buildRustPackage {
-          pname = "moltis";
+          pname = "leetium";
           version = "0.1.0";
           src = ./.;
-          cargoBuildFlags = [ "-p" "moltis" ];
+          cargoBuildFlags = [ "-p" "leetium" ];
           cargoLock.lockFile = ./Cargo.lock;
 
           meta = with pkgs.lib; {
             description = "Personal AI gateway inspired by OpenClaw";
-            homepage = "https://www.moltis.org/";
+            homepage = "https://www.leetnex.ru/";
             license = licenses.mit;
-            mainProgram = "moltis";
+            mainProgram = "leetium";
           };
         };
 

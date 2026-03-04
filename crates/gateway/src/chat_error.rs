@@ -1,3 +1,3 @@
-//! Re-exported from [`moltis_chat::chat_error`].
+//! Re-exported from [`leetium_chat::chat_error`].
 
-pub use moltis_chat::chat_error::*;
+pub use leetium_chat::chat_error::*;

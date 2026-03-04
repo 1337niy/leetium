@@ -1,19 +1,19 @@
 [build]
-image = 'ghcr.io/moltis-org/moltis:0.10.11'
+image = 'ghcr.io/1337leetium/leetium:0.1.0'
 
 [env]
-MOLTIS_BEHIND_PROXY    = 'true'
-MOLTIS_CONFIG_DIR      = '/data/config'
-MOLTIS_DATA_DIR        = '/data'
-MOLTIS_DEPLOY_PLATFORM = 'flyio'
-MOLTIS_NO_TLS          = 'true'
+LEETIUM_BEHIND_PROXY    = 'true'
+LEETIUM_CONFIG_DIR      = '/data/config'
+LEETIUM_DATA_DIR        = '/data'
+LEETIUM_DEPLOY_PLATFORM = 'flyio'
+LEETIUM_NO_TLS          = 'true'
 
 [processes]
 app = '--bind 0.0.0.0 --port 8080 --no-tls'
 
 [[mounts]]
 destination = '/data'
-source      = 'moltis_data'
+source      = 'leetium_data'
 
 [http_service]
 auto_start_machines  = true

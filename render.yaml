@@ -1,20 +1,20 @@
 services:
   - type: web
-    name: moltis
+    name: leetium
     runtime: image
     image:
-      url: ghcr.io/moltis-org/moltis:0.10.11
+      url: ghcr.io/1337leetium/leetium:0.1.0
     plan: free
     healthCheckPath: /health
     envVars:
-      - key: MOLTIS_NO_TLS
+      - key: LEETIUM_NO_TLS
         value: "true"
-      - key: MOLTIS_CONFIG_DIR
-        value: /tmp/moltis/config
-      - key: MOLTIS_DATA_DIR
-        value: /tmp/moltis
-      - key: MOLTIS_BEHIND_PROXY
+      - key: LEETIUM_CONFIG_DIR
+        value: /tmp/leetium/config
+      - key: LEETIUM_DATA_DIR
+        value: /tmp/leetium
+      - key: LEETIUM_BEHIND_PROXY
         value: "true"
-      - key: MOLTIS_DEPLOY_PLATFORM
+      - key: LEETIUM_DEPLOY_PLATFORM
         value: render
-    dockerCommand: moltis --bind 0.0.0.0 --port 10000 --no-tls
+    dockerCommand: leetium --bind 0.0.0.0 --port 10000 --no-tls

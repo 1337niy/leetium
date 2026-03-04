@@ -1,6 +1,6 @@
 [package]
 edition.workspace = true
-name              = "moltis-memory"
+name              = "leetium-memory"
 version.workspace = true
 
 [features]
@@ -27,8 +27,9 @@ lang-toml       = ["code-splitter-base", "dep:tree-sitter-toml-ng"]
 lang-typescript = ["code-splitter-base", "dep:tree-sitter-typescript"]
 # Existing features.
 file-watcher     = ["dep:notify-debouncer-full"]
+postgres         = []
 local-embeddings = ["dep:llama-cpp-2"]
-metrics          = ["dep:moltis-metrics"]
+metrics          = ["dep:leetium-metrics"]
 
 [dependencies]
 anyhow                 = { workspace = true }
@@ -38,9 +39,9 @@ chrono                 = { features = ["serde"], workspace = true }
 directories.workspace  = true
 futures                = { workspace = true }
 llama-cpp-2            = { optional = true, workspace = true }
-moltis-agents          = { workspace = true }
-moltis-common          = { workspace = true }
-moltis-metrics         = { optional = true, workspace = true }
+leetium-agents          = { workspace = true }
+leetium-common          = { workspace = true }
+leetium-metrics         = { optional = true, workspace = true }
 notify-debouncer-full  = { optional = true, workspace = true }
 reqwest                = { workspace = true }
 secrecy                = { workspace = true }

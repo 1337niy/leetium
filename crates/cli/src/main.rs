@@ -43,13 +43,13 @@ mod tailscale_commands;
 use {
     anyhow::anyhow,
     clap::{Parser, Subcommand},
-    moltis_gateway::logs::{EnabledLogLevels, LogBroadcastLayer, LogBuffer},
+    leetium_gateway::logs::{EnabledLogLevels, LogBroadcastLayer, LogBuffer},
     tracing::info,
     tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt},
 };
 
 #[derive(Parser)]
-#[command(name = "moltis", about = "Moltis — personal AI gateway", version)]
+#[command(name = "leetium", about = "Leetium — personal AI gateway", version)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -69,22 +69,22 @@ struct Cli {
     /// Port to listen on (overrides config value).
     #[arg(long, global = true)]
     port: Option<u16>,
-    /// Custom config directory (overrides default ~/.config/moltis/).
-    #[arg(long, global = true, env = "MOLTIS_CONFIG_DIR")]
+    /// Custom config directory (overrides default ~/.config/leetium/).
+    #[arg(long, global = true, env = "LEETIUM_CONFIG_DIR")]
     config_dir: Option<std::path::PathBuf>,
     /// Custom data directory (overrides default data dir).
-    #[arg(long, global = true, env = "MOLTIS_DATA_DIR")]
+    #[arg(long, global = true, env = "LEETIUM_DATA_DIR")]
     data_dir: Option<std::path::PathBuf>,
     /// Custom share directory for external web/WASM assets (overrides default discovery).
-    #[arg(long, global = true, env = "MOLTIS_SHARE_DIR")]
+    #[arg(long, global = true, env = "LEETIUM_SHARE_DIR")]
     share_dir: Option<std::path::PathBuf>,
     /// Disable TLS (for cloud deployments where the provider handles TLS).
     #[cfg(feature = "tls")]
-    #[arg(long, global = true, env = "MOLTIS_NO_TLS")]
+    #[arg(long, global = true, env = "LEETIUM_NO_TLS")]
     no_tls: bool,
     /// Tailscale mode: off, serve, or funnel.
     #[cfg(feature = "tailscale")]
-    #[arg(long, global = true, env = "MOLTIS_TAILSCALE")]
+    #[arg(long, global = true, env = "LEETIUM_TAILSCALE")]
     tailscale: Option<String>,
     /// Reset tailscale serve/funnel when the gateway exits.
     #[cfg(feature = "tailscale")]
@@ -171,7 +171,7 @@ enum Commands {
         #[command(subcommand)]
         action: node_commands::NodeAction,
     },
-    /// Install or manage moltis as an OS service.
+    /// Install or manage leetium as an OS service.
     Service {
         #[command(subcommand)]
         action: service_commands::ServiceAction,
@@ -188,7 +188,7 @@ enum Commands {
         #[command(subcommand)]
         action: tailscale_commands::TailscaleAction,
     },
-    /// Install the Moltis CA certificate into the system trust store.
+    /// Install the Leetium CA certificate into the system trust store.
     #[cfg(feature = "tls")]
     TrustCa,
 }
@@ -223,7 +223,7 @@ enum SkillAction {
 
 /// Initialise tracing and optionally attach a [`LogBroadcastLayer`] that
 /// captures events into an in-memory ring buffer for the web UI.
-fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) {
+fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) -> tracing_appender::non_blocking::WorkerGuard {
     // Start with user-specified or default log level
     let base_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&cli.log_level));
@@ -243,14 +243,29 @@ fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) {
         buffer.set_enabled_levels(levels);
     }
 
-    let registry = tracing_subscriber::registry().with(filter);
+    let log_dir = std::env::var("LEETIUM_DATA_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|_| leetium_config::data_dir())
+        .join("logs");
 
-    // Optionally attach the in-memory capture layer.
+    std::fs::create_dir_all(&log_dir).ok();
+
+    let file_appender = tracing_appender::rolling::daily(log_dir, "leetium.log");
+    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+
+    let registry = tracing_subscriber::registry().with(filter);
     let log_layer = log_buffer.map(LogBroadcastLayer::new);
 
     if cli.json_logs {
         registry
             .with(fmt::layer().json().with_target(true).with_thread_ids(false))
+            .with(fmt::layer()
+                .with_writer(non_blocking)
+                .with_ansi(false)
+                .with_target(true)
+                .with_thread_ids(false)
+                .json()
+            )
             .with(log_layer)
             .init();
     } else {
@@ -261,14 +276,22 @@ fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) {
                     .with_thread_ids(false)
                     .with_ansi(true),
             )
+            .with(fmt::layer()
+                .with_writer(non_blocking)
+                .with_ansi(false)
+                .with_target(true)
+                .with_thread_ids(false)
+            )
             .with(log_layer)
             .init();
     }
+
+    guard
 }
 
 #[cfg(feature = "tls")]
 async fn trust_ca() -> anyhow::Result<()> {
-    let cert_dir = moltis_gateway::tls::cert_dir()?;
+    let cert_dir = leetium_gateway::tls::cert_dir()?;
     let ca_path = cert_dir.join("ca.pem");
 
     if !ca_path.exists() {
@@ -307,7 +330,7 @@ async fn trust_ca() -> anyhow::Result<()> {
 
     #[cfg(target_os = "linux")]
     {
-        let dest = std::path::PathBuf::from("/usr/local/share/ca-certificates/moltis-ca.crt");
+        let dest = std::path::PathBuf::from("/usr/local/share/ca-certificates/leetium-ca.crt");
         eprintln!("Copying CA to {} (may require sudo)", dest.display());
         let status = std::process::Command::new("sudo")
             .args(["cp"])
@@ -347,33 +370,33 @@ async fn main() -> anyhow::Result<()> {
 
     // Create the log buffer only for the gateway command so the web UI can
     // display captured log entries. Default capacity (1000) can be overridden
-    // via `server.log_buffer_size` in moltis.toml.
+    // via `server.log_buffer_size` in leetium.toml.
     let log_buffer = if matches!(cli.command, None | Some(Commands::Gateway)) {
         Some(LogBuffer::default())
     } else {
         None
     };
 
-    init_telemetry(&cli, log_buffer.clone());
+    let _guard = init_telemetry(&cli, log_buffer.clone());
 
-    info!(version = env!("CARGO_PKG_VERSION"), "moltis starting");
+    info!(version = env!("CARGO_PKG_VERSION"), "leetium starting");
 
     // Apply directory overrides before any command so all subcommands
     // (config check, db, sandbox, etc.) respect --config-dir / --data-dir.
     if let Some(ref dir) = cli.config_dir {
-        moltis_config::set_config_dir(dir.clone());
+        leetium_config::set_config_dir(dir.clone());
     }
     if let Some(ref dir) = cli.data_dir {
-        moltis_config::set_data_dir(dir.clone());
+        leetium_config::set_data_dir(dir.clone());
     }
     if let Some(ref dir) = cli.share_dir {
-        moltis_config::set_share_dir(dir.clone());
+        leetium_config::set_share_dir(dir.clone());
     }
 
     // Ensure config/data directories exist for every command path. This is a
     // hard requirement for startup; fail fast if directory initialization fails.
     let config_dir =
-        moltis_config::config_dir().ok_or_else(|| anyhow!("unable to resolve config directory"))?;
+        leetium_config::config_dir().ok_or_else(|| anyhow!("unable to resolve config directory"))?;
     std::fs::create_dir_all(&config_dir).unwrap_or_else(|e| {
         panic!(
             "failed to create config directory {}: {e}",
@@ -381,7 +404,7 @@ async fn main() -> anyhow::Result<()> {
         )
     });
 
-    let data_dir = moltis_config::data_dir();
+    let data_dir = leetium_config::data_dir();
     std::fs::create_dir_all(&data_dir).unwrap_or_else(|e| {
         panic!(
             "failed to create data directory {}: {e}",
@@ -393,7 +416,7 @@ async fn main() -> anyhow::Result<()> {
         // Default: start gateway when no subcommand is provided
         None | Some(Commands::Gateway) => {
             // Load config to get server settings
-            let config = moltis_config::discover_and_load();
+            let config = leetium_config::discover_and_load();
 
             // CLI args override config values
             let bind = cli.bind.unwrap_or(config.server.bind);
@@ -407,7 +430,7 @@ async fn main() -> anyhow::Result<()> {
             #[cfg(feature = "tailscale")]
             let tailscale_opts = cli
                 .tailscale
-                .map(|mode| moltis_gateway::server::TailscaleOpts {
+                .map(|mode| leetium_gateway::server::TailscaleOpts {
                     mode,
                     reset_on_exit: cli.tailscale_reset_on_exit,
                 });
@@ -415,12 +438,12 @@ async fn main() -> anyhow::Result<()> {
             let tailscale_opts: Option<()> = None;
             let _ = &tailscale_opts; // suppress unused warning when feature disabled
             #[cfg(feature = "web-ui")]
-            let extra_routes: Option<moltis_gateway::server::RouteEnhancer> =
-                Some(moltis_web::web_routes);
+            let extra_routes: Option<leetium_gateway::server::RouteEnhancer> =
+                Some(leetium_web::web_routes);
             #[cfg(not(feature = "web-ui"))]
-            let extra_routes: Option<moltis_gateway::server::RouteEnhancer> = None;
+            let extra_routes: Option<leetium_gateway::server::RouteEnhancer> = None;
 
-            moltis_gateway::server::start_gateway(
+            leetium_gateway::server::start_gateway(
                 &bind,
                 port,
                 no_tls,
@@ -434,12 +457,12 @@ async fn main() -> anyhow::Result<()> {
             .await
         },
         Some(Commands::Agent { message, .. }) => {
-            let result = moltis_agents::runner::run_agent("default", "main", &message).await?;
+            let result = leetium_agents::runner::run_agent("default", "main", &message).await?;
             println!("{result}");
             Ok(())
         },
         Some(Commands::Onboard) => {
-            moltis_onboarding::wizard::run_onboarding().await?;
+            leetium_onboarding::wizard::run_onboarding().await?;
             Ok(())
         },
         Some(Commands::Channels { action }) => channel_commands::handle_channels(action).await,
@@ -468,7 +491,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn handle_skills(action: SkillAction) -> anyhow::Result<()> {
-    use moltis_skills::{
+    use leetium_skills::{
         discover::FsSkillDiscoverer,
         install,
         registry::{InMemoryRegistry, SkillRegistry},

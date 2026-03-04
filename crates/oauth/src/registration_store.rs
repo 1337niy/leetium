@@ -1,6 +1,6 @@
 //! Persists dynamic client registrations for MCP OAuth servers.
 //!
-//! Stores client credentials at `~/.config/moltis/mcp_oauth_registrations.json`
+//! Stores client credentials at `~/.config/leetium/mcp_oauth_registrations.json`
 //! so that re-registration is avoided on subsequent connections.
 
 use std::{collections::HashMap, path::PathBuf};
@@ -11,7 +11,7 @@ use {
     tracing::{debug, info, warn},
 };
 
-use crate::{Result, config_dir::moltis_config_dir};
+use crate::{Result, config_dir::leetium_config_dir};
 
 /// A stored dynamic client registration.
 #[derive(Clone, Serialize, Deserialize)]
@@ -53,7 +53,7 @@ pub struct RegistrationStore {
 
 impl RegistrationStore {
     pub fn new() -> Self {
-        let path = moltis_config_dir().join("mcp_oauth_registrations.json");
+        let path = leetium_config_dir().join("mcp_oauth_registrations.json");
         Self { path }
     }
 

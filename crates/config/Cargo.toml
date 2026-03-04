@@ -1,26 +1,30 @@
 [package]
 edition.workspace = true
-name              = "moltis-config"
+name              = "leetium-config"
 version.workspace = true
 
 [dependencies]
 anyhow         = { workspace = true }
+async-trait    = { workspace = true }
 chrono-tz      = { workspace = true }
 directories    = { workspace = true }
+futures        = { workspace = true }
 ipnet          = { workspace = true }
-moltis-metrics = { optional = true, workspace = true }
+leetium-metrics = { optional = true, workspace = true }
 secrecy        = { workspace = true }
 serde          = { workspace = true }
 serde_json     = { workspace = true }
 serde_yaml     = { workspace = true }
+sqlx           = { workspace = true }
 thiserror      = { workspace = true }
+tokio          = { workspace = true }
 toml           = { workspace = true }
 toml_edit      = { workspace = true }
 tracing        = { workspace = true }
 
 [features]
 default = []
-metrics = ["dep:moltis-metrics"]
+metrics = ["dep:leetium-metrics"]
 
 [dev-dependencies]
 tempfile = { workspace = true }

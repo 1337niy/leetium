@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use dashmap::DashMap;
 
-use moltis_channels::channel_webhook_middleware::{
+use leetium_channels::channel_webhook_middleware::{
     ChannelWebhookRatePolicy, ChannelWebhookRejection,
 };
 

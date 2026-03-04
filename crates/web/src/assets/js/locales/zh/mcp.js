@@ -7,11 +7,11 @@ export default {
 	introTitle: "MCP（模型上下文协议）",
 	introDescription: "工具通过外部能力扩展 AI 代理 \u2014 文件访问、网页获取、数据库查询、代码搜索等。",
 	flowAgent: "代理",
-	flowMoltis: "Moltis",
+	flowLeetium: "Leetium",
 	flowLocalProcess: "本地 MCP 进程",
 	flowExternalApi: "外部 API",
 	introDetail:
-		"每个工具在你的机器上作为 <strong>本地进程</strong> 运行（通过 npm/uvx 启动）。Moltis 通过 stdio 连接到它，进程使用你的令牌代你发起外部 API 调用。数据不会发送到第三方 MCP 主机。",
+		"每个工具在你的机器上作为 <strong>本地进程</strong> 运行（通过 npm/uvx 启动）。Leetium 通过 stdio 连接到它，进程使用你的令牌代你发起外部 API 调用。数据不会发送到第三方 MCP 主机。",
 
 	// ── Security warning ────────────────────────────────────
 	securityTitle: "\u26a0\ufe0f MCP 服务器作为本地进程运行 \u2014 启用前请仔细审查",

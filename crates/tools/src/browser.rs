@@ -10,8 +10,8 @@
 use {
     crate::sandbox::SandboxRouter,
     async_trait::async_trait,
-    moltis_agents::tool_registry::AgentTool,
-    moltis_browser::{BrowserManager, BrowserRequest},
+    leetium_agents::tool_registry::AgentTool,
+    leetium_browser::{BrowserManager, BrowserRequest},
     std::sync::Arc,
     tokio::sync::{OnceCell, RwLock},
     tracing::debug,
@@ -30,7 +30,7 @@ use crate::error::Error;
 /// tool will use the most recently created session. This prevents pool
 /// exhaustion from creating new browser instances on every call.
 pub struct BrowserTool {
-    config: moltis_browser::BrowserConfig,
+    config: leetium_browser::BrowserConfig,
     manager: OnceCell<Arc<BrowserManager>>,
     sandbox_router: Option<Arc<SandboxRouter>>,
     /// Track the most recent session ID for automatic reuse.
@@ -40,7 +40,7 @@ pub struct BrowserTool {
 
 impl BrowserTool {
     /// Create a new browser tool from browser configuration.
-    pub fn new(config: moltis_browser::BrowserConfig) -> Self {
+    pub fn new(config: leetium_browser::BrowserConfig) -> Self {
         Self {
             config,
             manager: OnceCell::new(),
@@ -56,11 +56,11 @@ impl BrowserTool {
     }
 
     /// Create from config; returns `None` if browser is disabled.
-    pub fn from_config(config: &moltis_config::schema::BrowserConfig) -> Option<Self> {
+    pub fn from_config(config: &leetium_config::schema::BrowserConfig) -> Option<Self> {
         if !config.enabled {
             return None;
         }
-        let browser_config = moltis_browser::BrowserConfig::from(config);
+        let browser_config = leetium_browser::BrowserConfig::from(config);
         Some(Self::new(browser_config))
     }
 
@@ -91,7 +91,7 @@ impl BrowserTool {
                     let config = self.config.clone();
                     match tokio::task::spawn_blocking(move || {
                         // Browser detection/container cleanup can block.
-                        moltis_browser::detect::check_and_warn(config.chrome_path.as_deref());
+                        leetium_browser::detect::check_and_warn(config.chrome_path.as_deref());
                         Arc::new(BrowserManager::new(config))
                     })
                     .await
@@ -103,7 +103,7 @@ impl BrowserTool {
                                 "browser tool warmup worker failed, falling back to inline initialization"
                             );
                             let config = self.config.clone();
-                            moltis_browser::detect::check_and_warn(config.chrome_path.as_deref());
+                            leetium_browser::detect::check_and_warn(config.chrome_path.as_deref());
                             Arc::new(BrowserManager::new(config))
                         },
                     }
@@ -127,7 +127,7 @@ impl AgentTool for BrowserTool {
          {\"action\": \"navigate\", \"url\": \"https://example.com\"}\n\n\
          Actions: navigate, screenshot, snapshot, click, type, scroll, evaluate, wait, close\n\n\
          BROWSER CHOICE: optionally set \"browser\" to choose one (auto, chrome, chromium, \
-         edge, brave, opera, vivaldi, arc). If no browser is installed, Moltis will try \
+         edge, brave, opera, vivaldi, arc). If no browser is installed, Leetium will try \
          to auto-install one.\n\n\
          SESSION: The browser session is automatically tracked. After 'navigate', \
          subsequent actions will reuse the same browser. No need to pass session_id.\n\n\
@@ -300,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_tool_name() {
-        let config = moltis_config::schema::BrowserConfig {
+        let config = leetium_config::schema::BrowserConfig {
             enabled: true,
             ..Default::default()
         };
@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn test_disabled_returns_none() {
-        let config = moltis_config::schema::BrowserConfig {
+        let config = leetium_config::schema::BrowserConfig {
             enabled: false,
             ..Default::default()
         };
@@ -319,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_parameters_schema_has_required_action() {
-        let config = moltis_config::schema::BrowserConfig {
+        let config = leetium_config::schema::BrowserConfig {
             enabled: true,
             ..Default::default()
         };

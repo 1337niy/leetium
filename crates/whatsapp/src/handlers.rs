@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use {
     tracing::{debug, info, warn},
-    wacore::types::{events::Event, message::MessageInfo},
-    wacore_binary::jid::{Jid, JidExt as _},
-    waproto::whatsapp as wa,
-    whatsapp_rust::client::Client,
+    wa_rs_core::types::{events::Event, message::MessageInfo},
+    wa_rs_binary::jid::{Jid, JidExt as _},
+    wa_rs_proto::whatsapp as wa,
+    wa_rs::client::Client,
 };
 
-use moltis_channels::{
+use leetium_channels::{
     ChannelAttachment, ChannelEvent, ChannelMessageKind, ChannelMessageMeta, ChannelReplyTarget,
     ChannelType, message_log::MessageLogEntry,
 };
@@ -19,7 +19,7 @@ use crate::{
     state::{AccountState, AccountStateMap, has_bot_watermark},
 };
 
-/// Process an incoming whatsapp-rust event for the given account.
+/// Process an incoming wa-rs event for the given account.
 pub async fn handle_event(
     event: Event,
     client: Arc<Client>,
@@ -119,9 +119,9 @@ async fn handle_message(
     accounts: &AccountStateMap,
 ) {
     #[cfg(feature = "metrics")]
-    moltis_metrics::counter!(
-        moltis_metrics::channels::MESSAGES_RECEIVED_TOTAL,
-        moltis_metrics::labels::CHANNEL => "whatsapp"
+    leetium_metrics::counter!(
+        leetium_metrics::channels::MESSAGES_RECEIVED_TOTAL,
+        leetium_metrics::labels::CHANNEL => "whatsapp"
     )
     .increment(1);
 
@@ -397,7 +397,7 @@ async fn handle_photo(
         Ok(image_data) => {
             debug!(account_id, size = image_data.len(), %mime, "downloaded WhatsApp image");
 
-            let (final_data, media_type) = match moltis_media::image_ops::optimize_for_llm(
+            let (final_data, media_type) = match leetium_media::image_ops::optimize_for_llm(
                 &image_data,
                 None,
             ) {

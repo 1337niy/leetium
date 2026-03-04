@@ -170,7 +170,7 @@ test.describe("Agents settings page", () => {
 			.poll(
 				async () =>
 					page.evaluate(
-						() => window.__moltis_stores?.sessionStore?.activeSession?.value?.agent_id,
+						() => window.__leetium_stores?.sessionStore?.activeSession?.value?.agent_id,
 					),
 				{ timeout: 15_000 },
 			)

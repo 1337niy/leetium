@@ -823,7 +823,7 @@ function saveAndFinishProvider(provider, keyVal, endpointVal, modelVal, selected
 				if (modelServiceUnavailable) {
 					console.warn("models.test unavailable in provider settings, saved selected model without probe");
 				}
-				localStorage.setItem("moltis-model", modelForTest);
+				localStorage.setItem("leetium-model", modelForTest);
 			}
 
 			// Success

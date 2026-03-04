@@ -10,7 +10,7 @@ use {
     serde::{Deserialize, Serialize},
 };
 
-use moltis_agents::tool_registry::AgentTool;
+use leetium_agents::tool_registry::AgentTool;
 
 // ── Domain types ────────────────────────────────────────────────────────────
 

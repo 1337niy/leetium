@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use {
     async_trait::async_trait,
-    moltis_config::GeoLocation,
+    leetium_config::GeoLocation,
     serde::{Deserialize, Serialize},
     tracing::warn,
 };
@@ -155,7 +155,7 @@ struct PlaceName {
 /// Returns `None` on any failure (network, parse, timeout) so the caller can
 /// fall back to raw coordinates.
 async fn reverse_geocode(lat: f64, lon: f64) -> Option<PlaceName> {
-    reverse_geocode_with_client(crate::shared_http_client(), lat, lon).await
+    reverse_geocode_with_client(leetium_common::http::shared_http_client(), lat, lon).await
 }
 
 /// Inner implementation that accepts a `reqwest::Client` for testability.
@@ -169,7 +169,7 @@ async fn reverse_geocode_with_client(
     );
     let resp = client
         .get(&url)
-        .header("User-Agent", "moltis/0.3")
+        .header("User-Agent", "leetium/0.3")
         .timeout(std::time::Duration::from_secs(5))
         .send()
         .await
@@ -267,7 +267,7 @@ impl LocationTool {
 }
 
 #[async_trait]
-impl moltis_agents::tool_registry::AgentTool for LocationTool {
+impl leetium_agents::tool_registry::AgentTool for LocationTool {
     fn name(&self) -> &str {
         "get_user_location"
     }
@@ -406,7 +406,7 @@ impl moltis_agents::tool_registry::AgentTool for LocationTool {
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod tests {
-    use {super::*, moltis_agents::tool_registry::AgentTool};
+    use {super::*, leetium_agents::tool_registry::AgentTool};
 
     /// Mock requester that returns a fixed response.
     struct MockRequester {
@@ -780,14 +780,14 @@ mod tests {
             .await;
 
         // Build a client that points at the mock server.
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let url = format!(
             "{}/reverse?lat=37.76&lon=-122.42&format=json&zoom=14",
             server.url()
         );
         let resp = client
             .get(&url)
-            .header("User-Agent", "moltis/0.3-test")
+            .header("User-Agent", "leetium/0.3-test")
             .send()
             .await
             .unwrap();
@@ -811,14 +811,14 @@ mod tests {
             .create_async()
             .await;
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         // Point at the mock by calling the inner function with a custom URL.
         // Since `reverse_geocode_with_client` uses the real Nominatim URL, we
         // test the parse/fallback path directly here.
         let url = format!("{}/reverse?lat=0&lon=0&format=json&zoom=14", server.url());
         let resp = client
             .get(&url)
-            .header("User-Agent", "moltis/0.3-test")
+            .header("User-Agent", "leetium/0.3-test")
             .send()
             .await
             .unwrap();

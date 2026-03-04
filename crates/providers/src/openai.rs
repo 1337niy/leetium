@@ -8,7 +8,7 @@ use std::{
 use {
     async_trait::async_trait,
     futures::{SinkExt, StreamExt},
-    moltis_config::schema::ProviderStreamTransport,
+    leetium_config::schema::ProviderStreamTransport,
     secrecy::ExposeSecret,
     tokio_stream::Stream,
     tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest, http::HeaderValue},
@@ -22,7 +22,7 @@ use {
         parse_openai_compat_usage_from_payload, parse_tool_calls, process_openai_sse_line,
         strip_think_tags, to_openai_tools, to_responses_api_tools, to_responses_input,
     },
-    moltis_agents::model::{
+    leetium_agents::model::{
         ChatMessage, CompletionResponse, LlmProvider, ModelMetadata, StreamEvent, Usage,
     },
 };
@@ -35,7 +35,7 @@ pub struct OpenAiProvider {
     client: &'static reqwest::Client,
     stream_transport: ProviderStreamTransport,
     metadata_cache: tokio::sync::OnceCell<ModelMetadata>,
-    tool_mode_override: Option<moltis_config::ToolMode>,
+    tool_mode_override: Option<leetium_config::ToolMode>,
 }
 
 const OPENAI_MODELS_ENDPOINT_PATH: &str = "/models";
@@ -344,7 +344,7 @@ async fn fetch_models_from_api(
     api_key: secrecy::Secret<String>,
     base_url: String,
 ) -> anyhow::Result<Vec<super::DiscoveredModel>> {
-    let client = crate::shared_http_client();
+    let client = leetium_common::http::shared_http_client();
     let response = client
         .get(models_endpoint(&base_url))
         .timeout(Duration::from_secs(8))
@@ -434,7 +434,7 @@ impl OpenAiProvider {
             model,
             base_url,
             provider_name: "openai".into(),
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             stream_transport: ProviderStreamTransport::Sse,
             metadata_cache: tokio::sync::OnceCell::new(),
             tool_mode_override: None,
@@ -452,7 +452,7 @@ impl OpenAiProvider {
             model,
             base_url,
             provider_name,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             stream_transport: ProviderStreamTransport::Sse,
             metadata_cache: tokio::sync::OnceCell::new(),
             tool_mode_override: None,
@@ -466,7 +466,7 @@ impl OpenAiProvider {
     }
 
     #[must_use]
-    pub fn with_tool_mode(mut self, mode: moltis_config::ToolMode) -> Self {
+    pub fn with_tool_mode(mut self, mode: leetium_config::ToolMode) -> Self {
         self.tool_mode_override = Some(mode);
         self
     }
@@ -1004,15 +1004,15 @@ impl LlmProvider for OpenAiProvider {
 
     fn supports_tools(&self) -> bool {
         match self.tool_mode_override {
-            Some(moltis_config::ToolMode::Native) => true,
-            Some(moltis_config::ToolMode::Text | moltis_config::ToolMode::Off) => false,
-            Some(moltis_config::ToolMode::Auto) | None => {
+            Some(leetium_config::ToolMode::Native) => true,
+            Some(leetium_config::ToolMode::Text | leetium_config::ToolMode::Off) => false,
+            Some(leetium_config::ToolMode::Auto) | None => {
                 super::supports_tools_for_model(&self.model)
             },
         }
     }
 
-    fn tool_mode(&self) -> Option<moltis_config::ToolMode> {
+    fn tool_mode(&self) -> Option<leetium_config::ToolMode> {
         self.tool_mode_override
     }
 
@@ -1201,7 +1201,7 @@ mod tests {
         tokio_stream::StreamExt,
     };
 
-    use moltis_agents::model::{ChatMessage, ToolCall, Usage};
+    use leetium_agents::model::{ChatMessage, ToolCall, Usage};
 
     use super::*;
 

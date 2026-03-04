@@ -10,15 +10,15 @@ use crate::{
 };
 
 use {
-    moltis_agents::{
+    leetium_agents::{
         AgentRunError,
         model::LlmProvider,
         runner::{RunnerEvent, run_agent_loop_with_context},
         tool_registry::{AgentTool, ToolRegistry},
     },
-    moltis_config::schema::{AgentPreset, AgentsConfig},
-    moltis_providers::ProviderRegistry,
-    moltis_sessions::{metadata::SqliteSessionMetadata, store::SessionStore},
+    leetium_config::schema::{AgentPreset, AgentsConfig},
+    leetium_providers::ProviderRegistry,
+    leetium_sessions::{metadata::SqliteSessionMetadata, store::SessionStore},
 };
 
 use crate::sessions_communicate::{
@@ -191,18 +191,18 @@ impl SpawnAgentTool {
 /// Resolve the memory directory for a preset based on its scope.
 fn resolve_memory_dir(
     preset_name: &str,
-    scope: &moltis_config::schema::MemoryScope,
+    scope: &leetium_config::schema::MemoryScope,
 ) -> std::path::PathBuf {
-    use moltis_config::schema::MemoryScope;
+    use leetium_config::schema::MemoryScope;
     match scope {
         MemoryScope::User => {
-            let data_dir = moltis_config::data_dir();
+            let data_dir = leetium_config::data_dir();
             data_dir.join("agent-memory").join(preset_name)
         },
-        MemoryScope::Project => std::path::PathBuf::from(".moltis")
+        MemoryScope::Project => std::path::PathBuf::from(".leetium")
             .join("agent-memory")
             .join(preset_name),
-        MemoryScope::Local => std::path::PathBuf::from(".moltis")
+        MemoryScope::Local => std::path::PathBuf::from(".leetium")
             .join("agent-memory-local")
             .join(preset_name),
     }
@@ -212,7 +212,7 @@ fn resolve_memory_dir(
 /// Returns `None` if the file doesn't exist or is empty.
 fn load_memory_context(
     preset_name: &str,
-    config: &moltis_config::schema::PresetMemoryConfig,
+    config: &leetium_config::schema::PresetMemoryConfig,
 ) -> Option<String> {
     let dir = resolve_memory_dir(preset_name, &config.scope);
     load_memory_from_dir(&dir, config.max_lines)
@@ -460,7 +460,7 @@ impl AgentTool for SpawnAgentTool {
         }
 
         // Run the sub-agent loop, optionally with a timeout.
-        let user_content = moltis_agents::UserContent::text(task);
+        let user_content = leetium_agents::UserContent::text(task);
         let agent_future = run_agent_loop_with_context(
             provider,
             &sub_tools,
@@ -523,8 +523,8 @@ impl AgentTool for SpawnAgentTool {
 mod tests {
     use {
         super::*,
-        moltis_agents::model::{ChatMessage, CompletionResponse, StreamEvent, Usage},
-        moltis_config::schema::{AgentIdentity, PresetToolPolicy},
+        leetium_agents::model::{ChatMessage, CompletionResponse, StreamEvent, Usage},
+        leetium_config::schema::{AgentIdentity, PresetToolPolicy},
         std::pin::Pin,
         tokio_stream::Stream,
     };

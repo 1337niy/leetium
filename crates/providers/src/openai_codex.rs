@@ -4,14 +4,14 @@ use {
     async_trait::async_trait,
     base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD},
     futures::StreamExt,
-    moltis_config::schema::ProviderStreamTransport,
-    moltis_oauth::{OAuthFlow, TokenStore, load_oauth_config},
+    leetium_config::schema::ProviderStreamTransport,
+    leetium_oauth::{OAuthFlow, TokenStore, load_oauth_config},
     secrecy::{ExposeSecret, Secret},
     tokio_stream::Stream,
     tracing::{debug, info, trace, warn},
 };
 
-use moltis_agents::model::{
+use leetium_agents::model::{
     ChatMessage, CompletionResponse, LlmProvider, StreamEvent, ToolCall, Usage, UserContent,
 };
 
@@ -45,7 +45,7 @@ impl OpenAiCodexProvider {
         Self {
             model,
             base_url: "https://chatgpt.com/backend-api".to_string(),
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             token_store: TokenStore::new(),
             stream_transport,
         }
@@ -66,14 +66,14 @@ impl OpenAiCodexProvider {
         }
     }
 
-    async fn get_valid_tokens(&self) -> anyhow::Result<moltis_oauth::OAuthTokens> {
+    async fn get_valid_tokens(&self) -> anyhow::Result<leetium_oauth::OAuthTokens> {
         let tokens = self
             .token_store
             .load("openai-codex")
             .or_else(load_codex_cli_tokens)
             .ok_or_else(|| {
                 anyhow::anyhow!(
-                    "not logged in to openai-codex — run `moltis auth login --provider openai-codex`"
+                    "not logged in to openai-codex — run `leetium auth login --provider openai-codex`"
                 )
             })?;
 
@@ -157,7 +157,7 @@ impl OpenAiCodexProvider {
         Self::extract_account_id_from_claims(&claims)
     }
 
-    fn resolve_account_id(tokens: &moltis_oauth::OAuthTokens) -> anyhow::Result<String> {
+    fn resolve_account_id(tokens: &leetium_oauth::OAuthTokens) -> anyhow::Result<String> {
         if let Some(account_id) = tokens
             .account_id
             .as_ref()
@@ -198,10 +198,10 @@ impl OpenAiCodexProvider {
                                 parts
                                     .iter()
                                     .map(|p| match p {
-                                        moltis_agents::model::ContentPart::Text(t) => {
+                                        leetium_agents::model::ContentPart::Text(t) => {
                                             serde_json::json!({"type": "input_text", "text": t})
                                         },
-                                        moltis_agents::model::ContentPart::Image {
+                                        leetium_agents::model::ContentPart::Image {
                                             media_type,
                                             data,
                                         } => {
@@ -323,7 +323,7 @@ impl OpenAiCodexProvider {
 }
 
 /// Parse tokens from Codex CLI auth.json content.
-fn parse_codex_cli_tokens(data: &str) -> Option<moltis_oauth::OAuthTokens> {
+fn parse_codex_cli_tokens(data: &str) -> Option<leetium_oauth::OAuthTokens> {
     let json: serde_json::Value = serde_json::from_str(data).ok()?;
     let tokens = json.get("tokens")?;
     let access_token = tokens.get("access_token")?.as_str()?.to_string();
@@ -339,7 +339,7 @@ fn parse_codex_cli_tokens(data: &str) -> Option<moltis_oauth::OAuthTokens> {
         .get("refresh_token")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
-    Some(moltis_oauth::OAuthTokens {
+    Some(leetium_oauth::OAuthTokens {
         access_token: Secret::new(access_token),
         refresh_token: refresh_token.map(Secret::new),
         id_token: id_token.map(Secret::new),
@@ -349,7 +349,7 @@ fn parse_codex_cli_tokens(data: &str) -> Option<moltis_oauth::OAuthTokens> {
 }
 
 /// Try to load tokens from the Codex CLI file at `~/.codex/auth.json`.
-fn load_codex_cli_tokens() -> Option<moltis_oauth::OAuthTokens> {
+fn load_codex_cli_tokens() -> Option<leetium_oauth::OAuthTokens> {
     let home = std::env::var("HOME").ok()?;
     let path = std::path::PathBuf::from(home)
         .join(".codex")
@@ -983,7 +983,7 @@ impl LlmProvider for OpenAiCodexProvider {
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod tests {
-    use moltis_agents::model::UserContent;
+    use leetium_agents::model::UserContent;
 
     use super::*;
 
@@ -1275,7 +1275,7 @@ mod tests {
 
     #[test]
     fn convert_messages_user_multimodal_with_image() {
-        use moltis_agents::model::ContentPart;
+        use leetium_agents::model::ContentPart;
 
         let messages = vec![ChatMessage::User {
             content: UserContent::Multimodal(vec![

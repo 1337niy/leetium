@@ -28,24 +28,24 @@ function resolvePort(envVar, usedPortSet) {
 }
 
 const usedPorts = new Set();
-const port = resolvePort("MOLTIS_E2E_PORT", usedPorts);
-const baseURL = process.env.MOLTIS_E2E_BASE_URL || `http://127.0.0.1:${port}`;
+const port = resolvePort("LEETIUM_E2E_PORT", usedPorts);
+const baseURL = process.env.LEETIUM_E2E_BASE_URL || `http://127.0.0.1:${port}`;
 
-const onboardingPort = resolvePort("MOLTIS_E2E_ONBOARDING_PORT", usedPorts);
-const onboardingBaseURL = process.env.MOLTIS_E2E_ONBOARDING_BASE_URL || `http://127.0.0.1:${onboardingPort}`;
+const onboardingPort = resolvePort("LEETIUM_E2E_ONBOARDING_PORT", usedPorts);
+const onboardingBaseURL = process.env.LEETIUM_E2E_ONBOARDING_BASE_URL || `http://127.0.0.1:${onboardingPort}`;
 
-const onboardingAuthPort = resolvePort("MOLTIS_E2E_ONBOARDING_AUTH_PORT", usedPorts);
+const onboardingAuthPort = resolvePort("LEETIUM_E2E_ONBOARDING_AUTH_PORT", usedPorts);
 const onboardingAuthBaseURL = `http://127.0.0.1:${onboardingAuthPort}`;
 
-const oauthPort = resolvePort("MOLTIS_E2E_OAUTH_PORT", usedPorts);
+const oauthPort = resolvePort("LEETIUM_E2E_OAUTH_PORT", usedPorts);
 const oauthBaseURL = `http://127.0.0.1:${oauthPort}`;
-const onboardingAnthropicPort = resolvePort("MOLTIS_E2E_ONBOARDING_ANTHROPIC_PORT", usedPorts);
+const onboardingAnthropicPort = resolvePort("LEETIUM_E2E_ONBOARDING_ANTHROPIC_PORT", usedPorts);
 const onboardingAnthropicBaseURL =
-	process.env.MOLTIS_E2E_ONBOARDING_ANTHROPIC_BASE_URL || `http://127.0.0.1:${onboardingAnthropicPort}`;
+	process.env.LEETIUM_E2E_ONBOARDING_ANTHROPIC_BASE_URL || `http://127.0.0.1:${onboardingAnthropicPort}`;
 // Reliability first: fresh local gateway instances by default avoid
-// hidden cross-run state leaks. Set MOLTIS_E2E_REUSE_SERVER=1 to trade
+// hidden cross-run state leaks. Set LEETIUM_E2E_REUSE_SERVER=1 to trade
 // determinism for faster startup in ad-hoc local runs.
-const reuseExistingServer = !process.env.CI && process.env.MOLTIS_E2E_REUSE_SERVER === "1";
+const reuseExistingServer = !process.env.CI && process.env.LEETIUM_E2E_REUSE_SERVER === "1";
 module.exports = defineConfig({
 	testDir: "./e2e/specs",
 	timeout: 45_000,
@@ -119,7 +119,7 @@ module.exports = defineConfig({
 			timeout: 300_000,
 			env: {
 				...process.env,
-				MOLTIS_E2E_PORT: port,
+				LEETIUM_E2E_PORT: port,
 			},
 		},
 		{
@@ -130,7 +130,7 @@ module.exports = defineConfig({
 			timeout: 300_000,
 			env: {
 				...process.env,
-				MOLTIS_E2E_ONBOARDING_PORT: onboardingPort,
+				LEETIUM_E2E_ONBOARDING_PORT: onboardingPort,
 			},
 		},
 		{
@@ -141,7 +141,7 @@ module.exports = defineConfig({
 			timeout: 300_000,
 			env: {
 				...process.env,
-				MOLTIS_E2E_ONBOARDING_AUTH_PORT: onboardingAuthPort,
+				LEETIUM_E2E_ONBOARDING_AUTH_PORT: onboardingAuthPort,
 			},
 		},
 		{
@@ -152,7 +152,7 @@ module.exports = defineConfig({
 			timeout: 300_000,
 			env: {
 				...process.env,
-				MOLTIS_E2E_OAUTH_PORT: oauthPort,
+				LEETIUM_E2E_OAUTH_PORT: oauthPort,
 			},
 		},
 		{
@@ -163,7 +163,7 @@ module.exports = defineConfig({
 			timeout: 300_000,
 			env: {
 				...process.env,
-				MOLTIS_E2E_ONBOARDING_ANTHROPIC_PORT: onboardingAnthropicPort,
+				LEETIUM_E2E_ONBOARDING_ANTHROPIC_PORT: onboardingAnthropicPort,
 			},
 		},
 	],

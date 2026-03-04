@@ -61,7 +61,7 @@ export default {
 		signOut: "Sign out",
 	},
 	banners: {
-		authDisabled: "Authentication is disabled. Anyone with network access can control moltis and your computer.",
+		authDisabled: "Authentication is disabled. Anyone with network access can control leetium and your computer.",
 		setupAuthentication: "Set up authentication",
 		updateAvailable: "An update is available",
 		viewRelease: "View release",

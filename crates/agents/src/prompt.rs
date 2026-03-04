@@ -1,7 +1,7 @@
 use {
     crate::tool_registry::ToolRegistry,
-    moltis_config::{AgentIdentity, DEFAULT_SOUL, UserProfile},
-    moltis_skills::types::SkillMetadata,
+    leetium_config::{AgentIdentity, DEFAULT_SOUL, UserProfile},
+    leetium_skills::types::SkillMetadata,
 };
 
 // ── Model family detection ──────────────────────────────────────────────────
@@ -68,8 +68,8 @@ pub struct PromptHostRuntimeContext {
     pub channel_chat_id: Option<String>,
     /// Best-effort channel chat type (for example `private`, `group`, `channel`).
     pub channel_chat_type: Option<String>,
-    /// Persistent Moltis workspace root (`data_dir`), e.g. `~/.moltis`
-    /// or `/home/moltis/.moltis` in containerized deploys.
+    /// Persistent Leetium workspace root (`data_dir`), e.g. `~/.leetium`
+    /// or `/home/leetium/.leetium` in containerized deploys.
     pub data_dir: Option<String>,
     pub sudo_non_interactive: Option<bool>,
     pub sudo_status: Option<String>,
@@ -536,7 +536,7 @@ fn append_runtime_section(
 
 fn append_skills_section(prompt: &mut String, include_tools: bool, skills: &[SkillMetadata]) {
     if include_tools && !skills.is_empty() {
-        prompt.push_str(&moltis_skills::prompt_gen::generate_skills_prompt(skills));
+        prompt.push_str(&leetium_skills::prompt_gen::generate_skills_prompt(skills));
     }
 }
 
@@ -1033,7 +1033,7 @@ mod tests {
         let tools = ToolRegistry::new();
         let runtime = PromptRuntimeContext {
             host: PromptHostRuntimeContext {
-                host: Some("moltis-devbox".into()),
+                host: Some("leetium-devbox".into()),
                 os: Some("macos".into()),
                 arch: Some("aarch64".into()),
                 shell: Some("zsh".into()),
@@ -1048,7 +1048,7 @@ mod tests {
                 channel_account_id: None,
                 channel_chat_id: None,
                 channel_chat_type: None,
-                data_dir: Some("/home/moltis/.moltis".into()),
+                data_dir: Some("/home/leetium/.leetium".into()),
                 sudo_non_interactive: Some(true),
                 sudo_status: Some("passwordless".into()),
                 timezone: Some("Europe/Paris".into()),
@@ -1061,10 +1061,10 @@ mod tests {
                 mode: Some("all".into()),
                 backend: Some("docker".into()),
                 scope: Some("session".into()),
-                image: Some("moltis-sandbox:abc123".into()),
+                image: Some("leetium-sandbox:abc123".into()),
                 home: Some("/home/sandbox".into()),
                 workspace_mount: Some("ro".into()),
-                workspace_path: Some("/home/moltis/.moltis".into()),
+                workspace_path: Some("/home/leetium/.leetium".into()),
                 no_network: Some(true),
                 session_override: Some(true),
             }),
@@ -1086,13 +1086,13 @@ mod tests {
         );
 
         assert!(prompt.contains("## Runtime"));
-        assert!(prompt.contains("Host: host=moltis-devbox"));
+        assert!(prompt.contains("Host: host=leetium-devbox"));
         assert!(!prompt.contains("time=2026-02-17 16:18:00 CET"));
         assert!(prompt.contains("today=2026-02-17"));
         assert!(prompt.contains("The current user datetime is 2026-02-17 16:18:00 CET."));
         assert!(prompt.contains("provider=openai"));
         assert!(prompt.contains("model=gpt-5"));
-        assert!(prompt.contains("data_dir=/home/moltis/.moltis"));
+        assert!(prompt.contains("data_dir=/home/leetium/.leetium"));
         assert!(prompt.contains("sudo_non_interactive=true"));
         assert!(prompt.contains("sudo_status=passwordless"));
         assert!(prompt.contains("timezone=Europe/Paris"));
@@ -1101,7 +1101,7 @@ mod tests {
         assert!(prompt.contains("Sandbox(exec): enabled=true"));
         assert!(prompt.contains("backend=docker"));
         assert!(prompt.contains("home=/home/sandbox"));
-        assert!(prompt.contains("workspace_path=/home/moltis/.moltis"));
+        assert!(prompt.contains("workspace_path=/home/leetium/.leetium"));
         assert!(prompt.contains("network=disabled"));
         assert!(prompt.contains("Execution routing:"));
         assert!(prompt.contains("`~` and relative paths resolve under"));
@@ -1212,7 +1212,7 @@ mod tests {
     fn test_minimal_prompt_runtime_does_not_add_exec_routing_block() {
         let runtime = PromptRuntimeContext {
             host: PromptHostRuntimeContext {
-                host: Some("moltis-devbox".into()),
+                host: Some("leetium-devbox".into()),
                 ..Default::default()
             },
             sandbox: Some(PromptSandboxRuntimeContext {
@@ -1234,7 +1234,7 @@ mod tests {
         );
 
         assert!(prompt.contains("## Runtime"));
-        assert!(prompt.contains("Host: host=moltis-devbox"));
+        assert!(prompt.contains("Host: host=leetium-devbox"));
         assert!(prompt.contains("Sandbox(exec): enabled=false"));
         assert!(!prompt.contains("Execution routing:"));
     }

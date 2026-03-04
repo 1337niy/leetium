@@ -1,11 +1,11 @@
-//! Hook system — re-exports core types from `moltis-common` and adds config.
+//! Hook system — re-exports core types from `leetium-common` and adds config.
 
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-// Re-export all core hook types so downstream code can use `moltis_plugins::hooks::*`.
-pub use moltis_common::hooks::{
+// Re-export all core hook types so downstream code can use `leetium_plugins::hooks::*`.
+pub use leetium_common::hooks::{
     HookAction, HookEvent, HookHandler, HookPayload, HookRegistry, HookStats,
 };
 
@@ -41,7 +41,7 @@ mod tests {
 
     use {
         async_trait::async_trait,
-        moltis_common::{Error as HookError, Result},
+        leetium_common::{Error as HookError, Result},
         serde_json::Value,
     };
 

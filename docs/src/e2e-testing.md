@@ -1,6 +1,6 @@
 # End-to-End Testing
 
-This project uses Playwright to run browser-level tests against a real `moltis` gateway process.
+This project uses Playwright to run browser-level tests against a real `leetium` gateway process.
 
 The goal is simple: catch web UI regressions before they ship.
 
@@ -24,11 +24,11 @@ The e2e harness lives in `crates/web/ui`:
 
 1. Creates isolated runtime directories under `target/e2e-runtime`.
 2. Seeds `IDENTITY.md` and `USER.md` so onboarding does not block tests.
-3. Exports `MOLTIS_CONFIG_DIR`, `MOLTIS_DATA_DIR`, and test port env.
+3. Exports `LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR`, and test port env.
 4. Starts the gateway with:
 
 ```bash
-cargo run --bin moltis -- --no-tls --bind 127.0.0.1 --port <PORT>
+cargo run --bin leetium -- --no-tls --bind 127.0.0.1 --port <PORT>
 ```
 
 `--no-tls` is intentional here so Playwright can probe `http://.../health` during readiness checks.

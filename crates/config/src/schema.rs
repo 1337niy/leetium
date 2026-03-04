@@ -158,9 +158,9 @@ pub struct ResolvedIdentity {
 }
 
 impl ResolvedIdentity {
-    pub fn from_config(cfg: &MoltisConfig) -> Self {
+    pub fn from_config(cfg: &LeetiumConfig) -> Self {
         Self {
-            name: cfg.identity.name.clone().unwrap_or_else(|| "moltis".into()),
+            name: cfg.identity.name.clone().unwrap_or_else(|| "leetium".into()),
             emoji: cfg.identity.emoji.clone(),
             theme: cfg.identity.theme.clone(),
             soul: None,
@@ -172,7 +172,7 @@ impl ResolvedIdentity {
 impl Default for ResolvedIdentity {
     fn default() -> Self {
         Self {
-            name: "moltis".into(),
+            name: "leetium".into(),
             emoji: None,
             theme: None,
             soul: None,
@@ -184,7 +184,7 @@ impl Default for ResolvedIdentity {
 /// Root configuration.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
-pub struct MoltisConfig {
+pub struct LeetiumConfig {
     pub server: ServerConfig,
     pub providers: ProvidersConfig,
     pub chat: ChatConfig,
@@ -208,7 +208,7 @@ pub struct MoltisConfig {
     pub cron: CronConfig,
     pub caldav: CalDavConfig,
     pub webhooks: WebhooksConfig,
-    /// Environment variables injected into the Moltis process at startup.
+    /// Environment variables injected into the Leetium process at startup.
     /// Useful for API keys in Docker where you can't easily set env vars.
     /// Process env vars take precedence (existing vars are not overwritten).
     #[serde(default)]
@@ -252,12 +252,12 @@ pub struct PresetToolPolicy {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MemoryScope {
-    /// User-global: `~/.moltis/agent-memory/<preset>/`
+    /// User-global: `~/.leetium/agent-memory/<preset>/`
     #[default]
     User,
-    /// Project-local: `.moltis/agent-memory/<preset>/`
+    /// Project-local: `.leetium/agent-memory/<preset>/`
     Project,
-    /// Untracked local: `.moltis/agent-memory-local/<preset>/`
+    /// Untracked local: `.leetium/agent-memory-local/<preset>/`
     Local,
 }
 
@@ -348,7 +348,7 @@ pub struct VoiceConfig {
     pub stt: VoiceSttConfig,
 }
 
-/// Voice TTS configuration for moltis.toml.
+/// Voice TTS configuration for leetium.toml.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct VoiceTtsConfig {
@@ -485,7 +485,7 @@ impl Default for VoiceCoquiTtsConfig {
     }
 }
 
-/// Voice STT configuration for moltis.toml.
+/// Voice STT configuration for leetium.toml.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct VoiceSttConfig {
@@ -737,7 +737,7 @@ impl Default for VoiceVoxtralLocalConfig {
 pub struct VoiceWhisperCliConfig {
     /// Path to whisper-cli binary. If not set, looks in PATH.
     pub binary_path: Option<String>,
-    /// Path to the GGML model file (e.g., "~/.moltis/models/ggml-base.en.bin").
+    /// Path to the GGML model file (e.g., "~/.leetium/models/ggml-base.en.bin").
     pub model_path: Option<String>,
     /// Language hint (ISO 639-1 code).
     pub language: Option<String>,
@@ -777,7 +777,7 @@ pub struct ServerConfig {
     pub log_buffer_size: usize,
     /// URL of the releases manifest (`releases.json`) used by the update checker.
     ///
-    /// Defaults to `https://www.moltis.org/releases.json` when unset.
+    /// Defaults to `https://www.leetnex.ru/releases.json` when unset.
     pub update_releases_url: Option<String>,
     /// Maximum number of SQLite pool connections. Lower values reduce memory
     /// usage for personal gateways. Defaults to 5.
@@ -1190,7 +1190,7 @@ impl Default for MetricsConfig {
     }
 }
 
-impl MoltisConfig {
+impl LeetiumConfig {
     /// Returns `true` when both the agent name and user name have been set
     /// (i.e. the onboarding wizard has been completed).
     pub fn is_onboarded(&self) -> bool {
@@ -1271,7 +1271,7 @@ pub struct McpOAuthOverrideEntry {
 
 /// Built-in channel type identifiers recognised by the validator.
 ///
-/// Kept in `moltis-config` (not `moltis-channels`) so the config crate stays
+/// Kept in `leetium-config` (not `leetium-channels`) so the config crate stays
 /// independent of the channels crate while still validating channel names.
 pub const KNOWN_CHANNEL_TYPES: &[&str] = &["telegram", "whatsapp", "msteams", "discord", "slack"];
 
@@ -1659,9 +1659,9 @@ pub struct BrowserConfig {
     /// If not set and `persist_profile` is true, defaults to `data_dir()/browser/profile/`.
     pub profile_dir: Option<String>,
     /// Hostname or IP used to connect to the browser container from the host.
-    /// Default: "127.0.0.1" (localhost). When running Moltis itself inside Docker,
+    /// Default: "127.0.0.1" (localhost). When running Leetium itself inside Docker,
     /// set this to "host.docker.internal" or the Docker bridge gateway IP so
-    /// Moltis can reach the sibling browser container via the host's port mapping.
+    /// Leetium can reach the sibling browser container via the host's port mapping.
     #[serde(default = "default_container_host")]
     pub container_host: String,
 }
@@ -2357,7 +2357,7 @@ mod tests {
 BRAVE_API_KEY = "test-key"
 OPENROUTER_API_KEY = "sk-or-test"
 "#;
-        let config: MoltisConfig = toml::from_str(toml).unwrap();
+        let config: LeetiumConfig = toml::from_str(toml).unwrap();
         assert_eq!(config.env.len(), 2);
         assert_eq!(config.env.get("BRAVE_API_KEY").unwrap(), "test-key");
         assert_eq!(config.env.get("OPENROUTER_API_KEY").unwrap(), "sk-or-test");
@@ -2365,13 +2365,13 @@ OPENROUTER_API_KEY = "sk-or-test"
 
     #[test]
     fn env_section_defaults_to_empty() {
-        let config: MoltisConfig = toml::from_str("").unwrap();
+        let config: LeetiumConfig = toml::from_str("").unwrap();
         assert!(config.env.is_empty());
     }
 
     #[test]
     fn agents_config_defaults_empty() {
-        let config: MoltisConfig = toml::from_str("").unwrap();
+        let config: LeetiumConfig = toml::from_str("").unwrap();
         assert!(config.agents.default_preset.is_none());
         assert!(config.agents.presets.is_empty());
     }
@@ -2398,7 +2398,7 @@ theme = "thorough"
 allow = ["web_search", "web_fetch"]
 deny = ["exec"]
 "#;
-        let config: MoltisConfig = toml::from_str(toml).unwrap();
+        let config: LeetiumConfig = toml::from_str(toml).unwrap();
         assert_eq!(config.agents.default_preset.as_deref(), Some("research"));
         let preset = config.agents.get_preset("research").unwrap();
         assert_eq!(preset.model.as_deref(), Some("openai/gpt-5.2"));
@@ -2701,7 +2701,7 @@ tool_mode = "text"
 enabled = true
 tool_mode = "native"
 "#;
-        let config: MoltisConfig = toml::from_str(toml_str).unwrap();
+        let config: LeetiumConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(
             config.providers.get("ollama").unwrap().tool_mode,
             ToolMode::Text

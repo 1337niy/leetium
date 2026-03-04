@@ -1,5 +1,5 @@
 -- Gateway tables schema
--- Owned by: moltis-gateway crate
+-- Owned by: leetium-gateway crate
 -- Contains: auth, message_log, channels
 
 -- ============================================================================

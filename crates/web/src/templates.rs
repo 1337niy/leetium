@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use {
     askama::Template,
     axum::response::{Html, IntoResponse},
-    moltis_gateway::state::GatewayState,
+    leetium_gateway::state::GatewayState,
     tracing::warn,
 };
 
@@ -51,18 +51,18 @@ pub(crate) static SPA_ROUTES: SpaRoutes = SpaRoutes {
 
 // ── GonData ──────────────────────────────────────────────────────────────────
 
-/// Server-side data injected into every page as `window.__MOLTIS__`
+/// Server-side data injected into every page as `window.__LEETIUM__`
 /// (gon pattern — see CLAUDE.md § Server-Injected Data).
 #[derive(serde::Serialize)]
 pub(crate) struct GonData {
-    pub(crate) identity: moltis_config::ResolvedIdentity,
+    pub(crate) identity: leetium_config::ResolvedIdentity,
     version: String,
     port: u16,
     counts: NavCounts,
-    crons: Vec<moltis_cron::types::CronJob>,
-    cron_status: moltis_cron::types::CronStatus,
-    heartbeat_config: moltis_config::schema::HeartbeatConfig,
-    heartbeat_runs: Vec<moltis_cron::types::CronRunRecord>,
+    crons: Vec<leetium_cron::types::CronJob>,
+    cron_status: leetium_cron::types::CronStatus,
+    heartbeat_config: leetium_config::schema::HeartbeatConfig,
+    heartbeat_runs: Vec<leetium_cron::types::CronRunRecord>,
     voice_enabled: bool,
     graphql_enabled: bool,
     git_branch: Option<String>,
@@ -70,8 +70,8 @@ pub(crate) struct GonData {
     #[serde(skip_serializing_if = "Option::is_none")]
     deploy_platform: Option<String>,
     channels_offered: Vec<String>,
-    channel_descriptors: Vec<moltis_channels::ChannelDescriptor>,
-    update: moltis_gateway::update_check::UpdateAvailability,
+    channel_descriptors: Vec<leetium_channels::ChannelDescriptor>,
+    update: leetium_gateway::update_check::UpdateAvailability,
     sandbox: SandboxGonInfo,
     routes: SpaRoutes,
     started_at: u64,
@@ -202,8 +202,8 @@ pub(crate) async fn build_nav_counts(gw: &GatewayState) -> NavCounts {
         .unwrap_or(0);
 
     let mut skills = 0usize;
-    if let Ok(path) = moltis_skills::manifest::ManifestStore::default_path() {
-        let store = moltis_skills::manifest::ManifestStore::new(path);
+    if let Ok(path) = leetium_skills::manifest::ManifestStore::default_path() {
+        let store = leetium_skills::manifest::ManifestStore::new(path);
         if let Ok(m) = store.load() {
             skills = m
                 .repos
@@ -268,11 +268,11 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
 
     let counts = build_nav_counts(gw).await;
     let (crons, cron_status) = tokio::join!(gw.services.cron.list(), gw.services.cron.status());
-    let crons: Vec<moltis_cron::types::CronJob> = crons
+    let crons: Vec<leetium_cron::types::CronJob> = crons
         .ok()
         .and_then(|v| serde_json::from_value(v).ok())
         .unwrap_or_default();
-    let cron_status: moltis_cron::types::CronStatus = cron_status
+    let cron_status: leetium_cron::types::CronStatus = cron_status
         .ok()
         .and_then(|v| serde_json::from_value(v).ok())
         .unwrap_or_default();
@@ -283,13 +283,13 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
             inner.channels_offered.clone(),
         )
     };
-    let channel_descriptors: Vec<moltis_channels::ChannelDescriptor> = channels_offered
+    let channel_descriptors: Vec<leetium_channels::ChannelDescriptor> = channels_offered
         .iter()
-        .filter_map(|s| s.parse::<moltis_channels::ChannelType>().ok())
+        .filter_map(|s| s.parse::<leetium_channels::ChannelType>().ok())
         .map(|ct| ct.descriptor())
         .collect();
 
-    let heartbeat_runs: Vec<moltis_cron::types::CronRunRecord> = gw
+    let heartbeat_runs: Vec<leetium_cron::types::CronRunRecord> = gw
         .services
         .cron
         .runs(serde_json::json!({ "id": "__heartbeat__", "limit": 10 }))
@@ -311,7 +311,7 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
         SandboxGonInfo {
             backend: "none".to_owned(),
             os: std::env::consts::OS,
-            default_image: moltis_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_owned(),
+            default_image: leetium_tools::sandbox::DEFAULT_SANDBOX_IMAGE.to_owned(),
             image_building: false,
         }
     };
@@ -352,7 +352,7 @@ pub(crate) async fn build_gon_data(gw: &GatewayState) -> GonData {
         sandbox,
         routes: SPA_ROUTES.clone(),
         started_at: *PROCESS_STARTED_AT_MS,
-        openclaw_detected: moltis_gateway::server::openclaw_detected_for_ui(),
+        openclaw_detected: leetium_gateway::server::openclaw_detected_for_ui(),
         agents,
         #[cfg(feature = "vault")]
         vault_status: {
@@ -379,7 +379,7 @@ pub(crate) static PROCESS_STARTED_AT_MS: std::sync::LazyLock<u64> =
             .as_millis() as u64
     });
 
-pub(crate) const SHARE_IMAGE_URL: &str = "https://www.moltis.org/og-social.jpg?v=4";
+pub(crate) const SHARE_IMAGE_URL: &str = "https://www.leetnex.ru/og-social.jpg?v=4";
 
 /// Default Shiki CDN URL when `server.shiki_cdn_url` is unset.
 ///
@@ -458,7 +458,7 @@ pub(crate) fn script_safe_json<T: serde::Serialize>(value: &T) -> String {
         .replace('\u{2029}', "\\u2029")
 }
 
-pub(crate) fn build_share_meta(identity: &moltis_config::ResolvedIdentity) -> ShareMeta {
+pub(crate) fn build_share_meta(identity: &leetium_config::ResolvedIdentity) -> ShareMeta {
     let agent_name = identity_name(identity);
     let user_name = identity
         .user_name
@@ -488,10 +488,10 @@ pub(crate) fn build_share_meta(identity: &moltis_config::ResolvedIdentity) -> Sh
     }
 }
 
-pub(crate) fn identity_name(identity: &moltis_config::ResolvedIdentity) -> &str {
+pub(crate) fn identity_name(identity: &leetium_config::ResolvedIdentity) -> &str {
     let name = identity.name.trim();
     if name.is_empty() {
-        "moltis"
+        "leetium"
     } else {
         name
     }

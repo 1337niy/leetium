@@ -1,6 +1,6 @@
 //! Import MCP server configuration from OpenClaw.
 //!
-//! Merges OpenClaw's `mcp-servers.json` into Moltis's MCP registry,
+//! Merges OpenClaw's `mcp-servers.json` into Leetium's MCP registry,
 //! skipping servers with duplicate names.
 
 use std::{collections::HashMap, path::Path};
@@ -13,9 +13,9 @@ use crate::{
     types::OpenClawMcpServer,
 };
 
-/// Import MCP servers from OpenClaw into the Moltis MCP registry.
+/// Import MCP servers from OpenClaw into the Leetium MCP registry.
 ///
-/// `dest_mcp_path` is the path to Moltis's `mcp-servers.json`.
+/// `dest_mcp_path` is the path to Leetium's `mcp-servers.json`.
 pub fn import_mcp_servers(detection: &OpenClawDetection, dest_mcp_path: &Path) -> CategoryReport {
     let src_path = detection.home_dir.join("mcp-servers.json");
     if !src_path.is_file() {
@@ -36,7 +36,7 @@ pub fn import_mcp_servers(detection: &OpenClawDetection, dest_mcp_path: &Path) -
         return CategoryReport::skipped(ImportCategory::McpServers);
     }
 
-    // Load existing Moltis MCP servers
+    // Load existing Leetium MCP servers
     let mut existing = if dest_mcp_path.is_file() {
         load_mcp_servers(dest_mcp_path).unwrap_or_default()
     } else {
@@ -133,7 +133,7 @@ mod tests {
     fn import_new_mcp_servers() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest = tmp.path().join("moltis").join("mcp-servers.json");
+        let dest = tmp.path().join("leetium").join("mcp-servers.json");
 
         std::fs::write(
             home.join("mcp-servers.json"),
@@ -157,11 +157,11 @@ mod tests {
     fn import_merges_with_existing() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest_dir = tmp.path().join("moltis");
+        let dest_dir = tmp.path().join("leetium");
         std::fs::create_dir_all(&dest_dir).unwrap();
         let dest = dest_dir.join("mcp-servers.json");
 
-        // Existing Moltis servers
+        // Existing Leetium servers
         std::fs::write(
             &dest,
             r#"{"existing-server":{"command":"existing","args":[],"env":{},"enabled":true}}"#,
@@ -190,7 +190,7 @@ mod tests {
     fn import_skips_duplicates() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path();
-        let dest_dir = tmp.path().join("moltis");
+        let dest_dir = tmp.path().join("leetium");
         std::fs::create_dir_all(&dest_dir).unwrap();
         let dest = dest_dir.join("mcp-servers.json");
 

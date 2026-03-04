@@ -1,33 +1,33 @@
-# Moltis
+# Leetium
 
-> Canonical machine-readable instructions for agents integrating with moltis.org.
+> Canonical machine-readable instructions for agents integrating with leetnex.ru.
 
 ## Install Discovery
 
-- Root install manifest: `https://moltis.org/.well-known/moltis-install.json`
-- Stable channel pointer: `https://moltis.org/.well-known/moltis-install/channels/stable.json`
-- Per-release manifest: `https://moltis.org/.well-known/moltis-install/releases/{version}.json`
+- Root install manifest: `https://leetnex.ru/.well-known/leetium-install.json`
+- Stable channel pointer: `https://leetnex.ru/.well-known/leetium-install/channels/stable.json`
+- Per-release manifest: `https://leetnex.ru/.well-known/leetium-install/releases/{version}.json`
 
 ## Install Command
 
-- Script: `curl -fsSL https://www.moltis.org/install.sh | sh`
+- Script: `curl -fsSL https://www.leetnex.ru/install.sh | sh`
 
 ## OpenClaw Import
 
-Moltis can automatically detect and import data from an existing OpenClaw installation.
+Leetium can automatically detect and import data from an existing OpenClaw installation.
 The import is strictly read-only — OpenClaw files are never modified, moved, or deleted.
-Users can keep using OpenClaw alongside Moltis and re-import at any time.
+Users can keep using OpenClaw alongside Leetium and re-import at any time.
 
 After install, if OpenClaw data is present:
 
-- Detect: `moltis import detect --json`
-- Import all: `moltis import all --json`
-- Import selected: `moltis import select -c providers,skills,memory --json`
-- Dry run: `moltis import all --dry-run --json`
+- Detect: `leetium import detect --json`
+- Import all: `leetium import all --json`
+- Import selected: `leetium import select -c providers,skills,memory --json`
+- Dry run: `leetium import all --dry-run --json`
 
 ### What gets imported
 
-- **Identity**: agent name, theme, timezone → `moltis.toml`
+- **Identity**: agent name, theme, timezone → `leetium.toml`
 - **Providers**: API keys from auth-profiles → `provider_keys.json` (maps `google` → `gemini`)
 - **Skills**: `skills/` directories with `SKILL.md` (skips duplicates)
 - **Memory**: `MEMORY.md` + all `memory/*.md` files (daily logs, project notes)
@@ -39,7 +39,7 @@ After install, if OpenClaw data is present:
 ### Multi-agent
 
 All OpenClaw agents are imported. Default agent maps to `main`; non-default agents get
-their own persona and per-agent workspace files under `~/.moltis/agents/<id>/`.
+their own persona and per-agent workspace files under `~/.leetium/agents/<id>/`.
 
 ### Idempotency
 
@@ -48,13 +48,13 @@ skills/MCP skip duplicates, workspace files skip user-customized content.
 
 ### Documentation
 
-Full details: <https://docs.moltis.org/openclaw-import.html>
+Full details: <https://docs.leetnex.ru/openclaw-import.html>
 
 ## Start and Handoff
 
-- Start gateway: `moltis gateway --bind 0.0.0.0 --port 13131`
+- Start gateway: `leetium gateway --bind 0.0.0.0 --port 13131`
 - Healthcheck: `http://127.0.0.1:13131/api/gon`
-- User handoff text: `Moltis is ready. Please visit http://<host>:13131 to complete setup.`
+- User handoff text: `Leetium is ready. Please visit http://<host>:13131 to complete setup.`
 
 ## Release Maintenance (for maintainers)
 
@@ -68,15 +68,15 @@ node scripts/generate-install-release-manifest.mjs \
 
 This writes:
 
-- `/.well-known/moltis-install/releases/<version>.json`
-- `/.well-known/moltis-install/channels/stable.json`
+- `/.well-known/leetium-install/releases/<version>.json`
+- `/.well-known/leetium-install/channels/stable.json`
 
 ## Discovery
 
-- Agent card: `https://moltis.org/.well-known/agent-card.json`
-- API catalog: `https://moltis.org/.well-known/api-catalog`
-- Docs: `https://docs.moltis.org`
-- Source: `https://github.com/moltis-org/moltis`
+- Agent card: `https://leetnex.ru/.well-known/agent-card.json`
+- API catalog: `https://leetnex.ru/.well-known/api-catalog`
+- Docs: `https://docs.leetnex.ru`
+- Source: `https://github.com/1337leetium/leetium`
 
 ## Safety Expectations for Agents
 

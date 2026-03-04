@@ -1,4 +1,4 @@
-name: Moltis
+name: Leetium
 options:
   minimumXcodeGenVersion: 2.42.0
   deploymentTarget:
@@ -26,7 +26,7 @@ packages:
     from: 2.0.6
 
 targets:
-  Moltis:
+  Leetium:
     type: application
     platform: iOS
     sources:
@@ -34,7 +34,7 @@ targets:
       - path: Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.moltis.ios
+        PRODUCT_BUNDLE_IDENTIFIER: org.leetium.ios
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: Info.plist
         SWIFT_EMIT_LOC_STRINGS: NO
@@ -44,9 +44,9 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-        CODE_SIGN_ENTITLEMENTS: Moltis.entitlements
+        CODE_SIGN_ENTITLEMENTS: Leetium.entitlements
     dependencies:
-      - target: MoltisWidgetExtension
+      - target: LeetiumWidgetExtension
         embed: true
       - package: Apollo
         product: Apollo
@@ -57,17 +57,17 @@ targets:
     scheme:
       testTargets: []
 
-  MoltisWidgetExtension:
+  LeetiumWidgetExtension:
     type: app-extension
     platform: iOS
     sources:
       - path: Widget
-      - path: Sources/LiveActivity/MoltisActivityAttributes.swift
+      - path: Sources/LiveActivity/LeetiumActivityAttributes.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.moltis.ios.widget
+        PRODUCT_BUNDLE_IDENTIFIER: org.leetium.ios.widget
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: Widget/Info.plist
         SWIFT_EMIT_LOC_STRINGS: NO
-        CODE_SIGN_ENTITLEMENTS: Widget/MoltisWidgetExtension.entitlements
+        CODE_SIGN_ENTITLEMENTS: Widget/LeetiumWidgetExtension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"

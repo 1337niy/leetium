@@ -12,7 +12,7 @@ final class ChatStore: ObservableObject {
     @Published var peekResult: PeekResult?
 
     private weak var connectionStore: ConnectionStore?
-    private let logger = Logger(subsystem: "org.moltis.ios", category: "chat")
+    private let logger = Logger(subsystem: "org.leetium.ios", category: "chat")
     private let liveActivityManager = LiveActivityManager.shared
     private var currentRunId: String?
     private var streamingMessageId: UUID?
@@ -36,7 +36,7 @@ final class ChatStore: ObservableObject {
         messages.append(userMessage)
 
         // Start Live Activity
-        let agentName = connectionStore?.agentName ?? "Moltis"
+        let agentName = connectionStore?.agentName ?? "Leetium"
         liveActivityManager.startActivity(agentName: agentName, userMessage: text)
 
         // Send via WebSocket

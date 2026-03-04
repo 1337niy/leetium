@@ -35,7 +35,7 @@ struct AboutView: View {
             Section {
                 Link(
                     "Documentation",
-                    destination: URL(string: "https://docs.moltis.org")!
+                    destination: URL(string: "https://docs.leetnex.ru")!
                 )
                 Link(
                     "Source Code",

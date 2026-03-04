@@ -8,8 +8,8 @@ use std::{
 use tracing::warn;
 
 use {
-    moltis_config::VoiceSttProvider,
-    moltis_protocol::{ErrorShape, error_codes},
+    leetium_config::VoiceSttProvider,
+    leetium_protocol::{ErrorShape, error_codes},
 };
 
 use crate::broadcast::{BroadcastOpts, broadcast};
@@ -121,9 +121,9 @@ async fn resolve_requested_agent_id(
 }
 
 fn read_identity_payload_for_agent(agent_id: &str) -> serde_json::Value {
-    let config = moltis_config::discover_and_load();
+    let config = leetium_config::discover_and_load();
     let mut identity = config.identity.clone();
-    if let Some(file_identity) = moltis_config::load_identity_for_agent(agent_id) {
+    if let Some(file_identity) = leetium_config::load_identity_for_agent(agent_id) {
         if file_identity.name.is_some() {
             identity.name = file_identity.name;
         }
@@ -135,7 +135,7 @@ fn read_identity_payload_for_agent(agent_id: &str) -> serde_json::Value {
         }
     }
     let mut user = config.user;
-    if let Some(file_user) = moltis_config::load_user() {
+    if let Some(file_user) = leetium_config::load_user() {
         if file_user.name.is_some() {
             user.name = file_user.name;
         }
@@ -146,21 +146,21 @@ fn read_identity_payload_for_agent(agent_id: &str) -> serde_json::Value {
     let resolved_name = identity
         .name
         .clone()
-        .unwrap_or_else(|| "moltis".to_string());
+        .unwrap_or_else(|| "leetium".to_string());
     let identity_path = if agent_id == "main" {
-        let main_path = moltis_config::agent_workspace_dir("main").join("IDENTITY.md");
+        let main_path = leetium_config::agent_workspace_dir("main").join("IDENTITY.md");
         if main_path.exists() {
             main_path
         } else {
-            moltis_config::identity_path()
+            leetium_config::identity_path()
         }
     } else {
-        moltis_config::agent_workspace_dir(agent_id).join("IDENTITY.md")
+        leetium_config::agent_workspace_dir(agent_id).join("IDENTITY.md")
     };
     let identity_text = std::fs::read_to_string(identity_path)
         .ok()
-        .and_then(|content| moltis_config::extract_yaml_frontmatter(&content).map(str::to_string));
-    let soul = moltis_config::load_soul_for_agent(agent_id);
+        .and_then(|content| leetium_config::extract_yaml_frontmatter(&content).map(str::to_string));
+    let soul = leetium_config::load_soul_for_agent(agent_id);
     let identity_name = identity.name.clone();
     let identity_emoji = identity.emoji.clone();
     let identity_theme = identity.theme.clone();
@@ -184,11 +184,11 @@ fn read_identity_payload_for_agent(agent_id: &str) -> serde_json::Value {
 
 fn write_soul_for_agent(agent_id: &str, soul: Option<String>) -> Result<(), ErrorShape> {
     if agent_id == "main" {
-        moltis_config::save_soul(soul.as_deref())
+        leetium_config::save_soul(soul.as_deref())
             .map_err(|e| ErrorShape::new(error_codes::UNAVAILABLE, e.to_string()))?;
         return Ok(());
     }
-    let dir = moltis_config::agent_workspace_dir(agent_id);
+    let dir = leetium_config::agent_workspace_dir(agent_id);
     std::fs::create_dir_all(&dir)
         .map_err(|e| ErrorShape::new(error_codes::UNAVAILABLE, e.to_string()))?;
     let soul_path = dir.join("SOUL.md");
@@ -235,8 +235,8 @@ fn normalize_relative_agent_path(path: &str) -> Result<PathBuf, ErrorShape> {
 }
 
 fn read_agent_file(agent_id: &str, relative_path: &Path) -> Result<String, ErrorShape> {
-    let primary = moltis_config::agent_workspace_dir(agent_id).join(relative_path);
-    let fallback = (agent_id == "main").then(|| moltis_config::data_dir().join(relative_path));
+    let primary = leetium_config::agent_workspace_dir(agent_id).join(relative_path);
+    let fallback = (agent_id == "main").then(|| leetium_config::data_dir().join(relative_path));
 
     let target = if primary.exists() {
         Some(primary)
@@ -329,7 +329,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         .await
                         .map_err(ErrorShape::from);
                 }
-                let identity = moltis_config::schema::AgentIdentity {
+                let identity = leetium_config::schema::AgentIdentity {
                     name: ctx
                         .params
                         .get("name")
@@ -346,7 +346,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         .and_then(|v| v.as_str())
                         .map(String::from),
                 };
-                moltis_config::save_identity_for_agent(&agent_id, &identity)
+                leetium_config::save_identity_for_agent(&agent_id, &identity)
                     .map_err(|e| ErrorShape::new(error_codes::UNAVAILABLE, e.to_string()))?;
                 Ok(read_identity_payload_for_agent(&agent_id))
             })
@@ -439,12 +439,12 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         obj.insert(
                             "identity_fields".to_string(),
                             serde_json::json!(
-                                moltis_config::load_identity_for_agent(&id).unwrap_or_default()
+                                leetium_config::load_identity_for_agent(&id).unwrap_or_default()
                             ),
                         );
                         obj.insert(
                             "soul".to_string(),
-                            serde_json::json!(moltis_config::load_soul_for_agent(&id)),
+                            serde_json::json!(leetium_config::load_soul_for_agent(&id)),
                         );
                         obj.insert(
                             "default_id".to_string(),
@@ -649,7 +649,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             .await
                             .map_err(ErrorShape::from);
                     }
-                    let identity = moltis_config::schema::AgentIdentity {
+                    let identity = leetium_config::schema::AgentIdentity {
                         name: ctx
                             .params
                             .get("name")
@@ -666,7 +666,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             .and_then(|v| v.as_str())
                             .map(String::from),
                     };
-                    moltis_config::save_identity_for_agent(&agent_id, &identity)
+                    leetium_config::save_identity_for_agent(&agent_id, &identity)
                         .map_err(|e| ErrorShape::new(error_codes::UNAVAILABLE, e.to_string()))?;
                     // Sync identity into preset.
                     if let Some(ref agents_config) = ctx.state.services.agents_config {
@@ -709,7 +709,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                 Box::pin(async move {
                     let agent_id = resolve_requested_agent_id(&ctx, &ctx.params).await?;
                     let mut files: Vec<serde_json::Value> = Vec::new();
-                    let root = moltis_config::agent_workspace_dir(&agent_id);
+                    let root = leetium_config::agent_workspace_dir(&agent_id);
                     let root_exists = root.exists();
                     if root_exists {
                         list_agent_workspace_files_recursively(&root, &root, &mut files);
@@ -723,7 +723,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             "TOOLS.md",
                         ] {
                             let agent_path = root.join(file_name);
-                            let root_path = moltis_config::data_dir().join(file_name);
+                            let root_path = leetium_config::data_dir().join(file_name);
                             if !agent_path.exists() && root_path.exists() {
                                 files.push(serde_json::json!({
                                     "path": file_name,
@@ -800,7 +800,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         .to_string();
 
                     let full_path =
-                        moltis_config::agent_workspace_dir(&agent_id).join(&relative_path);
+                        leetium_config::agent_workspace_dir(&agent_id).join(&relative_path);
                     if let Some(parent) = full_path.parent() {
                         std::fs::create_dir_all(parent).map_err(|e| {
                             ErrorShape::new(error_codes::UNAVAILABLE, e.to_string())
@@ -827,7 +827,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             "missing 'id' or 'agent_id' parameter",
                         )
                     })?;
-                    let config = moltis_config::discover_and_load();
+                    let config = leetium_config::discover_and_load();
                     let toml_str = match config.agents.presets.get(&id) {
                         Some(preset) => toml::to_string_pretty(preset).unwrap_or_default(),
                         None => String::new(),
@@ -858,8 +858,8 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         .to_string();
 
                     // Parse the TOML as a partial AgentPreset to validate it
-                    let partial: moltis_config::AgentPreset = if toml_str.trim().is_empty() {
-                        moltis_config::AgentPreset::default()
+                    let partial: leetium_config::AgentPreset = if toml_str.trim().is_empty() {
+                        leetium_config::AgentPreset::default()
                     } else {
                         toml::from_str(&toml_str).map_err(|e| {
                             ErrorShape::new(
@@ -869,8 +869,8 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         })?
                     };
 
-                    // Write to moltis.toml using update_config
-                    moltis_config::update_config(|cfg| {
+                    // Write to leetium.toml using update_config
+                    leetium_config::update_config(|cfg| {
                         if toml_str.trim().is_empty() {
                             cfg.agents.presets.remove(&id);
                         } else {
@@ -898,7 +898,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
 
                     // Refresh in-memory agents_config if available
                     if let Some(ref agents_config) = ctx.state.services.agents_config {
-                        let fresh = moltis_config::discover_and_load();
+                        let fresh = leetium_config::discover_and_load();
                         let mut guard = agents_config.write().await;
                         *guard = fresh.agents;
                     }
@@ -911,7 +911,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
             "agents.presets_list",
             Box::new(|ctx| {
                 Box::pin(async move {
-                    let config = moltis_config::discover_and_load();
+                    let config = leetium_config::discover_and_load();
                     let persona_ids: std::collections::HashSet<String> =
                         if let Some(ref store) = ctx.state.services.agent_persona_store {
                             store
@@ -1589,16 +1589,16 @@ pub(super) fn register(reg: &mut MethodRegistry) {
         Box::new(|ctx| {
             Box::pin(async move {
                 let config = ctx.state.inner.read().await.heartbeat_config.clone();
-                let heartbeat_path = moltis_config::heartbeat_path();
+                let heartbeat_path = leetium_config::heartbeat_path();
                 let heartbeat_file_exists = heartbeat_path.exists();
-                let heartbeat_md = moltis_config::load_heartbeat_md();
-                let (_, prompt_source) = moltis_cron::heartbeat::resolve_heartbeat_prompt(
+                let heartbeat_md = leetium_config::load_heartbeat_md();
+                let (_, prompt_source) = leetium_cron::heartbeat::resolve_heartbeat_prompt(
                     config.prompt.as_deref(),
                     heartbeat_md.as_deref(),
                 );
                 // No meaningful prompt → heartbeat won't execute.
                 let has_prompt =
-                    prompt_source != moltis_cron::heartbeat::HeartbeatPromptSource::Default;
+                    prompt_source != leetium_cron::heartbeat::HeartbeatPromptSource::Default;
                 // Find the heartbeat job to get its state.
                 let jobs_val = ctx
                     .state
@@ -1607,7 +1607,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     .list()
                     .await
                     .map_err(ErrorShape::from)?;
-                let jobs: Vec<moltis_cron::types::CronJob> =
+                let jobs: Vec<leetium_cron::types::CronJob> =
                     serde_json::from_value(jobs_val).unwrap_or_default();
                 let hb_job = jobs.iter().find(|j| j.name == "__heartbeat__");
                 Ok(serde_json::json!({
@@ -1624,7 +1624,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
             "heartbeat.update",
             Box::new(|ctx| {
                 Box::pin(async move {
-                    let patch: moltis_config::schema::HeartbeatConfig =
+                    let patch: leetium_config::schema::HeartbeatConfig =
                         serde_json::from_value(ctx.params.clone()).map_err(|e| {
                             ErrorShape::new(
                                 error_codes::INVALID_REQUEST,
@@ -1633,8 +1633,8 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         })?;
                     ctx.state.inner.write().await.heartbeat_config = patch.clone();
 
-                    // Persist to moltis.toml so the config survives restarts.
-                    if let Err(e) = moltis_config::update_config(|cfg| {
+                    // Persist to leetium.toml so the config survives restarts.
+                    if let Err(e) = leetium_config::update_config(|cfg| {
                         cfg.heartbeat = patch.clone();
                     }) {
                         tracing::warn!(error = %e, "failed to persist heartbeat config");
@@ -1648,26 +1648,26 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         .list()
                         .await
                         .map_err(ErrorShape::from)?;
-                    let jobs: Vec<moltis_cron::types::CronJob> =
+                    let jobs: Vec<leetium_cron::types::CronJob> =
                         serde_json::from_value(jobs_val).unwrap_or_default();
                     if let Some(hb_job) = jobs.iter().find(|j| j.name == "__heartbeat__") {
-                        let interval_ms = moltis_cron::heartbeat::parse_interval_ms(&patch.every)
-                            .unwrap_or(moltis_cron::heartbeat::DEFAULT_INTERVAL_MS);
-                        let heartbeat_md = moltis_config::load_heartbeat_md();
+                        let interval_ms = leetium_cron::heartbeat::parse_interval_ms(&patch.every)
+                            .unwrap_or(leetium_cron::heartbeat::DEFAULT_INTERVAL_MS);
+                        let heartbeat_md = leetium_config::load_heartbeat_md();
                         let (prompt, prompt_source) =
-                            moltis_cron::heartbeat::resolve_heartbeat_prompt(
+                            leetium_cron::heartbeat::resolve_heartbeat_prompt(
                                 patch.prompt.as_deref(),
                                 heartbeat_md.as_deref(),
                             );
                         if prompt_source
-                            == moltis_cron::heartbeat::HeartbeatPromptSource::HeartbeatMd
+                            == leetium_cron::heartbeat::HeartbeatPromptSource::HeartbeatMd
                         {
                             tracing::info!("loaded heartbeat prompt from HEARTBEAT.md");
                         }
                         if patch.prompt.as_deref().is_some_and(|p| !p.trim().is_empty())
                             && heartbeat_md.as_deref().is_some_and(|p| !p.trim().is_empty())
                             && prompt_source
-                                == moltis_cron::heartbeat::HeartbeatPromptSource::Config
+                                == leetium_cron::heartbeat::HeartbeatPromptSource::Config
                         {
                             tracing::warn!(
                                 "heartbeat prompt source conflict: config heartbeat.prompt overrides HEARTBEAT.md"
@@ -1676,14 +1676,14 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         // Disable the job when there is no meaningful prompt,
                         // even if the user toggled enabled=true.
                         let has_prompt = prompt_source
-                            != moltis_cron::heartbeat::HeartbeatPromptSource::Default;
+                            != leetium_cron::heartbeat::HeartbeatPromptSource::Default;
                         let effective_enabled = patch.enabled && has_prompt;
-                        let job_patch = moltis_cron::types::CronJobPatch {
-                            schedule: Some(moltis_cron::types::CronSchedule::Every {
+                        let job_patch = leetium_cron::types::CronJobPatch {
+                            schedule: Some(leetium_cron::types::CronSchedule::Every {
                                 every_ms: interval_ms,
                                 anchor_ms: None,
                             }),
-                            payload: Some(moltis_cron::types::CronPayload::AgentTurn {
+                            payload: Some(leetium_cron::types::CronPayload::AgentTurn {
                                 message: prompt,
                                 model: patch.model.clone(),
                                 timeout_secs: None,
@@ -1692,7 +1692,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                 to: patch.to.clone(),
                             }),
                             enabled: Some(effective_enabled),
-                            sandbox: Some(moltis_cron::types::CronSandboxConfig {
+                            sandbox: Some(leetium_cron::types::CronSandboxConfig {
                                 enabled: patch.sandbox_enabled,
                                 image: patch.sandbox_image.clone(),
                             }),
@@ -1723,7 +1723,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     .list()
                     .await
                     .map_err(ErrorShape::from)?;
-                let jobs: Vec<moltis_cron::types::CronJob> =
+                let jobs: Vec<leetium_cron::types::CronJob> =
                     serde_json::from_value(jobs_val).unwrap_or_default();
                 let hb_job = jobs
                     .iter()
@@ -1755,7 +1755,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     .list()
                     .await
                     .map_err(ErrorShape::from)?;
-                let jobs: Vec<moltis_cron::types::CronJob> =
+                let jobs: Vec<leetium_cron::types::CronJob> =
                     serde_json::from_value(jobs_val).unwrap_or_default();
                 let hb_job = jobs
                     .iter()
@@ -2082,11 +2082,11 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     {
                         let project_dir = Path::new(dir);
                         let create_result =
-                            match moltis_projects::WorktreeManager::resolve_base_branch(project_dir)
+                            match leetium_projects::WorktreeManager::resolve_base_branch(project_dir)
                                 .await
                             {
                                 Ok(base) => {
-                                    moltis_projects::WorktreeManager::create_from_base(
+                                    leetium_projects::WorktreeManager::create_from_base(
                                         project_dir,
                                         key,
                                         &base,
@@ -2094,7 +2094,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                     .await
                                 },
                                 Err(_) => {
-                                    moltis_projects::WorktreeManager::create(project_dir, key).await
+                                    leetium_projects::WorktreeManager::create(project_dir, key).await
                                 },
                             };
                         match create_result {
@@ -2103,7 +2103,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                     .get("branch_prefix")
                                     .and_then(|v| v.as_str())
                                     .filter(|s| !s.is_empty())
-                                    .unwrap_or("moltis");
+                                    .unwrap_or("leetium");
                                 let branch = format!("{prefix}/{key}");
                                 let _ = ctx
                                     .state
@@ -2115,7 +2115,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                     }))
                                     .await;
 
-                                if let Err(e) = moltis_projects::worktree::copy_project_config(
+                                if let Err(e) = leetium_projects::worktree::copy_project_config(
                                     project_dir,
                                     &wt_dir,
                                 ) {
@@ -2126,7 +2126,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                     .get("setup_command")
                                     .and_then(|v| v.as_str())
                                     .filter(|s| !s.is_empty())
-                                    && let Err(e) = moltis_projects::WorktreeManager::run_setup(
+                                    && let Err(e) = leetium_projects::WorktreeManager::run_setup(
                                         &wt_dir,
                                         cmd,
                                         project_dir,
@@ -2263,7 +2263,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             .and_then(|v| v.as_str())
                             .unwrap_or("settings");
 
-                        let identity = moltis_config::resolve_identity();
+                        let identity = leetium_config::resolve_identity();
                         let user = identity
                             .user_name
                             .unwrap_or_else(|| "friend".into());
@@ -2282,8 +2282,8 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                                      Reply with ONLY the phrase text — no quotes, no markdown. Under 200 chars."
                                 );
                                 let messages = vec![
-                                    moltis_agents::model::ChatMessage::system(system_prompt),
-                                    moltis_agents::model::ChatMessage::user(format!(
+                                    leetium_agents::model::ChatMessage::system(system_prompt),
+                                    leetium_agents::model::ChatMessage::user(format!(
                                         "Generate a {context} TTS test phrase."
                                     )),
                                 ];
@@ -3578,7 +3578,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                 "voice.config.get",
                 Box::new(|_ctx| {
                     Box::pin(async move {
-                        let config = moltis_config::discover_and_load();
+                        let config = leetium_config::discover_and_load();
                         Ok(serde_json::json!({
                             "tts": {
                                 "enabled": config.voice.tts.enabled,
@@ -3606,7 +3606,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
             "voice.providers.all",
             Box::new(|_ctx| {
                 Box::pin(async move {
-                    let config = moltis_config::discover_and_load();
+                    let config = leetium_config::discover_and_load();
                     let providers = super::voice::detect_voice_providers(&config).await;
                     Ok(serde_json::json!(providers))
                 })
@@ -3616,7 +3616,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
             "voice.elevenlabs.catalog",
             Box::new(|_ctx| {
                 Box::pin(async move {
-                    let config = moltis_config::discover_and_load();
+                    let config = leetium_config::discover_and_load();
                     Ok(super::voice::fetch_elevenlabs_catalog(&config).await)
                 })
             }),
@@ -3839,7 +3839,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             ErrorShape::new(error_codes::INVALID_REQUEST, "missing api_key")
                         })?;
 
-                    moltis_config::update_config(|cfg| {
+                    leetium_config::update_config(|cfg| {
                         match provider {
                             // TTS providers
                             "elevenlabs" => {
@@ -3954,7 +3954,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             ErrorShape::new(error_codes::INVALID_REQUEST, "missing provider")
                         })?;
 
-                    moltis_config::update_config(|cfg| {
+                    leetium_config::update_config(|cfg| {
                         super::voice::apply_voice_provider_settings(cfg, provider, &ctx.params);
                     })
                     .map_err(|e| {
@@ -3988,7 +3988,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                             ErrorShape::new(error_codes::INVALID_REQUEST, "missing provider")
                         })?;
 
-                    moltis_config::update_config(|cfg| match provider {
+                    leetium_config::update_config(|cfg| match provider {
                         // TTS providers
                         "elevenlabs" => {
                             cfg.voice.tts.elevenlabs.api_key = None;
@@ -4096,7 +4096,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     ctx.state.set_graphql_enabled(enabled);
 
                     let mut persisted = true;
-                    if let Err(error) = moltis_config::update_config(|cfg| {
+                    if let Err(error) = leetium_config::update_config(|cfg| {
                         cfg.graphql.enabled = enabled;
                     }) {
                         persisted = false;
@@ -4150,7 +4150,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
         Box::new(|_ctx| {
             Box::pin(async move {
                 // Read memory config from the config file
-                let config = moltis_config::discover_and_load();
+                let config = leetium_config::discover_and_load();
                 let memory = &config.memory;
                 Ok(serde_json::json!({
                     "backend": memory.backend.as_deref().unwrap_or("builtin"),
@@ -4190,12 +4190,12 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                     .and_then(|v| v.as_bool())
                     .unwrap_or(false);
 
-                // Persist to moltis.toml so the config survives restarts.
+                // Persist to leetium.toml so the config survives restarts.
                 let backend_str = backend.to_string();
                 let citations_str = citations.to_string();
                 let mut effective_disable_rag =
-                    moltis_config::discover_and_load().memory.disable_rag;
-                if let Err(e) = moltis_config::update_config(|cfg| {
+                    leetium_config::discover_and_load().memory.disable_rag;
+                if let Err(e) = leetium_config::update_config(|cfg| {
                     cfg.memory.backend = Some(backend_str.clone());
                     cfg.memory.citations = Some(citations_str.clone());
                     cfg.memory.llm_reranking = llm_reranking;
@@ -4226,9 +4226,9 @@ pub(super) fn register(reg: &mut MethodRegistry) {
             Box::pin(async move {
                 #[cfg(feature = "qmd")]
                 {
-                    use moltis_qmd::{QmdManager, QmdManagerConfig};
+                    use leetium_qmd::{QmdManager, QmdManagerConfig};
 
-                    let config = moltis_config::discover_and_load();
+                    let config = leetium_config::discover_and_load();
                     let qmd_config = QmdManagerConfig {
                         command: config
                             .memory
@@ -4239,7 +4239,7 @@ pub(super) fn register(reg: &mut MethodRegistry) {
                         collections: HashMap::new(),
                         max_results: config.memory.qmd.max_results.unwrap_or(10),
                         timeout_ms: config.memory.qmd.timeout_ms.unwrap_or(30_000),
-                        work_dir: moltis_config::data_dir(),
+                        work_dir: leetium_config::data_dir(),
                     };
 
                     let manager = QmdManager::new(qmd_config);
@@ -4537,7 +4537,7 @@ async fn reload_hooks(state: &Arc<crate::state::GatewayState>) {
 /// Persist the disabled hooks set to `data_dir/disabled_hooks.json`.
 async fn persist_disabled_hooks(state: &Arc<crate::state::GatewayState>) {
     let disabled = state.inner.read().await.disabled_hooks.clone();
-    let path = moltis_config::data_dir().join("disabled_hooks.json");
+    let path = leetium_config::data_dir().join("disabled_hooks.json");
     let json = serde_json::to_string_pretty(&disabled).unwrap_or_default();
     if let Err(e) = std::fs::write(&path, json) {
         warn!("failed to persist disabled hooks: {e}");

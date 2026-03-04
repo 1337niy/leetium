@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://docs.moltis.org
-    about: Read the official Moltis documentation
+    url: https://docs.leetnex.ru
+    about: Read the official Leetium documentation
   - name: Discord Community
     url: https://discord.gg/XnmrepsXp5
-    about: Get help, ask questions, and chat with other Moltis users
+    about: Get help, ask questions, and chat with other Leetium users

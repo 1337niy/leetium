@@ -14,8 +14,8 @@ use {
 use crate::error::Error;
 
 use {
-    moltis_agents::tool_registry::AgentTool,
-    moltis_config::schema::{SearchProvider as ConfigSearchProvider, WebSearchConfig},
+    leetium_agents::tool_registry::AgentTool,
+    leetium_config::schema::{SearchProvider as ConfigSearchProvider, WebSearchConfig},
 };
 
 use crate::exec::EnvVarProvider;
@@ -317,7 +317,7 @@ impl WebSearchTool {
             url.push_str(&format!("&freshness={freshness}"));
         }
 
-        let client = crate::shared_http_client();
+        let client = leetium_common::http::shared_http_client();
 
         let mut req = client
             .get(&url)
@@ -369,7 +369,7 @@ impl WebSearchTool {
             }));
         }
 
-        let client = crate::shared_http_client();
+        let client = leetium_common::http::shared_http_client();
 
         let body = serde_json::json!({
             "model": model,
@@ -435,7 +435,7 @@ impl WebSearchTool {
             ));
         }
 
-        let client = crate::shared_http_client();
+        let client = leetium_common::http::shared_http_client();
 
         let resp = client
             .post("https://html.duckduckgo.com/html/")
@@ -948,7 +948,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_env_value_with_provider_uses_runtime_env_values() {
-        let key = format!("MOLTIS_TEST_DYNAMIC_KEY_{}", std::process::id());
+        let key = format!("LEETIUM_TEST_DYNAMIC_KEY_{}", std::process::id());
         let provider = Arc::new(MockEnvProvider {
             vars: vec![(key.clone(), "dynamic-value".to_string())],
         });

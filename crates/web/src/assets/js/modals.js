@@ -72,4 +72,4 @@ function refreshModalTitles() {
 	if (project) project.textContent = t("common:modals.manageProjects");
 }
 
-window.addEventListener("moltis:locale-changed", refreshModalTitles);
+window.addEventListener("leetium:locale-changed", refreshModalTitles);

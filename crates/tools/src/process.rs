@@ -10,9 +10,9 @@ use {
 };
 
 #[cfg(feature = "metrics")]
-use moltis_metrics::{counter, histogram, labels, tools as tools_metrics};
+use leetium_metrics::{counter, histogram, labels, tools as tools_metrics};
 
-use moltis_agents::tool_registry::AgentTool;
+use leetium_agents::tool_registry::AgentTool;
 
 use crate::{
     exec::ExecOpts,

@@ -9,8 +9,8 @@ use {async_trait::async_trait, tracing::debug, url::Url};
 use crate::error::Error;
 
 use {
-    crate::ssrf::ssrf_check, moltis_agents::tool_registry::AgentTool,
-    moltis_config::schema::WebFetchConfig,
+    crate::ssrf::ssrf_check, leetium_agents::tool_registry::AgentTool,
+    leetium_config::schema::WebFetchConfig,
 };
 
 /// Cached fetch result with expiry.

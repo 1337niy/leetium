@@ -1,0 +1,25 @@
+app-id: org.moltbot.Leetium
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: leetium
+
+finish-args:
+  - --share=network
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  env:
+    CARGO_HOME: /run/build/leetium/cargo
+
+modules:
+  - name: leetium
+    buildsystem: simple
+    build-commands:
+      - cargo build --release --manifest-path=crates/cli/Cargo.toml
+      - install -Dm755 target/release/leetium /app/bin/leetium
+    sources:
+      - type: dir
+        path: ..

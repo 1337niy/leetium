@@ -1,17 +1,17 @@
 [package]
 edition.workspace = true
-name              = "moltis-whatsapp"
+name              = "leetium-whatsapp"
 version.workspace = true
 
 [dependencies]
 async-trait     = { workspace = true }
 base64          = { workspace = true }
 dashmap         = { workspace = true }
-moltis-channels = { workspace = true }
-moltis-common   = { workspace = true }
-moltis-config   = { workspace = true }
-moltis-media    = { workspace = true }
-moltis-metrics  = { optional = true, workspace = true }
+leetium-channels = { workspace = true }
+leetium-common   = { workspace = true }
+leetium-config   = { workspace = true }
+leetium-media    = { workspace = true }
+leetium-metrics  = { optional = true, workspace = true }
 rand            = { workspace = true }
 serde           = { workspace = true }
 serde_json      = { workspace = true }
@@ -20,17 +20,17 @@ thiserror       = { workspace = true }
 tokio           = { workspace = true }
 tokio-util      = { workspace = true }
 tracing         = { workspace = true }
-wacore          = { workspace = true }
-wacore-binary   = { workspace = true }
-waproto         = { workspace = true }
+wa-rs-core      = { workspace = true }
+wa-rs-binary    = { workspace = true }
+wa-rs-proto     = { workspace = true }
 
-whatsapp-rust                  = { workspace = true }
-whatsapp-rust-tokio-transport  = { workspace = true }
-whatsapp-rust-ureq-http-client = { workspace = true }
+wa-rs                  = { workspace = true }
+wa-rs-tokio-transport  = { workspace = true }
+wa-rs-ureq-http        = { workspace = true }
 
 [features]
 default = []
-metrics = ["dep:moltis-metrics"]
+metrics = ["dep:leetium-metrics"]
 
 [dev-dependencies]
 tempfile = { workspace = true }

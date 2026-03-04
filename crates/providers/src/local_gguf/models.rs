@@ -361,10 +361,10 @@ pub fn suggest_model_for_backend(
 
 /// Default cache directory for downloaded models.
 ///
-/// Returns `~/.moltis/models` (same base as config/data directories).
+/// Returns `~/.leetium/models` (same base as config/data directories).
 #[must_use]
 pub fn default_models_dir() -> PathBuf {
-    moltis_config::data_dir().join("models")
+    leetium_config::data_dir().join("models")
 }
 
 /// Check if a GGUF model file is cached locally.
@@ -694,10 +694,10 @@ where
 async fn list_hf_repo_files(repo: &str) -> anyhow::Result<Vec<String>> {
     let url = format!("https://huggingface.co/api/models/{}/tree/main", repo);
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let response = client
         .get(&url)
-        .header("User-Agent", "moltis/1.0")
+        .header("User-Agent", "leetium/1.0")
         .send()
         .await
         .context("fetching HuggingFace repo file list")?
@@ -729,10 +729,10 @@ async fn download_mlx_file<F>(url: &str, path: &PathBuf, mut on_progress: F) -> 
 where
     F: FnMut(DownloadProgress),
 {
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let response = client
         .get(url)
-        .header("User-Agent", "moltis/1.0")
+        .header("User-Agent", "leetium/1.0")
         .send()
         .await
         .context("starting download")?

@@ -8,7 +8,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     env_subst::substitute_env,
-    schema::{AgentIdentity, MoltisConfig, ResolvedIdentity, UserProfile},
+    schema::{AgentIdentity, LeetiumConfig, ResolvedIdentity, UserProfile},
 };
 
 /// Generate a random available port by binding to port 0 and reading the assigned port.
@@ -21,7 +21,7 @@ fn generate_random_port() -> u16 {
 }
 
 /// Standard config file names, checked in order.
-const CONFIG_FILENAMES: &[&str] = &["moltis.toml", "moltis.yaml", "moltis.yml", "moltis.json"];
+const CONFIG_FILENAMES: &[&str] = &["leetium.toml", "leetium.yaml", "leetium.yml", "leetium.json"];
 
 /// Override for the config directory, set via `set_config_dir()`.
 static CONFIG_DIR_OVERRIDE: Mutex<Option<PathBuf>> = Mutex::new(None);
@@ -95,21 +95,21 @@ fn share_dir_override() -> Option<PathBuf> {
 ///
 /// Resolution order:
 /// 1. Programmatic override via `set_share_dir()`
-/// 2. `MOLTIS_SHARE_DIR` env var
-/// 3. `/usr/share/moltis/` (Linux system packages) — only if it exists
-/// 4. `data_dir()/share/` (`~/.moltis/share/`) — only if it exists
+/// 2. `LEETIUM_SHARE_DIR` env var
+/// 3. `/usr/share/leetium/` (Linux system packages) — only if it exists
+/// 4. `data_dir()/share/` (`~/.leetium/share/`) — only if it exists
 /// 5. `None` (fall back to embedded assets)
 pub fn share_dir() -> Option<PathBuf> {
     if let Some(dir) = share_dir_override() {
         return Some(dir);
     }
-    if let Ok(dir) = std::env::var("MOLTIS_SHARE_DIR")
+    if let Ok(dir) = std::env::var("LEETIUM_SHARE_DIR")
         && !dir.is_empty()
     {
         return Some(PathBuf::from(dir));
     }
     // System packages (Linux)
-    let system = PathBuf::from("/usr/share/moltis");
+    let system = PathBuf::from("/usr/share/leetium");
     if system.is_dir() {
         return Some(system);
     }
@@ -123,8 +123,8 @@ pub fn share_dir() -> Option<PathBuf> {
 
 /// Load config from the given path (any supported format).
 ///
-/// After parsing, `MOLTIS_*` env vars are applied as overrides.
-pub fn load_config(path: &Path) -> crate::Result<MoltisConfig> {
+/// After parsing, `LEETIUM_*` env vars are applied as overrides.
+pub fn load_config(path: &Path) -> crate::Result<LeetiumConfig> {
     let raw = std::fs::read_to_string(path).map_err(|source| {
         crate::Error::external(format!("failed to read {}", path.display()), source)
     })?;
@@ -145,14 +145,14 @@ pub fn load_config_value(path: &Path) -> crate::Result<serde_json::Value> {
 /// Discover and load config from standard locations.
 ///
 /// Search order:
-/// 1. `./moltis.{toml,yaml,yml,json}` (project-local)
-/// 2. `~/.config/moltis/moltis.{toml,yaml,yml,json}` (user-global)
+/// 1. `./leetium.{toml,yaml,yml,json}` (project-local)
+/// 2. `~/.config/leetium/leetium.{toml,yaml,yml,json}` (user-global)
 ///
-/// Returns `MoltisConfig::default()` if no config file is found.
+/// Returns `LeetiumConfig::default()` if no config file is found.
 ///
 /// If the config has port 0 (either from defaults or missing `[server]` section),
 /// a random available port is generated and saved to the config file.
-pub fn discover_and_load() -> MoltisConfig {
+pub fn discover_and_load() -> LeetiumConfig {
     let mut cfg = if let Some(path) = find_config_file() {
         debug!(path = %path.display(), "loading config");
         match load_config(&path) {
@@ -176,7 +176,7 @@ pub fn discover_and_load() -> MoltisConfig {
             },
             Err(e) => {
                 warn!(path = %path.display(), error = %e, "failed to load config, using defaults");
-                apply_env_overrides(MoltisConfig::default())
+                apply_env_overrides(LeetiumConfig::default())
             },
         }
     } else {
@@ -185,7 +185,7 @@ pub fn discover_and_load() -> MoltisConfig {
             path = %default_path.display(),
             "no config file found, writing default config with random port"
         );
-        let mut config = MoltisConfig::default();
+        let mut config = LeetiumConfig::default();
         // Generate a unique port for this installation
         config.server.port = generate_random_port();
         if let Err(e) = write_default_config(&default_path, &config) {
@@ -240,8 +240,8 @@ pub fn find_config_file() -> Option<PathBuf> {
         }
     }
 
-    // User-global: ~/.config/moltis/
-    if let Some(dir) = home_dir().map(|h| h.join(".config").join("moltis")) {
+    // User-global: ~/.config/leetium/
+    if let Some(dir) = home_dir().map(|h| h.join(".config").join("leetium")) {
         for name in CONFIG_FILENAMES {
             let p = dir.join(name);
             if p.exists() {
@@ -253,28 +253,28 @@ pub fn find_config_file() -> Option<PathBuf> {
     None
 }
 
-/// Returns the config directory: programmatic override → `MOLTIS_CONFIG_DIR` env →
-/// `~/.config/moltis/`.
+/// Returns the config directory: programmatic override → `LEETIUM_CONFIG_DIR` env →
+/// `~/.config/leetium/`.
 pub fn config_dir() -> Option<PathBuf> {
     if let Some(dir) = config_dir_override() {
         return Some(dir);
     }
-    if let Ok(dir) = std::env::var("MOLTIS_CONFIG_DIR")
+    if let Ok(dir) = std::env::var("LEETIUM_CONFIG_DIR")
         && !dir.is_empty()
     {
         return Some(PathBuf::from(dir));
     }
-    home_dir().map(|h| h.join(".config").join("moltis"))
+    home_dir().map(|h| h.join(".config").join("leetium"))
 }
 
-/// Returns the user-global config directory (`~/.config/moltis`) without
-/// considering overrides like `MOLTIS_CONFIG_DIR`.
+/// Returns the user-global config directory (`~/.config/leetium`) without
+/// considering overrides like `LEETIUM_CONFIG_DIR`.
 pub fn user_global_config_dir() -> Option<PathBuf> {
-    home_dir().map(|h| h.join(".config").join("moltis"))
+    home_dir().map(|h| h.join(".config").join("leetium"))
 }
 
 /// Returns the user-global config directory only when it differs from the
-/// active config directory (i.e. when `MOLTIS_CONFIG_DIR` or `--config-dir`
+/// active config directory (i.e. when `LEETIUM_CONFIG_DIR` or `--config-dir`
 /// is overriding the default). Returns `None` when they are the same path.
 pub fn user_global_config_dir_if_different() -> Option<PathBuf> {
     let home = user_global_config_dir()?;
@@ -298,20 +298,20 @@ pub fn find_user_global_config_file() -> Option<PathBuf> {
     None
 }
 
-/// Returns the data directory: programmatic override → `MOLTIS_DATA_DIR` env →
-/// `~/.moltis/`.
+/// Returns the data directory: programmatic override → `LEETIUM_DATA_DIR` env →
+/// `~/.leetium/`.
 pub fn data_dir() -> PathBuf {
     if let Some(dir) = data_dir_override() {
         return dir;
     }
-    if let Ok(dir) = std::env::var("MOLTIS_DATA_DIR")
+    if let Ok(dir) = std::env::var("LEETIUM_DATA_DIR")
         && !dir.is_empty()
     {
         return PathBuf::from(dir);
     }
     home_dir()
-        .map(|h| h.join(".moltis"))
-        .unwrap_or_else(|| PathBuf::from(".moltis"))
+        .map(|h| h.join(".leetium"))
+        .unwrap_or_else(|| PathBuf::from(".leetium"))
 }
 
 /// Path to the workspace soul file.
@@ -383,7 +383,7 @@ pub fn load_identity_for_agent(agent_id: &str) -> Option<AgentIdentity> {
 }
 
 /// Build a fully-resolved identity by merging all sources:
-/// `moltis.toml` `[identity]` + `IDENTITY.md` frontmatter + `USER.md` + `SOUL.md`.
+/// `leetium.toml` `[identity]` + `IDENTITY.md` frontmatter + `USER.md` + `SOUL.md`.
 ///
 /// This is the single source of truth used by both the gateway (`identity_get`)
 /// and the Swift FFI bridge.
@@ -393,7 +393,7 @@ pub fn resolve_identity() -> ResolvedIdentity {
 }
 
 /// Like [`resolve_identity`] but accepts a pre-loaded config.
-pub fn resolve_identity_from_config(config: &MoltisConfig) -> ResolvedIdentity {
+pub fn resolve_identity_from_config(config: &LeetiumConfig) -> ResolvedIdentity {
     let mut id = ResolvedIdentity::from_config(config);
 
     if let Some(file_identity) = load_identity() {
@@ -485,7 +485,7 @@ _This file is yours to evolve. As you learn who you are, update it._";
 /// Load SOUL.md from the workspace root (`data_dir`) if present and non-empty.
 ///
 /// When the file does not exist, it is seeded with [`DEFAULT_SOUL`] (mirroring
-/// how `discover_and_load()` writes `moltis.toml` on first run).
+/// how `discover_and_load()` writes `leetium.toml` on first run).
 pub fn load_soul() -> Option<String> {
     let path = soul_path();
     match std::fs::read_to_string(&path) {
@@ -636,7 +636,7 @@ pub fn save_identity(identity: &AgentIdentity) -> crate::Result<PathBuf> {
     }
     let yaml = yaml_lines.join("\n");
     let content = format!(
-        "---\n{}\n---\n\n# IDENTITY.md\n\nThis file is managed by Moltis settings.\n",
+        "---\n{}\n---\n\n# IDENTITY.md\n\nThis file is managed by Leetium settings.\n",
         yaml
     );
     std::fs::write(&path, content)?;
@@ -710,7 +710,7 @@ pub fn save_user(user: &UserProfile) -> crate::Result<PathBuf> {
     }
     let yaml = yaml_lines.join("\n");
     let content = format!(
-        "---\n{}\n---\n\n# USER.md\n\nThis file is managed by Moltis settings.\n",
+        "---\n{}\n---\n\n# USER.md\n\nThis file is managed by Leetium settings.\n",
         yaml
     );
     std::fs::write(&path, content)?;
@@ -881,7 +881,7 @@ fn strip_leading_html_comments(content: &str) -> &str {
 /// Returns the user's home directory (`$HOME` / `~`).
 ///
 /// This is the **single call-site** for `directories::BaseDirs` — all other
-/// crates must call this via `moltis_config::home_dir()` instead of using the
+/// crates must call this via `leetium_config::home_dir()` instead of using the
 /// `directories` crate directly.
 pub fn home_dir() -> Option<PathBuf> {
     directories::BaseDirs::new().map(|d| d.home_dir().to_path_buf())
@@ -894,7 +894,7 @@ pub fn find_or_default_config_path() -> PathBuf {
     }
     config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("moltis.toml")
+        .join("leetium.toml")
 }
 
 /// Lock guarding config read-modify-write cycles.
@@ -910,7 +910,7 @@ static CONFIG_SAVE_LOCK: Mutex<ConfigSaveState> = Mutex::new(ConfigSaveState { t
 ///
 /// Acquires a process-wide lock so concurrent callers cannot race.
 /// Returns the path written to.
-pub fn update_config(f: impl FnOnce(&mut MoltisConfig)) -> crate::Result<PathBuf> {
+pub fn update_config(f: impl FnOnce(&mut LeetiumConfig)) -> crate::Result<PathBuf> {
     let mut guard = CONFIG_SAVE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let target_path = find_or_default_config_path();
     guard.target_path = Some(target_path.clone());
@@ -924,7 +924,7 @@ pub fn update_config(f: impl FnOnce(&mut MoltisConfig)) -> crate::Result<PathBuf
 /// Creates parent directories if needed. Returns the path written to.
 ///
 /// Prefer [`update_config`] for read-modify-write cycles to avoid races.
-pub fn save_config(config: &MoltisConfig) -> crate::Result<PathBuf> {
+pub fn save_config(config: &LeetiumConfig) -> crate::Result<PathBuf> {
     let mut guard = CONFIG_SAVE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let target_path = find_or_default_config_path();
     guard.target_path = Some(target_path.clone());
@@ -936,7 +936,7 @@ pub fn save_config(config: &MoltisConfig) -> crate::Result<PathBuf> {
 /// Validates the input by parsing it first. Acquires the config save lock
 /// so concurrent callers cannot race.  Returns the path written to.
 pub fn save_raw_config(toml_str: &str) -> crate::Result<PathBuf> {
-    let _: MoltisConfig = toml::from_str(toml_str)
+    let _: LeetiumConfig = toml::from_str(toml_str)
         .map_err(|source| crate::Error::external(format!("invalid config: {source}"), source))?;
     let mut guard = CONFIG_SAVE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let path = find_or_default_config_path();
@@ -953,7 +953,7 @@ pub fn save_raw_config(toml_str: &str) -> crate::Result<PathBuf> {
 ///
 /// For existing TOML files, this preserves user comments by merging the new
 /// serialized values into the current document structure before writing.
-pub fn save_config_to_path(path: &Path, config: &MoltisConfig) -> crate::Result<PathBuf> {
+pub fn save_config_to_path(path: &Path, config: &LeetiumConfig) -> crate::Result<PathBuf> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -1032,7 +1032,7 @@ fn merge_toml_items(current: &mut toml_edit::Item, updated: &toml_edit::Item) {
 /// Write the default config file to the user-global config path.
 /// Only called when no config file exists yet.
 /// Uses a comprehensive template with all options documented.
-fn write_default_config(path: &Path, config: &MoltisConfig) -> crate::Result<()> {
+fn write_default_config(path: &Path, config: &LeetiumConfig) -> crate::Result<()> {
     if path.exists() {
         return Ok(());
     }
@@ -1046,42 +1046,42 @@ fn write_default_config(path: &Path, config: &MoltisConfig) -> crate::Result<()>
     Ok(())
 }
 
-/// Apply `MOLTIS_*` environment variable overrides to a loaded config.
+/// Apply `LEETIUM_*` environment variable overrides to a loaded config.
 ///
 /// Maps env vars to config fields using `__` as a section separator and
 /// lowercasing. For example:
-/// - `MOLTIS_AUTH_DISABLED=true` → `auth.disabled = true`
-/// - `MOLTIS_TOOLS_EXEC_DEFAULT_TIMEOUT_SECS=60` → `tools.exec.default_timeout_secs = 60`
-/// - `MOLTIS_CHAT_MESSAGE_QUEUE_MODE=collect` → `chat.message_queue_mode = "collect"`
+/// - `LEETIUM_AUTH_DISABLED=true` → `auth.disabled = true`
+/// - `LEETIUM_TOOLS_EXEC_DEFAULT_TIMEOUT_SECS=60` → `tools.exec.default_timeout_secs = 60`
+/// - `LEETIUM_CHAT_MESSAGE_QUEUE_MODE=collect` → `chat.message_queue_mode = "collect"`
 ///
 /// The config is serialized to a JSON value, env overrides are merged in,
-/// then deserialized back. Only env vars with the `MOLTIS_` prefix are
-/// considered. `MOLTIS_CONFIG_DIR`, `MOLTIS_DATA_DIR`, `MOLTIS_SHARE_DIR`,
-/// `MOLTIS_ASSETS_DIR`, `MOLTIS_TOKEN`, `MOLTIS_PASSWORD`, `MOLTIS_TAILSCALE`,
-/// `MOLTIS_WEBAUTHN_RP_ID`, and `MOLTIS_WEBAUTHN_ORIGIN` are excluded
+/// then deserialized back. Only env vars with the `LEETIUM_` prefix are
+/// considered. `LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR`, `LEETIUM_SHARE_DIR`,
+/// `LEETIUM_ASSETS_DIR`, `LEETIUM_TOKEN`, `LEETIUM_PASSWORD`, `LEETIUM_TAILSCALE`,
+/// `LEETIUM_WEBAUTHN_RP_ID`, and `LEETIUM_WEBAUTHN_ORIGIN` are excluded
 /// (they are handled separately).
-pub fn apply_env_overrides(config: MoltisConfig) -> MoltisConfig {
+pub fn apply_env_overrides(config: LeetiumConfig) -> LeetiumConfig {
     apply_env_overrides_with(config, std::env::vars())
 }
 
 /// Apply env overrides from an arbitrary iterator of (key, value) pairs.
 /// Exposed for testing without mutating the process environment.
 fn apply_env_overrides_with(
-    config: MoltisConfig,
+    config: LeetiumConfig,
     vars: impl Iterator<Item = (String, String)>,
-) -> MoltisConfig {
+) -> LeetiumConfig {
     use serde_json::Value;
 
     const EXCLUDED: &[&str] = &[
-        "MOLTIS_CONFIG_DIR",
-        "MOLTIS_DATA_DIR",
-        "MOLTIS_SHARE_DIR",
-        "MOLTIS_ASSETS_DIR",
-        "MOLTIS_TOKEN",
-        "MOLTIS_PASSWORD",
-        "MOLTIS_TAILSCALE",
-        "MOLTIS_WEBAUTHN_RP_ID",
-        "MOLTIS_WEBAUTHN_ORIGIN",
+        "LEETIUM_CONFIG_DIR",
+        "LEETIUM_DATA_DIR",
+        "LEETIUM_SHARE_DIR",
+        "LEETIUM_ASSETS_DIR",
+        "LEETIUM_TOKEN",
+        "LEETIUM_PASSWORD",
+        "LEETIUM_TAILSCALE",
+        "LEETIUM_WEBAUTHN_RP_ID",
+        "LEETIUM_WEBAUTHN_ORIGIN",
     ];
 
     let mut root: Value = match serde_json::to_value(&config) {
@@ -1093,15 +1093,15 @@ fn apply_env_overrides_with(
     };
 
     for (key, val) in vars {
-        if !key.starts_with("MOLTIS_") {
+        if !key.starts_with("LEETIUM_") {
             continue;
         }
         if EXCLUDED.contains(&key.as_str()) {
             continue;
         }
 
-        // MOLTIS_AUTH__DISABLED → ["auth", "disabled"]
-        let path_parts: Vec<String> = key["MOLTIS_".len()..]
+        // LEETIUM_AUTH__DISABLED → ["auth", "disabled"]
+        let path_parts: Vec<String> = key["LEETIUM_".len()..]
             .split("__")
             .map(|segment| segment.to_lowercase())
             .collect();
@@ -1129,7 +1129,7 @@ fn parse_env_value(val: &str) -> serde_json::Value {
     let trimmed = val.trim();
 
     // Support JSON arrays/objects for list-like env overrides, e.g.
-    // MOLTIS_PROVIDERS__OFFERED='["openai","github-copilot"]' or '[]'.
+    // LEETIUM_PROVIDERS__OFFERED='["openai","github-copilot"]' or '[]'.
     if ((trimmed.starts_with('[') && trimmed.ends_with(']'))
         || (trimmed.starts_with('{') && trimmed.ends_with('}')))
         && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(trimmed)
@@ -1179,7 +1179,7 @@ fn set_nested(root: &mut serde_json::Value, path: &[String], val: serde_json::Va
     }
 }
 
-fn parse_config(raw: &str, path: &Path) -> crate::Result<MoltisConfig> {
+fn parse_config(raw: &str, path: &Path) -> crate::Result<LeetiumConfig> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("toml");
 
     match ext {
@@ -1276,8 +1276,8 @@ mod tests {
 
     #[test]
     fn apply_env_overrides_auth_disabled() {
-        let vars = vec![("MOLTIS_AUTH__DISABLED".into(), "true".into())];
-        let config = MoltisConfig::default();
+        let vars = vec![("LEETIUM_AUTH__DISABLED".into(), "true".into())];
+        let config = LeetiumConfig::default();
         assert!(!config.auth.disabled);
         let config = apply_env_overrides_with(config, vars.into_iter());
         assert!(config.auth.disabled);
@@ -1285,34 +1285,34 @@ mod tests {
 
     #[test]
     fn apply_env_overrides_tools_agent_timeout() {
-        let vars = vec![("MOLTIS_TOOLS__AGENT_TIMEOUT_SECS".into(), "120".into())];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        let vars = vec![("LEETIUM_TOOLS__AGENT_TIMEOUT_SECS".into(), "120".into())];
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert_eq!(config.tools.agent_timeout_secs, 120);
     }
 
     #[test]
     fn apply_env_overrides_tools_agent_max_iterations() {
-        let vars = vec![("MOLTIS_TOOLS__AGENT_MAX_ITERATIONS".into(), "64".into())];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        let vars = vec![("LEETIUM_TOOLS__AGENT_MAX_ITERATIONS".into(), "64".into())];
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert_eq!(config.tools.agent_max_iterations, 64);
     }
 
     #[test]
     fn apply_env_overrides_ignores_excluded() {
-        // MOLTIS_CONFIG_DIR should not be treated as a config field override.
-        let vars = vec![("MOLTIS_CONFIG_DIR".into(), "/tmp/test".into())];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        // LEETIUM_CONFIG_DIR should not be treated as a config field override.
+        let vars = vec![("LEETIUM_CONFIG_DIR".into(), "/tmp/test".into())];
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert!(!config.auth.disabled);
     }
 
     #[test]
     fn apply_env_overrides_multiple() {
         let vars = vec![
-            ("MOLTIS_AUTH__DISABLED".into(), "true".into()),
-            ("MOLTIS_TOOLS__AGENT_TIMEOUT_SECS".into(), "300".into()),
-            ("MOLTIS_TAILSCALE__MODE".into(), "funnel".into()),
+            ("LEETIUM_AUTH__DISABLED".into(), "true".into()),
+            ("LEETIUM_TOOLS__AGENT_TIMEOUT_SECS".into(), "300".into()),
+            ("LEETIUM_TAILSCALE__MODE".into(), "funnel".into()),
         ];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert!(config.auth.disabled);
         assert_eq!(config.tools.agent_timeout_secs, 300);
         assert_eq!(config.tailscale.mode, "funnel");
@@ -1321,27 +1321,27 @@ mod tests {
     #[test]
     fn apply_env_overrides_deep_nesting() {
         let vars = vec![(
-            "MOLTIS_TOOLS__EXEC__DEFAULT_TIMEOUT_SECS".into(),
+            "LEETIUM_TOOLS__EXEC__DEFAULT_TIMEOUT_SECS".into(),
             "60".into(),
         )];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert_eq!(config.tools.exec.default_timeout_secs, 60);
     }
 
     #[test]
     fn apply_env_overrides_providers_offered_array() {
         let vars = vec![(
-            "MOLTIS_PROVIDERS__OFFERED".into(),
+            "LEETIUM_PROVIDERS__OFFERED".into(),
             "[\"openai\",\"github-copilot\"]".into(),
         )];
-        let config = apply_env_overrides_with(MoltisConfig::default(), vars.into_iter());
+        let config = apply_env_overrides_with(LeetiumConfig::default(), vars.into_iter());
         assert_eq!(config.providers.offered, vec!["openai", "github-copilot"]);
     }
 
     #[test]
     fn apply_env_overrides_providers_offered_empty_array() {
-        let vars = vec![("MOLTIS_PROVIDERS__OFFERED".into(), "[]".into())];
-        let mut base = MoltisConfig::default();
+        let vars = vec![("LEETIUM_PROVIDERS__OFFERED".into(), "[]".into())];
+        let mut base = LeetiumConfig::default();
         base.providers.offered = vec!["openai".into()];
         let config = apply_env_overrides_with(base, vars.into_iter());
         assert!(
@@ -1380,8 +1380,8 @@ mod tests {
     #[test]
     fn write_default_config_writes_template_to_requested_path() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let path = dir.path().join("nested").join("moltis.toml");
-        let mut config = MoltisConfig::default();
+        let path = dir.path().join("nested").join("leetium.toml");
+        let mut config = LeetiumConfig::default();
         config.server.port = 23456;
 
         write_default_config(&path, &config).expect("write default config");
@@ -1408,10 +1408,10 @@ mod tests {
     #[test]
     fn write_default_config_does_not_overwrite_existing_file() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let path = dir.path().join("moltis.toml");
+        let path = dir.path().join("leetium.toml");
         std::fs::write(&path, "existing = true\n").expect("seed config");
 
-        let mut config = MoltisConfig::default();
+        let mut config = LeetiumConfig::default();
         config.server.port = 34567;
         write_default_config(&path, &config).expect("write default config");
 
@@ -1422,7 +1422,7 @@ mod tests {
     #[test]
     fn save_config_to_path_preserves_provider_and_voice_comment_blocks() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let path = dir.path().join("moltis.toml");
+        let path = dir.path().join("leetium.toml");
         std::fs::write(&path, crate::template::default_config_template(18789))
             .expect("write template");
 
@@ -1443,7 +1443,7 @@ mod tests {
     #[test]
     fn save_config_to_path_removes_stale_keys_when_values_are_cleared() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let path = dir.path().join("moltis.toml");
+        let path = dir.path().join("leetium.toml");
         std::fs::write(
             &path,
             r#"[server]
@@ -1457,15 +1457,15 @@ name = "Rex"
         .expect("write seed config");
 
         // Use parse_config directly to avoid env-override pollution
-        // (e.g. MOLTIS_IDENTITY__NAME in the process environment).
+        // (e.g. LEETIUM_IDENTITY__NAME in the process environment).
         let raw = std::fs::read_to_string(&path).expect("read seed");
-        let mut config: MoltisConfig = parse_config(&raw, &path).expect("parse seed config");
+        let mut config: LeetiumConfig = parse_config(&raw, &path).expect("parse seed config");
         config.identity.name = None;
 
         save_config_to_path(&path, &config).expect("save config");
 
         let saved = std::fs::read_to_string(&path).expect("read saved file");
-        let reloaded: MoltisConfig = parse_config(&saved, &path).expect("reload config");
+        let reloaded: LeetiumConfig = parse_config(&saved, &path).expect("reload config");
         assert!(
             reloaded.identity.name.is_none(),
             "identity.name should be removed when cleared"
@@ -1861,7 +1861,7 @@ name = "Rex"
     fn share_dir_returns_none_when_no_source() {
         clear_share_dir();
         // Without an override, env var, or existing directories, share_dir
-        // should return None (unless /usr/share/moltis or ~/.moltis/share
+        // should return None (unless /usr/share/leetium or ~/.leetium/share
         // happens to exist on the test machine).
         let _ = share_dir();
     }

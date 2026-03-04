@@ -241,7 +241,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(format!("{base}/device/code"), String::new());
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let resp = request_device_code(&client, &config).await.unwrap();
         assert_eq!(resp.device_code, "mock_dc");
         assert_eq!(resp.user_code, "TEST-CODE");
@@ -269,7 +269,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(format!("{base}/device/code"), String::new());
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let mut headers = HeaderMap::new();
         headers.insert("X-Custom", "test-value".parse().unwrap());
         let resp = request_device_code_with_headers(&client, &config, Some(&headers))
@@ -287,7 +287,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(format!("{base}/device/code"), String::new());
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let err = request_device_code(&client, &config).await.unwrap_err();
         assert!(err.to_string().contains("device code request failed"));
     }
@@ -305,7 +305,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(String::new(), format!("{base}/token"));
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let tokens = tokio::time::timeout(
             std::time::Duration::from_secs(5),
             poll_for_token(&client, &config, "dc_123", 0),
@@ -332,7 +332,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(String::new(), format!("{base}/token"));
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let tokens = tokio::time::timeout(
             std::time::Duration::from_secs(5),
             poll_for_token(&client, &config, "dc_123", 0),
@@ -381,7 +381,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(String::new(), format!("{base}/token"));
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let tokens = tokio::time::timeout(
             std::time::Duration::from_secs(5),
             poll_for_token(&client, &config, "dc_123", 0),
@@ -402,7 +402,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(String::new(), format!("{base}/token"));
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let err = tokio::time::timeout(
             std::time::Duration::from_secs(5),
             poll_for_token(&client, &config, "dc_123", 0),
@@ -422,7 +422,7 @@ mod tests {
         let base = start_mock(app).await;
         let config = test_config(String::new(), format!("{base}/token"));
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let err = tokio::time::timeout(
             std::time::Duration::from_secs(5),
             poll_for_token(&client, &config, "dc_123", 0),

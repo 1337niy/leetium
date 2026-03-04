@@ -18,7 +18,7 @@ use {
 
 use crate::error::{Context, Error, Result};
 
-use moltis_oauth::{
+use leetium_oauth::{
     OAuthConfig, OAuthFlow, OAuthTokens, RegistrationStore, StoredRegistration, TokenStore,
     fetch_as_metadata, fetch_resource_metadata, parse_www_authenticate, register_client,
 };
@@ -73,7 +73,7 @@ pub trait McpAuthProvider: Send + Sync {
 
 // ── Concrete OAuth provider ────────────────────────────────────────────────
 
-/// Manual OAuth override configuration (from `moltis.toml`).
+/// Manual OAuth override configuration (from `leetium.toml`).
 #[derive(Debug, Clone)]
 pub struct McpOAuthOverride {
     pub client_id: String,
@@ -110,7 +110,7 @@ impl McpOAuthProvider {
         Self {
             server_name: server_name.to_string(),
             server_url: server_url.to_string(),
-            http_client: reqwest::Client::new(),
+            http_client: leetium_common::http::shared_http_client().clone(),
             token_store: TokenStore::new(),
             registration_store: RegistrationStore::new(),
             state: RwLock::new(McpAuthState::NotRequired),
@@ -131,7 +131,7 @@ impl McpOAuthProvider {
         Self {
             server_name: server_name.to_string(),
             server_url: server_url.to_string(),
-            http_client: reqwest::Client::new(),
+            http_client: leetium_common::http::shared_http_client().clone(),
             token_store,
             registration_store,
             state: RwLock::new(McpAuthState::NotRequired),
@@ -462,7 +462,7 @@ impl McpOAuthProvider {
                 &self.http_client,
                 reg_endpoint,
                 vec![redirect_uri.to_string()],
-                &format!("moltis ({})", self.server_name),
+                &format!("leetium ({})", self.server_name),
             )
             .await
             .context("failed to register OAuth client")?;

@@ -7,14 +7,14 @@ use {
 };
 
 use {
-    moltis_channels::{
+    leetium_channels::{
         ChannelOutbound, ChannelType,
         message_log::MessageLog,
         plugin::ChannelHealthSnapshot,
         registry::ChannelRegistry,
         store::{ChannelStore, StoredChannel},
     },
-    moltis_sessions::metadata::SqliteSessionMetadata,
+    leetium_sessions::metadata::SqliteSessionMetadata,
 };
 
 use crate::services::{ChannelService, ServiceError, ServiceResult};

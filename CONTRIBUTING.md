@@ -1,4 +1,4 @@
-# Contributing to Moltis
+# Contributing to Leetium
 
 Thanks for contributing. This project is a local-first AI gateway written in Rust, and we welcome fixes, features, docs improvements, and test coverage.
 
@@ -20,14 +20,15 @@ Prerequisites:
 - `rustup` with nightly `nightly-2025-11-30` available
 - `just` task runner
 - `git-cliff` changelog generator
+- `pre-commit` (run `pre-commit install` after clone)
 - Node.js (for web UI e2e tests)
 - `gh` CLI (optional, needed for PR status publishing via local validation)
 
 Quick start:
 
 ```bash
-git clone https://github.com/moltis-org/moltis.git
-cd moltis
+git clone https://github.com/1337leetium/leetium.git
+cd leetium
 cargo build
 cargo run
 ```

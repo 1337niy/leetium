@@ -5,7 +5,7 @@ use {
     tracing::{info, warn},
 };
 
-use moltis_channels::{ChannelEventSink, message_log::MessageLog};
+use leetium_channels::{ChannelEventSink, message_log::MessageLog};
 
 use crate::{
     config::WhatsAppAccountConfig,
@@ -55,12 +55,12 @@ pub async fn start_connection(
     let state_ref_handler = Arc::clone(&state_ref);
     let accounts_handler = Arc::clone(&accounts);
 
-    let mut bot = whatsapp_rust::bot::Bot::builder()
+    let mut bot = wa_rs::bot::Bot::builder()
         .with_backend(backend)
         .with_transport_factory(
-            whatsapp_rust_tokio_transport::TokioWebSocketTransportFactory::new(),
+            wa_rs_tokio_transport::TokioWebSocketTransportFactory::new(),
         )
-        .with_http_client(whatsapp_rust_ureq_http_client::UreqHttpClient::new())
+        .with_http_client(wa_rs_ureq_http::UreqHttpClient::new())
         .on_event(move |event, client| {
             let state_ref = Arc::clone(&state_ref_handler);
             let accounts = Arc::clone(&accounts_handler);

@@ -11,7 +11,7 @@ use std::{collections::HashSet, pin::Pin, sync::mpsc, time::Duration};
 use {
     async_trait::async_trait,
     futures::StreamExt,
-    moltis_oauth::{OAuthTokens, TokenStore},
+    leetium_oauth::{OAuthTokens, TokenStore},
     secrecy::{ExposeSecret, Secret},
     tokio_stream::Stream,
     tracing::{debug, trace, warn},
@@ -22,7 +22,7 @@ use {
         SseLineResult, StreamingToolState, finalize_stream, parse_openai_compat_usage_from_payload,
         parse_tool_calls, process_openai_sse_line, to_openai_tools,
     },
-    moltis_agents::model::{ChatMessage, CompletionResponse, LlmProvider, StreamEvent},
+    leetium_agents::model::{ChatMessage, CompletionResponse, LlmProvider, StreamEvent},
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ impl GitHubCopilotProvider {
     pub fn new(model: String) -> Self {
         Self {
             model,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             token_store: TokenStore::new(),
         }
     }
@@ -146,7 +146,7 @@ impl GitHubCopilotProvider {
 }
 
 fn home_token_store_if_different() -> Option<TokenStore> {
-    let home = moltis_config::user_global_config_dir_if_different()?;
+    let home = leetium_config::user_global_config_dir_if_different()?;
     Some(TokenStore::with_path(home.join("oauth_tokens.json")))
 }
 
@@ -224,7 +224,7 @@ async fn fetch_valid_copilot_token(
         .header("Accept", "application/json")
         .header(
             "User-Agent",
-            "moltis/0.1.0 (GitHub Copilot compatible client)",
+            "leetium/0.1.0 (GitHub Copilot compatible client)",
         )
         .send()
         .await?;
@@ -752,7 +752,7 @@ mod tests {
     fn mock_provider(base_url: &str, model: &str) -> MockCopilotProvider {
         MockCopilotProvider {
             model: model.to_string(),
-            client: reqwest::Client::new(),
+            client: leetium_common::http::shared_http_client().clone(),
             base_url: base_url.to_string(),
         }
     }

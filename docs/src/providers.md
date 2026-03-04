@@ -1,6 +1,6 @@
 # LLM Providers
 
-Moltis supports multiple LLM providers through a trait-based architecture.
+Leetium supports multiple LLM providers through a trait-based architecture.
 Configure providers through the web UI or directly in configuration files.
 
 ## Available Providers
@@ -54,7 +54,7 @@ models = ["my-model"]
 
 ### Via Web UI (Recommended)
 
-1. Open Moltis in your browser.
+1. Open Leetium in your browser.
 2. Go to **Settings** → **Providers**.
 3. Choose a provider card.
 4. Complete OAuth or enter your API key.
@@ -62,7 +62,7 @@ models = ["my-model"]
 
 ### Via Configuration Files
 
-Configure providers in `moltis.toml`:
+Configure providers in `leetium.toml`:
 
 ```toml
 [providers]
@@ -145,10 +145,10 @@ cannot reach the server, authenticate via the CLI instead:
 
 ~~~bash
 # Docker
-docker exec -it moltis moltis auth login --provider openai-codex
+docker exec -it leetium leetium auth login --provider openai-codex
 
 # Fly.io
-fly ssh console -C "moltis auth login --provider openai-codex"
+fly ssh console -C "leetium auth login --provider openai-codex"
 ~~~
 
 The CLI opens a browser on your machine and handles the callback locally.
@@ -169,7 +169,7 @@ so it works from the web UI without extra port configuration. If you prefer the
 CLI:
 
 ~~~bash
-docker exec -it moltis moltis auth login --provider github-copilot
+docker exec -it leetium leetium auth login --provider github-copilot
 ~~~
 ```
 
@@ -211,7 +211,7 @@ Local LLM runs GGUF models directly on your machine.
 - **Per session**: Use the model selector in the chat UI.
 - **Per message**: Use `/model <name>` in chat.
 - **Global defaults**: Use `[providers].offered`, provider `models = [...]`, and
-  `[chat].priority_models` in `moltis.toml`.
+  `[chat].priority_models` in `leetium.toml`.
 
 ## Troubleshooting
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://moltis.org/.well-known/moltis-install.schema.json",
-  "title": "Moltis Install Root Manifest",
-  "description": "Stable machine-readable entrypoint for agent-driven Moltis install/bootstrap.",
+  "$id": "https://leetnex.ru/.well-known/leetium-install.schema.json",
+  "title": "Leetium Install Root Manifest",
+  "description": "Stable machine-readable entrypoint for agent-driven Leetium install/bootstrap.",
   "type": "object",
   "additionalProperties": false,
   "required": [

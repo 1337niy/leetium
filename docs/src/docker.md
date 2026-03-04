@@ -1,6 +1,6 @@
-# Running Moltis in Docker
+# Running Leetium in Docker
 
-Moltis is available as a multi-architecture Docker image supporting both
+Leetium is available as a multi-architecture Docker image supporting both
 `linux/amd64` and `linux/arm64`. The image is published to GitHub Container
 Registry on every release.
 
@@ -8,14 +8,14 @@ Registry on every release.
 
 ```bash
 docker run -d \
-  --name moltis \
+  --name leetium \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -v moltis-config:/home/moltis/.config/moltis \
-  -v moltis-data:/home/moltis/.moltis \
+  -v leetium-config:/home/leetium/.config/leetium \
+  -v leetium-data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
 Open https://localhost:13131 in your browser and configure your LLM provider to start chatting.
@@ -30,20 +30,20 @@ Open https://localhost:13131 in your browser and configure your LLM provider to 
 
 ### Trusting the TLS certificate
 
-Moltis generates a self-signed CA on first run. Browsers will show a security
+Leetium generates a self-signed CA on first run. Browsers will show a security
 warning until you trust this CA. Port 13132 serves the certificate over plain
 HTTP so you can download it:
 
 ```bash
 # Download the CA certificate
-curl -o moltis-ca.pem http://localhost:13132/certs/ca.pem
+curl -o leetium-ca.pem http://localhost:13132/certs/ca.pem
 
 # macOS — add to system Keychain and trust it
 sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain moltis-ca.pem
+  -k /Library/Keychains/System.keychain leetium-ca.pem
 
 # Linux (Debian/Ubuntu)
-sudo cp moltis-ca.pem /usr/local/share/ca-certificates/moltis-ca.crt
+sudo cp leetium-ca.pem /usr/local/share/ca-certificates/leetium-ca.crt
 sudo update-ca-certificates
 ```
 
@@ -51,43 +51,43 @@ After trusting the CA, restart your browser. The warning will not appear again
 (the CA persists in the mounted config volume).
 
 ```admonish note
-When accessing from localhost, no authentication is required. If you access Moltis from a different machine (e.g., over the network), a setup code is printed to the container logs for authentication setup:
+When accessing from localhost, no authentication is required. If you access Leetium from a different machine (e.g., over the network), a setup code is printed to the container logs for authentication setup:
 
 ~~~bash
-docker logs moltis
+docker logs leetium
 ~~~
 ```
 
 ## Volume Mounts
 
-Moltis uses two directories that should be persisted:
+Leetium uses two directories that should be persisted:
 
 | Path | Contents |
 |------|----------|
-| `/home/moltis/.config/moltis` | Configuration files: `moltis.toml`, `credentials.json`, `mcp-servers.json` |
-| `/home/moltis/.moltis` | Runtime data: databases, sessions, memory files, logs |
+| `/home/leetium/.config/leetium` | Configuration files: `leetium.toml`, `credentials.json`, `mcp-servers.json` |
+| `/home/leetium/.leetium` | Runtime data: databases, sessions, memory files, logs |
 
 You can use named volumes (as shown above) or bind mounts to local directories
 for easier access to configuration files:
 
 ```bash
 docker run -d \
-  --name moltis \
+  --name leetium \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -v ./config:/home/moltis/.config/moltis \
-  -v ./data:/home/moltis/.moltis \
+  -v ./config:/home/leetium/.config/leetium \
+  -v ./data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
-With bind mounts, you can edit `config/moltis.toml` directly on the host.
+With bind mounts, you can edit `config/leetium.toml` directly on the host.
 
 ## Docker Socket (Sandbox Execution)
 
-Moltis runs LLM-generated shell commands inside isolated containers for
-security. When Moltis itself runs in a container, it needs access to the host's
+Leetium runs LLM-generated shell commands inside isolated containers for
+security. When Leetium itself runs in a container, it needs access to the host's
 container runtime to create these sandbox containers.
 
 **Without the socket mount**, sandbox execution is disabled. The agent will
@@ -103,11 +103,11 @@ will fail.
 
 Mounting the Docker socket gives the container full access to the Docker
 daemon. This is equivalent to root access on the host for practical purposes.
-Only run Moltis containers from trusted sources (official images from
-`ghcr.io/moltis-org/moltis`).
+Only run Leetium containers from trusted sources (official images from
+`ghcr.io/1337leetium/leetium`).
 
-If you cannot mount the Docker socket, Moltis will run in "no sandbox" mode —
-commands execute directly inside the Moltis container itself, which provides
+If you cannot mount the Docker socket, Leetium will run in "no sandbox" mode —
+commands execute directly inside the Leetium container itself, which provides
 no isolation.
 
 ## Docker Compose
@@ -117,17 +117,17 @@ complete example:
 
 ```yaml
 services:
-  moltis:
-    image: ghcr.io/moltis-org/moltis:latest
-    container_name: moltis
+  leetium:
+    image: ghcr.io/1337leetium/leetium:latest
+    container_name: leetium
     restart: unless-stopped
     ports:
       - "13131:13131"
       - "13132:13132"
       - "1455:1455"   # OAuth callback (OpenAI Codex, etc.)
     volumes:
-      - ./config:/home/moltis/.config/moltis
-      - ./data:/home/moltis/.moltis
+      - ./config:/home/leetium/.config/leetium
+      - ./data:/home/leetium/.leetium
       - /var/run/docker.sock:/var/run/docker.sock
 ```
 
@@ -140,10 +140,10 @@ the Docker socket mount for sandboxed command execution.
 
 Key points:
 
-- Set `MOLTIS_PASSWORD` in the Coolify UI before first deploy.
-- Set `SERVICE_FQDN_MOLTIS_13131` to your app domain.
-- Keep Moltis in `--no-tls` mode behind Coolify's reverse proxy. If requests
-  are redirected to `:13131`, check that TLS is disabled in Moltis.
+- Set `LEETIUM_PASSWORD` in the Coolify UI before first deploy.
+- Set `SERVICE_FQDN_LEETIUM_13131` to your app domain.
+- Keep Leetium in `--no-tls` mode behind Coolify's reverse proxy. If requests
+  are redirected to `:13131`, check that TLS is disabled in Leetium.
 - Keep `/var/run/docker.sock:/var/run/docker.sock` mounted if you want sandbox
   isolation for exec tools.
 
@@ -151,16 +151,16 @@ Start with:
 
 ```bash
 docker compose up -d
-docker compose logs -f moltis  # watch for startup messages
+docker compose logs -f leetium  # watch for startup messages
 ```
 
 ## Browser Sandbox in Docker
 
-When Moltis runs inside Docker and launches a sandboxed browser, the browser
-container is a sibling container on the host. By default, Moltis connects to
+When Leetium runs inside Docker and launches a sandboxed browser, the browser
+container is a sibling container on the host. By default, Leetium connects to
 `127.0.0.1` which only reaches its own loopback, not the browser.
 
-Add `container_host` to your `moltis.toml` so Moltis can reach the browser
+Add `container_host` to your `leetium.toml` so Leetium can reach the browser
 container through the host's port mapping:
 
 ```toml
@@ -168,20 +168,20 @@ container through the host's port mapping:
 container_host = "host.docker.internal"
 ```
 
-On Linux, add `--add-host` to the Moltis container so `host.docker.internal`
+On Linux, add `--add-host` to the Leetium container so `host.docker.internal`
 resolves to the host:
 
 ```bash
 docker run -d \
-  --name moltis \
+  --name leetium \
   --add-host=host.docker.internal:host-gateway \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -v moltis-config:/home/moltis/.config/moltis \
-  -v moltis-data:/home/moltis/.moltis \
+  -v leetium-config:/home/leetium/.config/leetium \
+  -v leetium-data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
 Alternatively, use the Docker bridge gateway IP directly
@@ -189,31 +189,31 @@ Alternatively, use the Docker bridge gateway IP directly
 
 ## Podman Support
 
-Moltis works with Podman using its Docker-compatible API. Mount the Podman
+Leetium works with Podman using its Docker-compatible API. Mount the Podman
 socket instead of the Docker socket:
 
 ```bash
 # Podman rootless
 podman run -d \
-  --name moltis \
+  --name leetium \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -v moltis-config:/home/moltis/.config/moltis \
-  -v moltis-data:/home/moltis/.moltis \
+  -v leetium-config:/home/leetium/.config/leetium \
+  -v leetium-data:/home/leetium/.leetium \
   -v /run/user/$(id -u)/podman/podman.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 
 # Podman rootful
 podman run -d \
-  --name moltis \
+  --name leetium \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -v moltis-config:/home/moltis/.config/moltis \
-  -v moltis-data:/home/moltis/.moltis \
+  -v leetium-config:/home/leetium/.config/leetium \
+  -v leetium-data:/home/leetium/.leetium \
   -v /run/podman/podman.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
 You may need to enable the Podman socket service first:
@@ -230,23 +230,23 @@ sudo systemctl enable --now podman.socket
 
 | Variable | Description |
 |----------|-------------|
-| `MOLTIS_CONFIG_DIR` | Override config directory (default: `~/.config/moltis`) |
-| `MOLTIS_DATA_DIR` | Override data directory (default: `~/.moltis`) |
+| `LEETIUM_CONFIG_DIR` | Override config directory (default: `~/.config/leetium`) |
+| `LEETIUM_DATA_DIR` | Override data directory (default: `~/.leetium`) |
 
 Example:
 
 ```bash
 docker run -d \
-  --name moltis \
+  --name leetium \
   -p 13131:13131 \
   -p 13132:13132 \
   -p 1455:1455 \
-  -e MOLTIS_CONFIG_DIR=/config \
-  -e MOLTIS_DATA_DIR=/data \
+  -e LEETIUM_CONFIG_DIR=/config \
+  -e LEETIUM_DATA_DIR=/data \
   -v ./config:/config \
   -v ./data:/data \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
 ### API Keys and the `[env]` Section
@@ -259,17 +259,17 @@ two ways to provide these:
 
 ```bash
 docker run -d \
-  --name moltis \
+  --name leetium \
   -e BRAVE_API_KEY=your-key \
   -e OPENROUTER_API_KEY=sk-or-... \
   ...
-  ghcr.io/moltis-org/moltis:latest
+  ghcr.io/1337leetium/leetium:latest
 ```
 
-**Option 2: `[env]` section in `moltis.toml`**
+**Option 2: `[env]` section in `leetium.toml`**
 
 Add an `[env]` section to your config file. These variables are injected into
-the Moltis process at startup, making them available to all features:
+the Leetium process at startup, making them available to all features:
 
 ```toml
 [env]
@@ -282,7 +282,7 @@ environment value wins — `[env]` never overwrites existing variables.
 
 ```admonish info title="Settings UI env vars"
 Environment variables set through the Settings UI (Settings > Environment)
-are stored in SQLite. At startup, Moltis injects them into the process
+are stored in SQLite. At startup, Leetium injects them into the process
 environment so they are available to all features (search, embeddings,
 provider API calls), not just sandbox commands.
 
@@ -298,10 +298,10 @@ To build the Docker image from source:
 
 ```bash
 # Single architecture (current platform)
-docker build -t moltis:local .
+docker build -t leetium:local .
 
 # Multi-architecture (requires buildx)
-docker buildx build --platform linux/amd64,linux/arm64 -t moltis:local .
+docker buildx build --platform linux/amd64,linux/arm64 -t leetium:local .
 ```
 
 ## OrbStack
@@ -314,11 +314,11 @@ isolation with lower resource usage than Docker Desktop.
 
 ### "Cannot connect to Docker daemon"
 
-The Docker socket is not mounted or the Moltis user doesn't have permission
+The Docker socket is not mounted or the Leetium user doesn't have permission
 to access it. Verify:
 
 ```bash
-docker exec moltis ls -la /var/run/docker.sock
+docker exec leetium ls -la /var/run/docker.sock
 ```
 
 ### Setup code not appearing in logs (for network access)
@@ -326,7 +326,7 @@ docker exec moltis ls -la /var/run/docker.sock
 The setup code only appears when accessing from a non-localhost address. If you're accessing from the same machine via `localhost`, no setup code is needed. For network access, wait a few seconds for the gateway to start, then check logs:
 
 ```bash
-docker logs moltis 2>&1 | grep -i setup
+docker logs leetium 2>&1 | grep -i setup
 ```
 
 ### OAuth authentication error (OpenAI Codex)
@@ -338,12 +338,12 @@ page, port 1455 is not reachable from your browser. Make sure you published it:
 -p 1455:1455
 ```
 
-If you're running Moltis on a remote server (cloud VM, VPS) and accessing it
+If you're running Leetium on a remote server (cloud VM, VPS) and accessing it
 over the network, `localhost:1455` on the browser side points to your local
 machine — not the server. In that case, authenticate via the CLI instead:
 
 ```bash
-docker exec -it moltis moltis auth login --provider openai-codex
+docker exec -it leetium leetium auth login --provider openai-codex
 ```
 
 The CLI opens a browser on the machine where you run the command and handles
@@ -359,7 +359,7 @@ mkdir -p ./config ./data
 chmod 755 ./config ./data
 ```
 
-The container runs as user `moltis` (UID 1000). If you see permission errors,
+The container runs as user `leetium` (UID 1000). If you see permission errors,
 you may need to adjust ownership:
 
 ```bash

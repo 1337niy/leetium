@@ -1,45 +1,45 @@
 {
   "catalog_version": "2026-02-22",
-  "provider": "moltis.org",
+  "provider": "leetnex.ru",
   "apis": [
     {
-      "id": "moltis-install-discovery",
-      "name": "Moltis Install Discovery",
+      "id": "leetium-install-discovery",
+      "name": "Leetium Install Discovery",
       "description": "Machine-readable install/import/start contract with stable channel and per-release manifests",
-      "base_url": "https://moltis.org",
+      "base_url": "https://leetnex.ru",
       "endpoints": [
         {
-          "path": "/.well-known/moltis-install.json",
+          "path": "/.well-known/leetium-install.json",
           "method": "GET",
           "content_type": "application/json"
         },
         {
-          "path": "/.well-known/moltis-install.schema.json",
+          "path": "/.well-known/leetium-install.schema.json",
           "method": "GET",
           "content_type": "application/schema+json"
         },
         {
-          "path": "/.well-known/moltis-install.channel.schema.json",
+          "path": "/.well-known/leetium-install.channel.schema.json",
           "method": "GET",
           "content_type": "application/schema+json"
         },
         {
-          "path": "/.well-known/moltis-install.release.schema.json",
+          "path": "/.well-known/leetium-install.release.schema.json",
           "method": "GET",
           "content_type": "application/schema+json"
         },
         {
-          "path": "/.well-known/moltis-install/channels/stable.json",
+          "path": "/.well-known/leetium-install/channels/stable.json",
           "method": "GET",
           "content_type": "application/json"
         },
         {
-          "path": "/.well-known/moltis-install/releases/{version}.json",
+          "path": "/.well-known/leetium-install/releases/{version}.json",
           "method": "GET",
           "content_type": "application/json"
         }
       ],
-      "docs_url": "https://moltis.org/llms.txt"
+      "docs_url": "https://leetnex.ru/llms.txt"
     }
   ]
 }

@@ -4,7 +4,7 @@ use {async_trait::async_trait, futures::StreamExt, secrecy::ExposeSecret, tokio_
 
 use tracing::{debug, trace, warn};
 
-use moltis_agents::model::{
+use leetium_agents::model::{
     ChatMessage, CompletionResponse, ContentPart, LlmProvider, StreamEvent, ToolCall, Usage,
     UserContent,
 };
@@ -24,7 +24,7 @@ impl AnthropicProvider {
             api_key,
             model,
             base_url,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             alias: None,
         }
     }
@@ -40,7 +40,7 @@ impl AnthropicProvider {
             api_key,
             model,
             base_url,
-            client: crate::shared_http_client(),
+            client: leetium_common::http::shared_http_client(),
             alias,
         }
     }

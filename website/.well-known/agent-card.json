@@ -1,7 +1,7 @@
 {
-  "name": "Moltis Install Profile",
-  "description": "Discovery metadata for agents that want to install and bootstrap Moltis.",
-  "url": "https://moltis.org",
+  "name": "Leetium Install Profile",
+  "description": "Discovery metadata for agents that want to install and bootstrap Leetium.",
+  "url": "https://leetnex.ru",
   "version": "1.1.0",
   "default_input_modes": [
     "text/plain"
@@ -12,23 +12,23 @@
   ],
   "skills": [
     {
-      "id": "install-moltis",
-      "name": "Install Moltis",
-      "description": "Install Moltis via install.sh"
+      "id": "install-leetium",
+      "name": "Install Leetium",
+      "description": "Install Leetium via install.sh"
     },
     {
       "id": "import-openclaw",
       "name": "Import OpenClaw",
-      "description": "Run Moltis OpenClaw import commands and return structured status"
+      "description": "Run Leetium OpenClaw import commands and return structured status"
     }
   ],
   "links": {
-    "install_root_manifest": "https://moltis.org/.well-known/moltis-install.json",
-    "install_root_schema": "https://moltis.org/.well-known/moltis-install.schema.json",
-    "install_channel_schema": "https://moltis.org/.well-known/moltis-install.channel.schema.json",
-    "install_release_schema": "https://moltis.org/.well-known/moltis-install.release.schema.json",
-    "install_stable_channel": "https://moltis.org/.well-known/moltis-install/channels/stable.json",
-    "llms_txt": "https://moltis.org/llms.txt",
-    "docs": "https://docs.moltis.org"
+    "install_root_manifest": "https://leetnex.ru/.well-known/leetium-install.json",
+    "install_root_schema": "https://leetnex.ru/.well-known/leetium-install.schema.json",
+    "install_channel_schema": "https://leetnex.ru/.well-known/leetium-install.channel.schema.json",
+    "install_release_schema": "https://leetnex.ru/.well-known/leetium-install.release.schema.json",
+    "install_stable_channel": "https://leetnex.ru/.well-known/leetium-install/channels/stable.json",
+    "llms_txt": "https://leetnex.ru/llms.txt",
+    "docs": "https://docs.leetnex.ru"
   }
 }

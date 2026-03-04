@@ -1,85 +1,85 @@
 [package]
 description       = "Personal AI gateway inspired by OpenClaw"
 edition.workspace = true
-homepage          = "https://www.moltis.org/"
+homepage          = "https://www.leetnex.ru/"
 license           = "MIT"
-name              = "moltis"
-repository        = "https://github.com/moltis-org/moltis"
+name              = "leetium"
+repository        = "https://github.com/1337leetium/leetium"
 version.workspace = true
 
 [package.metadata.deb]
 assets = [
   [
-    "target/release/moltis",
+    "target/release/leetium",
     "usr/bin/",
     "755",
   ],
   [
     "crates/web/src/assets/**/*",
-    "usr/share/moltis/web/",
+    "usr/share/leetium/web/",
     "644",
   ],
   [
-    "target/wasm32-wasip2/release/moltis_wasm_calc.wasm",
-    "usr/share/moltis/wasm/",
+    "target/wasm32-wasip2/release/leetium_wasm_calc.wasm",
+    "usr/share/leetium/wasm/",
     "644",
   ],
   [
-    "target/wasm32-wasip2/release/moltis_wasm_web_fetch.wasm",
-    "usr/share/moltis/wasm/",
+    "target/wasm32-wasip2/release/leetium_wasm_web_fetch.wasm",
+    "usr/share/leetium/wasm/",
     "644",
   ],
   [
-    "target/wasm32-wasip2/release/moltis_wasm_web_search.wasm",
-    "usr/share/moltis/wasm/",
+    "target/wasm32-wasip2/release/leetium_wasm_web_search.wasm",
+    "usr/share/leetium/wasm/",
     "644",
   ],
 ]
-copyright = "2025, Moltis Contributors"
+copyright = "2025, Leetium Contributors"
 depends = "$auto"
-maintainer = "Moltis Contributors"
-name = "moltis"
+maintainer = "Leetium Contributors"
+name = "leetium"
 priority = "optional"
 section = "net"
 
 [package.metadata.generate-rpm]
 assets = [
-  { dest = "/usr/bin/moltis", mode = "0755", source = "target/release/moltis" },
-  { dest = "/usr/share/moltis/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/moltis_wasm_calc.wasm" },
-  { dest = "/usr/share/moltis/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/moltis_wasm_web_fetch.wasm" },
-  { dest = "/usr/share/moltis/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/moltis_wasm_web_search.wasm" },
-  { dest = "/usr/share/moltis/web/", mode = "0644", source = "crates/web/src/assets/**/*" },
+  { dest = "/usr/bin/leetium", mode = "0755", source = "target/release/leetium" },
+  { dest = "/usr/share/leetium/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/leetium_wasm_calc.wasm" },
+  { dest = "/usr/share/leetium/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/leetium_wasm_web_fetch.wasm" },
+  { dest = "/usr/share/leetium/wasm/", mode = "0644", source = "target/wasm32-wasip2/release/leetium_wasm_web_search.wasm" },
+  { dest = "/usr/share/leetium/web/", mode = "0644", source = "crates/web/src/assets/**/*" },
 ]
 license = "MIT"
-name = "moltis"
+name = "leetium"
 summary = "Personal AI gateway inspired by OpenClaw"
-url = "https://www.moltis.org/"
+url = "https://www.leetnex.ru/"
 
 [[bin]]
-name = "moltis"
+name = "leetium"
 path = "src/main.rs"
 
 [dependencies]
 anyhow                 = { workspace = true }
 clap                   = { workspace = true }
 dotenvy                = { workspace = true }
-moltis-agents          = { workspace = true }
-moltis-browser         = { workspace = true }
-moltis-common          = { workspace = true }
-moltis-config          = { workspace = true }
-moltis-cron            = { workspace = true }
-moltis-gateway         = { workspace = true }
-moltis-memory          = { workspace = true }
-moltis-node-host       = { workspace = true }
-moltis-oauth           = { workspace = true }
-moltis-onboarding      = { workspace = true }
-moltis-openclaw-import = { optional = true, workspace = true }
-moltis-plugins         = { workspace = true }
-moltis-projects        = { workspace = true }
-moltis-sessions        = { workspace = true }
-moltis-skills          = { workspace = true }
-moltis-tools           = { workspace = true }
-moltis-web             = { optional = true, workspace = true }
+leetium-agents          = { workspace = true }
+leetium-browser         = { workspace = true }
+leetium-common          = { workspace = true }
+leetium-config          = { workspace = true }
+leetium-cron            = { workspace = true }
+leetium-gateway         = { workspace = true }
+leetium-memory          = { workspace = true }
+leetium-node-host       = { workspace = true }
+leetium-oauth           = { workspace = true }
+leetium-onboarding      = { workspace = true }
+leetium-openclaw-import = { optional = true, workspace = true }
+leetium-plugins         = { workspace = true }
+leetium-projects        = { workspace = true }
+leetium-sessions        = { workspace = true }
+leetium-skills          = { workspace = true }
+leetium-tools           = { workspace = true }
+leetium-web             = { optional = true, workspace = true }
 open                   = { workspace = true }
 rand                   = { workspace = true }
 reqwest                = { workspace = true }
@@ -89,6 +89,7 @@ sqlx                   = { workspace = true }
 time                   = { workspace = true }
 tokio                  = { workspace = true }
 tracing                = { workspace = true }
+tracing-appender       = { workspace = true }
 tracing-subscriber     = { workspace = true }
 uuid                   = { workspace = true }
 which                  = { workspace = true }
@@ -100,8 +101,8 @@ tikv-jemallocator = { optional = true, workspace = true }
 tempfile = { workspace = true }
 
 [features]
-agent = ["moltis-gateway/agent", "moltis-web?/agent"]
-caldav = ["moltis-gateway/caldav"]
+agent = ["leetium-gateway/agent", "leetium-web?/agent"]
+caldav = ["leetium-gateway/caldav"]
 default = [
   "agent",
   "caldav",
@@ -124,48 +125,47 @@ default = [
   "vault",
   "voice",
   "web-ui",
-  "whatsapp",
 ]
 # Minimal build for memory-constrained devices (Raspberry Pi, etc.).
 # Build with: cargo build --release --no-default-features --features lightweight
-code-splitter   = ["moltis-memory/code-splitter"]
-embedded-assets = ["moltis-web?/embedded-assets"]
-embedded-wasm   = ["moltis-tools/embedded-wasm"]
-file-watcher    = ["moltis-gateway/file-watcher"]
-graphql         = ["moltis-gateway/graphql", "moltis-web?/graphql"]
+code-splitter   = ["leetium-memory/code-splitter"]
+embedded-assets = ["leetium-web?/embedded-assets"]
+embedded-wasm   = ["leetium-tools/embedded-wasm"]
+file-watcher    = ["leetium-gateway/file-watcher"]
+graphql         = ["leetium-gateway/graphql", "leetium-web?/graphql"]
 jemalloc        = ["dep:tikv-jemallocator"]
-lang-bash       = ["moltis-memory/lang-bash"]
-lang-c          = ["moltis-memory/lang-c"]
-lang-cpp        = ["moltis-memory/lang-cpp"]
-lang-css        = ["moltis-memory/lang-css"]
-lang-html       = ["moltis-memory/lang-html"]
-lang-java       = ["moltis-memory/lang-java"]
-lang-json       = ["moltis-memory/lang-json"]
-lang-markdown   = ["moltis-memory/lang-markdown"]
-lang-ruby       = ["moltis-memory/lang-ruby"]
-lang-toml       = ["moltis-memory/lang-toml"]
-lang-typescript = ["moltis-memory/lang-typescript"]
+lang-bash       = ["leetium-memory/lang-bash"]
+lang-c          = ["leetium-memory/lang-c"]
+lang-cpp        = ["leetium-memory/lang-cpp"]
+lang-css        = ["leetium-memory/lang-css"]
+lang-html       = ["leetium-memory/lang-html"]
+lang-java       = ["leetium-memory/lang-java"]
+lang-json       = ["leetium-memory/lang-json"]
+lang-markdown   = ["leetium-memory/lang-markdown"]
+lang-ruby       = ["leetium-memory/lang-ruby"]
+lang-toml       = ["leetium-memory/lang-toml"]
+lang-typescript = ["leetium-memory/lang-typescript"]
 # jemalloc is intentionally unavailable on linux/aarch64 to avoid runtime
 # crashes on 16 KiB page kernels (e.g. Raspberry Pi OS variants).
 lightweight        = ["jemalloc", "tls", "web-ui"]
-local-llm          = ["moltis-gateway/local-llm"]
-local-llm-cuda     = ["local-llm", "moltis-gateway/local-llm-cuda"]
-local-llm-metal    = ["local-llm", "moltis-gateway/local-llm-metal"]
-mdns               = ["moltis-gateway/mdns"]
-metrics            = ["moltis-gateway/metrics", "moltis-web?/metrics"]
-openclaw-import    = ["dep:moltis-openclaw-import", "moltis-gateway/openclaw-import"]
-prometheus         = ["moltis-gateway/prometheus"]
-push-notifications = ["moltis-gateway/push-notifications", "moltis-web?/push-notifications"]
-qmd                = ["moltis-gateway/qmd"]
-slack              = ["moltis-gateway/slack"]
-tailscale          = ["moltis-gateway/tailscale", "moltis-web?/tailscale"]
-tls                = ["moltis-gateway/tls"]
-trusted-network    = ["moltis-gateway/trusted-network"]
-vault              = ["moltis-gateway/vault", "moltis-web?/vault"]
-voice              = ["moltis-gateway/voice", "moltis-web?/voice"]
-wasm               = ["moltis-tools/wasm"]
-web-ui             = ["dep:moltis-web", "moltis-gateway/web-ui"]
-whatsapp           = ["moltis-gateway/whatsapp"]
+local-llm          = ["leetium-gateway/local-llm"]
+local-llm-cuda     = ["local-llm", "leetium-gateway/local-llm-cuda"]
+local-llm-metal    = ["local-llm", "leetium-gateway/local-llm-metal"]
+mdns               = ["leetium-gateway/mdns"]
+metrics            = ["leetium-gateway/metrics", "leetium-web?/metrics"]
+openclaw-import    = ["dep:leetium-openclaw-import", "leetium-gateway/openclaw-import"]
+prometheus         = ["leetium-gateway/prometheus"]
+push-notifications = ["leetium-gateway/push-notifications", "leetium-web?/push-notifications"]
+qmd                = ["leetium-gateway/qmd"]
+slack              = ["leetium-gateway/slack"]
+tailscale          = ["leetium-gateway/tailscale", "leetium-web?/tailscale"]
+tls                = ["leetium-gateway/tls"]
+trusted-network    = ["leetium-gateway/trusted-network"]
+vault              = ["leetium-gateway/vault", "leetium-web?/vault"]
+voice              = ["leetium-gateway/voice", "leetium-web?/voice"]
+wasm               = ["leetium-tools/wasm"]
+web-ui             = ["dep:leetium-web", "leetium-gateway/web-ui"]
+whatsapp           = ["leetium-gateway/whatsapp"]
 
 [lints]
 workspace = true

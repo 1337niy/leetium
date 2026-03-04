@@ -1,6 +1,6 @@
 # Channels
 
-Moltis connects to messaging platforms through **channels**. Each channel type
+Leetium connects to messaging platforms through **channels**. Each channel type
 has a distinct inbound mode, determining how it receives messages, and a set of
 capabilities that control what features are available.
 
@@ -60,7 +60,7 @@ integrations (e.g. email, SMS).
 
 ## Setup
 
-Each channel is configured in `moltis.toml` under `[channels]`:
+Each channel is configured in `leetium.toml` under `[channels]`:
 
 ```toml
 [channels.telegram.my_bot]

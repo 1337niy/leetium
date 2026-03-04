@@ -1,11 +1,11 @@
 use {anyhow::Result, clap::Subcommand, std::time::Duration};
 
-/// `moltis node` subcommands — manage remote nodes.
+/// `leetium node` subcommands — manage remote nodes.
 #[derive(Subcommand)]
 pub enum NodeAction {
     /// Generate a device token so a remote machine can connect as a node.
     ///
-    /// Prints the token and the `moltis node add` command to run on the
+    /// Prints the token and the `leetium node add` command to run on the
     /// remote machine. This is the CLI equivalent of clicking "Generate Token"
     /// on the web UI Nodes page.
     GenerateToken {
@@ -16,7 +16,7 @@ pub enum NodeAction {
         #[arg(long, default_value = "http://localhost:9090")]
         host: String,
         /// API key or password for authentication.
-        #[arg(long, env = "MOLTIS_API_KEY")]
+        #[arg(long, env = "LEETIUM_API_KEY")]
         api_key: Option<String>,
     },
 
@@ -26,7 +26,7 @@ pub enum NodeAction {
         #[arg(long, default_value = "http://localhost:9090")]
         host: String,
         /// API key or password for authentication.
-        #[arg(long, env = "MOLTIS_API_KEY")]
+        #[arg(long, env = "LEETIUM_API_KEY")]
         api_key: Option<String>,
     },
 
@@ -37,10 +37,10 @@ pub enum NodeAction {
     /// Pass --foreground to run in the current terminal instead.
     Add {
         /// Gateway WebSocket URL (e.g. ws://your-server:9090/ws).
-        #[arg(long, env = "MOLTIS_GATEWAY_URL")]
+        #[arg(long, env = "LEETIUM_GATEWAY_URL")]
         host: String,
-        /// Device token from `moltis node generate-token`.
-        #[arg(long, env = "MOLTIS_DEVICE_TOKEN")]
+        /// Device token from `leetium node generate-token`.
+        #[arg(long, env = "LEETIUM_DEVICE_TOKEN")]
         token: String,
         /// Display name for this node.
         #[arg(long)]
@@ -91,7 +91,7 @@ pub async fn handle_node(action: NodeAction) -> Result<()> {
             let resolved_node_id = node_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
             if foreground {
-                let config = moltis_node_host::NodeConfig {
+                let config = leetium_node_host::NodeConfig {
                     gateway_url: host,
                     device_token: token,
                     node_id: resolved_node_id,
@@ -111,11 +111,11 @@ pub async fn handle_node(action: NodeAction) -> Result<()> {
                     working_dir,
                 };
 
-                let node = moltis_node_host::NodeHost::new(config);
+                let node = leetium_node_host::NodeHost::new(config);
                 node.run().await
             } else {
-                let data_dir = moltis_config::data_dir();
-                let svc_config = moltis_node_host::ServiceConfig {
+                let data_dir = leetium_config::data_dir();
+                let svc_config = leetium_node_host::ServiceConfig {
                     gateway_url: host,
                     device_token: token,
                     node_id: Some(resolved_node_id),
@@ -124,25 +124,25 @@ pub async fn handle_node(action: NodeAction) -> Result<()> {
                     timeout,
                 };
 
-                moltis_node_host::service::install(&data_dir, &svc_config)?;
+                leetium_node_host::service::install(&data_dir, &svc_config)?;
                 println!("Node registered and service started.");
                 println!(
                     "Logs: {}",
-                    moltis_node_host::service::log_path(&data_dir).display()
+                    leetium_node_host::service::log_path(&data_dir).display()
                 );
                 Ok(())
             }
         },
 
         NodeAction::Remove => {
-            let data_dir = moltis_config::data_dir();
-            moltis_node_host::service::uninstall(&data_dir)?;
+            let data_dir = leetium_config::data_dir();
+            leetium_node_host::service::uninstall(&data_dir)?;
             println!("Node removed.");
             Ok(())
         },
 
         NodeAction::Status => {
-            let data_dir = moltis_config::data_dir();
+            let data_dir = leetium_config::data_dir();
             let config_path = data_dir.join("node.json");
 
             if !config_path.exists() {
@@ -150,8 +150,8 @@ pub async fn handle_node(action: NodeAction) -> Result<()> {
                 return Ok(());
             }
 
-            let config = moltis_node_host::ServiceConfig::load(&data_dir)?;
-            let status = moltis_node_host::service::status()?;
+            let config = leetium_node_host::ServiceConfig::load(&data_dir)?;
+            let status = leetium_node_host::service::status()?;
 
             println!("Gateway: {}", config.gateway_url);
             if let Some(ref name) = config.display_name {
@@ -162,10 +162,10 @@ pub async fn handle_node(action: NodeAction) -> Result<()> {
         },
 
         NodeAction::Logs => {
-            let data_dir = moltis_config::data_dir();
+            let data_dir = leetium_config::data_dir();
             println!(
                 "{}",
-                moltis_node_host::service::log_path(&data_dir).display()
+                leetium_node_host::service::log_path(&data_dir).display()
             );
             Ok(())
         },
@@ -194,7 +194,7 @@ async fn cmd_generate_token(host: &str, api_key: Option<&str>, name: Option<&str
     println!("Device token: {token}");
     println!();
     println!("Run this on the remote machine:");
-    println!("  moltis node add --host {ws_url} --token {token}");
+    println!("  leetium node add --host {ws_url} --token {token}");
     println!();
     println!("The token is shown once and cannot be retrieved later.");
 
@@ -247,7 +247,7 @@ async fn gateway_rpc(
         "params": params,
     });
 
-    let client = reqwest::Client::new();
+    let client = leetium_common::http::shared_http_client().clone();
     let mut req = client.post(&url).json(&body);
     if let Some(key) = api_key {
         req = req.header("Authorization", format!("Bearer {key}"));

@@ -7,7 +7,7 @@
 use {
     async_trait::async_trait,
     base64::{Engine as _, engine::general_purpose::STANDARD as BASE64},
-    moltis_agents::tool_registry::AgentTool,
+    leetium_agents::tool_registry::AgentTool,
     serde_json::{Value, json},
     std::{
         path::{Path, PathBuf},
@@ -25,7 +25,7 @@ use crate::{exec::ExecOpts, sandbox::SandboxRouter};
 const MAX_FILE_SIZE: u64 = 20 * 1024 * 1024;
 /// Enough for a 20 MB binary image encoded as base64 (~26.7 MB) plus margin.
 const MAX_SANDBOX_OUTPUT_BYTES: usize = 32 * 1024 * 1024;
-const SANDBOX_TOO_LARGE_PREFIX: &str = "__MOLTIS_SEND_IMAGE_TOO_LARGE__:";
+const SANDBOX_TOO_LARGE_PREFIX: &str = "__LEETIUM_SEND_IMAGE_TOO_LARGE__:";
 
 /// Image-sending tool.
 #[derive(Default)]

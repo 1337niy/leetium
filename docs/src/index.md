@@ -1,23 +1,23 @@
-# Moltis
+# Leetium
 
 ```admonish warning title="Alpha software: use with care"
-Running an AI assistant on your own machine or server is still new territory. Treat Moltis as alpha software: run it in isolated environments, review enabled tools/providers, keep secrets scoped and rotated, and avoid exposing it publicly without strong authentication and network controls.
+Running an AI assistant on your own machine or server is still new territory. Treat Leetium as alpha software: run it in isolated environments, review enabled tools/providers, keep secrets scoped and rotated, and avoid exposing it publicly without strong authentication and network controls.
 ```
 
 <div style="text-align: center; margin: 2em 0;">
 <strong style="font-size: 1.2em;">A personal AI gateway written in Rust.<br>One binary, no runtime, no npm.</strong>
 </div>
 
-Moltis compiles your entire AI gateway — web UI, LLM providers, tools, and all assets — into a single self-contained executable. There's no Node.js to babysit, no `node_modules` to sync, no V8 garbage collector introducing latency spikes.
+Leetium compiles your entire AI gateway — web UI, LLM providers, tools, and all assets — into a single self-contained executable. There's no Node.js to babysit, no `node_modules` to sync, no V8 garbage collector introducing latency spikes.
 
 ```bash
 # Quick install (macOS / Linux)
-curl -fsSL https://www.moltis.org/install.sh | sh
+curl -fsSL https://www.leetnex.ru/install.sh | sh
 ```
 
-## Why Moltis?
+## Why Leetium?
 
-| Feature | Moltis | Other Solutions |
+| Feature | Leetium | Other Solutions |
 |---------|--------|-----------------|
 | **Deployment** | Single binary | Node.js + dependencies |
 | **Memory Safety** | Rust ownership | Garbage collection |
@@ -43,10 +43,10 @@ See the full list of [supported providers](providers.md).
 
 ```bash
 # Install
-curl -fsSL https://www.moltis.org/install.sh | sh
+curl -fsSL https://www.leetnex.ru/install.sh | sh
 
 # Run
-moltis
+leetium
 ```
 
 On first launch:
@@ -55,7 +55,7 @@ On first launch:
 3. Start chatting!
 
 ```admonish note
-Authentication is only required when accessing Moltis from a non-localhost address. On localhost, you can start using it immediately.
+Authentication is only required when accessing Leetium from a non-localhost address. On localhost, you can start using it immediately.
 ```
 
 → [Full Quickstart Guide](quickstart.md)
@@ -71,7 +71,7 @@ Authentication is only required when accessing Moltis from a non-localhost addre
                              │
                              ▼
         ┌───────────────────────────────┐
-        │       Moltis Gateway          │
+        │       Leetium Gateway          │
         │   ┌─────────┐ ┌───────────┐   │
         │   │  Agent  │ │   Tools   │   │
         │   │  Loop   │◄┤  Registry │   │
@@ -94,7 +94,7 @@ Authentication is only required when accessing Moltis from a non-localhost addre
 ### Getting Started
 - **[Quickstart](quickstart.md)** — Up and running in 5 minutes
 - **[Installation](installation.md)** — All installation methods
-- **[Configuration](configuration.md)** — `moltis.toml` reference
+- **[Configuration](configuration.md)** — `leetium.toml` reference
 - **[End-to-End Testing](e2e-testing.md)** — Browser regression coverage for the web UI
 
 ### Features
@@ -112,7 +112,7 @@ Authentication is only required when accessing Moltis from a non-localhost addre
 
 ## Security
 
-Moltis applies defense in depth:
+Leetium applies defense in depth:
 
 - **Authentication** — Password or passkey (WebAuthn) required for non-localhost access
 - **SSRF Protection** — Blocks requests to internal networks
@@ -123,9 +123,9 @@ Moltis applies defense in depth:
 
 ## Community
 
-- **GitHub**: [github.com/moltis-org/moltis](https://github.com/moltis-org/moltis)
-- **Issues**: [Report bugs](https://github.com/moltis-org/moltis/issues)
-- **Discussions**: [Ask questions](https://github.com/moltis-org/moltis/discussions)
+- **GitHub**: [github.com/1337leetium/leetium](https://github.com/1337leetium/leetium)
+- **Issues**: [Report bugs](https://github.com/1337leetium/leetium/issues)
+- **Discussions**: [Ask questions](https://github.com/1337leetium/leetium/discussions)
 
 ## License
 

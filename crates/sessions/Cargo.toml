@@ -1,16 +1,16 @@
 [package]
 edition.workspace = true
-name              = "moltis-sessions"
+name              = "leetium-sessions"
 version.workspace = true
 
 [features]
 default = ["metrics"]
-metrics = ["dep:moltis-metrics"]
+metrics = ["dep:leetium-metrics"]
 
 [dependencies]
 fd-lock        = { workspace = true }
-moltis-common  = { workspace = true }
-moltis-metrics = { optional = true, workspace = true }
+leetium-common  = { workspace = true }
+leetium-metrics = { optional = true, workspace = true }
 serde          = { workspace = true }
 serde_json     = { workspace = true }
 sqlx           = { workspace = true }

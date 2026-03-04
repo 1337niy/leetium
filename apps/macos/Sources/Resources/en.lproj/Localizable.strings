@@ -1,4 +1,4 @@
-"Moltis" = "Moltis";
+"Leetium" = "Leetium";
 "Settings" = "Settings";
 "Settings..." = "Settings...";
 
@@ -170,7 +170,7 @@
 "Local" = "Local";
 "Enable voice" = "Enable voice";
 
-"The HTTP server runs the full Moltis gateway — web UI, REST API, and WebSocket — on your local machine. Open the address in a browser to use the web interface." = "The HTTP server runs the full Moltis gateway — web UI, REST API, and WebSocket — on your local machine. Open the address in a browser to use the web interface.";
+"The HTTP server runs the full Leetium gateway — web UI, REST API, and WebSocket — on your local machine. Open the address in a browser to use the web interface." = "The HTTP server runs the full Leetium gateway — web UI, REST API, and WebSocket — on your local machine. Open the address in a browser to use the web interface.";
 "Enable HTTP server" = "Enable HTTP server";
 "Bind address" = "Bind address";
 "Loopback (127.0.0.1)" = "Loopback (127.0.0.1)";

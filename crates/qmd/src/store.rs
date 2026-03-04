@@ -1,13 +1,13 @@
 //! QMD implementation of the MemoryStore trait.
 //!
-//! This provides a bridge between the moltis memory system and the QMD backend,
+//! This provides a bridge between the leetium memory system and the QMD backend,
 //! allowing QMD to be used as an alternative to the built-in SQLite store.
 
 use std::sync::Arc;
 
 use {
     async_trait::async_trait,
-    moltis_memory::{
+    leetium_memory::{
         schema::{ChunkRow, FileRow},
         search::SearchResult,
         store::{CacheEntry, MemoryStore},
@@ -51,7 +51,7 @@ impl QmdStore {
         self
     }
 
-    /// Convert a QMD search result to a moltis SearchResult.
+    /// Convert a QMD search result to a leetium SearchResult.
     fn convert_result(qmd_result: &crate::manager::QmdSearchResult) -> SearchResult {
         // Extract chunk ID from path and line
         let chunk_id = format!("{}:{}", qmd_result.path, qmd_result.line);

@@ -116,8 +116,8 @@ function buildHtml(contentHtml) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <title>Moltis Statement</title>
-  <meta name="description" content="Why Moltis exists and why it is built in Rust.">
+  <title>Leetium Statement</title>
+  <meta name="description" content="Why Leetium exists and why it is built in Rust.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

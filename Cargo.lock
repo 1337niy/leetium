@@ -861,13 +861,13 @@ dependencies = [
 
 [[package]]
 name = "benchmarks"
-version = "0.10.11"
+version = "0.1.0"
 dependencies = [
  "codspeed-divan-compat",
- "moltis-agents",
- "moltis-config",
- "moltis-providers",
- "moltis-sessions",
+ "leetium-agents",
+ "leetium-config",
+ "leetium-providers",
+ "leetium-sessions",
  "serde_json",
  "tempfile",
  "toml",
@@ -5294,6 +5294,1156 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
+name = "leetium"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dotenvy",
+ "leetium-agents",
+ "leetium-browser",
+ "leetium-common",
+ "leetium-config",
+ "leetium-cron",
+ "leetium-gateway",
+ "leetium-memory",
+ "leetium-node-host",
+ "leetium-oauth",
+ "leetium-onboarding",
+ "leetium-openclaw-import",
+ "leetium-plugins",
+ "leetium-projects",
+ "leetium-sessions",
+ "leetium-skills",
+ "leetium-tools",
+ "leetium-web",
+ "open",
+ "rand 0.9.2",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "tikv-jemallocator",
+ "time",
+ "tokio",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "uuid",
+ "which 8.0.0",
+]
+
+[[package]]
+name = "leetium-agents"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "axum",
+ "futures",
+ "http 1.4.0",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "leetium-sessions",
+ "leetium-skills",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-auth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "async-trait",
+ "axum",
+ "base64 0.22.1",
+ "dashmap 6.1.0",
+ "leetium-config",
+ "leetium-tools",
+ "leetium-vault",
+ "openssl",
+ "password-hash",
+ "rand 0.9.2",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "webauthn-rs",
+ "webauthn-rs-proto",
+]
+
+[[package]]
+name = "leetium-auto-reply"
+version = "0.1.0"
+dependencies = [
+ "leetium-agents",
+ "leetium-common",
+ "leetium-metrics",
+ "leetium-routing",
+ "leetium-sessions",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-browser"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "chromiumoxide",
+ "futures",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+ "which 8.0.0",
+]
+
+[[package]]
+name = "leetium-caldav"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "http 1.4.0",
+ "hyper 1.8.1",
+ "hyper-rustls 0.27.7",
+ "hyper-util",
+ "icalendar",
+ "leetium-agents",
+ "leetium-config",
+ "libdav",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tower-service",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-canvas"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "leetium-common",
+ "leetium-metrics",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-channels"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "http 1.4.0",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-chat"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "chrono",
+ "chrono-tz",
+ "futures",
+ "leetium-agents",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-config",
+ "leetium-memory",
+ "leetium-metrics",
+ "leetium-plugins",
+ "leetium-projects",
+ "leetium-providers",
+ "leetium-service-traits",
+ "leetium-sessions",
+ "leetium-skills",
+ "leetium-telegram",
+ "leetium-tools",
+ "leetium-voice",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "toml",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-common"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "leetium-metrics",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono-tz",
+ "directories",
+ "futures",
+ "ipnet",
+ "leetium-metrics",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml",
+ "toml_edit 0.22.27",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-courier"
+version = "0.1.0"
+dependencies = [
+ "a2",
+ "anyhow",
+ "axum",
+ "clap",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "leetium-cron"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "chrono-tz",
+ "cron",
+ "leetium-agents",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "rstest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-discord"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "image",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-media",
+ "leetium-metrics",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "serenity",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-gateway"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "async-trait",
+ "axum",
+ "axum-extra",
+ "axum-server",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "chrono-tz",
+ "dashmap 6.1.0",
+ "futures",
+ "gix",
+ "hostname",
+ "hyper 1.8.1",
+ "hyper-util",
+ "include_dir",
+ "leetium-agents",
+ "leetium-auth",
+ "leetium-browser",
+ "leetium-caldav",
+ "leetium-canvas",
+ "leetium-channels",
+ "leetium-chat",
+ "leetium-common",
+ "leetium-config",
+ "leetium-cron",
+ "leetium-discord",
+ "leetium-graphql",
+ "leetium-mcp",
+ "leetium-media",
+ "leetium-memory",
+ "leetium-metrics",
+ "leetium-msteams",
+ "leetium-network-filter",
+ "leetium-oauth",
+ "leetium-onboarding",
+ "leetium-openclaw-import",
+ "leetium-plugins",
+ "leetium-projects",
+ "leetium-protocol",
+ "leetium-provider-setup",
+ "leetium-providers",
+ "leetium-qmd",
+ "leetium-routing",
+ "leetium-service-traits",
+ "leetium-sessions",
+ "leetium-skills",
+ "leetium-slack",
+ "leetium-tailscale",
+ "leetium-telegram",
+ "leetium-tls",
+ "leetium-tools",
+ "leetium-vault",
+ "leetium-voice",
+ "leetium-web",
+ "leetium-whatsapp",
+ "mdns-sd",
+ "p256",
+ "portable-pty",
+ "pulldown-cmark 0.12.2",
+ "qrcode",
+ "rand 0.9.2",
+ "rcgen",
+ "reqwest 0.12.28",
+ "rustls 0.23.36",
+ "rustls-pemfile 2.2.0",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tokio-stream",
+ "tokio-tungstenite 0.26.2",
+ "tokio-util",
+ "toml",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "urlencoding",
+ "uuid",
+ "web-push",
+ "webauthn-rs",
+ "which 8.0.0",
+]
+
+[[package]]
+name = "leetium-graphql"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "async-stream",
+ "async-trait",
+ "bytes",
+ "leetium-service-traits",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
+name = "leetium-mcp"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "leetium-common",
+ "leetium-metrics",
+ "leetium-oauth",
+ "mockito",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-media"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "leetium-common",
+ "leetium-metrics",
+ "reqwest 0.12.28",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bytemuck",
+ "chrono",
+ "directories",
+ "futures",
+ "leetium-agents",
+ "leetium-common",
+ "leetium-metrics",
+ "llama-cpp-2",
+ "notify-debouncer-full",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "tempfile",
+ "text-splitter",
+ "tokio",
+ "tracing",
+ "tree-sitter-bash",
+ "tree-sitter-c",
+ "tree-sitter-cpp",
+ "tree-sitter-css",
+ "tree-sitter-go",
+ "tree-sitter-html",
+ "tree-sitter-java",
+ "tree-sitter-javascript",
+ "tree-sitter-json",
+ "tree-sitter-md",
+ "tree-sitter-python",
+ "tree-sitter-ruby",
+ "tree-sitter-rust",
+ "tree-sitter-toml-ng",
+ "tree-sitter-typescript",
+ "walkdir",
+]
+
+[[package]]
+name = "leetium-metrics"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "metrics 0.24.3",
+ "metrics-exporter-prometheus",
+ "metrics-tracing-context",
+ "once_cell",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "leetium-msteams"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "http 1.4.0",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-metrics",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "subtle",
+ "tokio",
+ "tracing",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "leetium-network-filter"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "leetium-metrics",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-node-host"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "leetium-common",
+ "leetium-metrics",
+ "leetium-protocol",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tokio",
+ "tokio-tungstenite 0.26.2",
+ "tracing",
+ "url",
+ "uuid",
+ "which 8.0.0",
+]
+
+[[package]]
+name = "leetium-oauth"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "mockito",
+ "rand 0.9.2",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-onboarding"
+version = "0.1.0"
+dependencies = [
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-openclaw-import"
+version = "0.1.0"
+dependencies = [
+ "dirs-next",
+ "json5",
+ "leetium-common",
+ "leetium-config",
+ "leetium-oauth",
+ "notify-debouncer-full",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "toml",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "leetium-plugins"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "leetium-sessions",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-projects"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "leetium-metrics",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-protocol"
+version = "0.1.0"
+dependencies = [
+ "leetium-metrics",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "leetium-provider-setup"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "leetium-agents",
+ "leetium-common",
+ "leetium-config",
+ "leetium-oauth",
+ "leetium-providers",
+ "leetium-service-traits",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "leetium-providers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-openai",
+ "async-stream",
+ "async-trait",
+ "axum",
+ "base64 0.22.1",
+ "directories",
+ "encoding_rs",
+ "futures",
+ "genai",
+ "http 1.4.0",
+ "leetium-agents",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "leetium-oauth",
+ "llama-cpp-2",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite 0.26.2",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-qmd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "leetium-memory",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-routing"
+version = "0.1.0"
+dependencies = [
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "leetium-sessions",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-schema-export"
+version = "0.1.0"
+dependencies = [
+ "leetium-graphql",
+ "leetium-service-traits",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "leetium-service-traits"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "leetium-protocol",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-sessions"
+version = "0.1.0"
+dependencies = [
+ "fd-lock",
+ "leetium-common",
+ "leetium-metrics",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-skills"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "flate2",
+ "leetium-common",
+ "leetium-config",
+ "leetium-metrics",
+ "notify-debouncer-full",
+ "reqwest 0.12.28",
+ "rstest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tar",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-slack"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "hmac",
+ "http 1.4.0",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-metrics",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "slack-morphism",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-swift-bridge"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "leetium-agents",
+ "leetium-config",
+ "leetium-gateway",
+ "leetium-network-filter",
+ "leetium-projects",
+ "leetium-provider-setup",
+ "leetium-providers",
+ "leetium-sessions",
+ "leetium-tools",
+ "leetium-web",
+ "metrics 0.24.3",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "sqlx",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "leetium-tailscale"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-telegram"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "base64 0.22.1",
+ "leetium-auto-reply",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-media",
+ "leetium-metrics",
+ "rand 0.9.2",
+ "reqwest 0.12.28",
+ "rstest",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "teloxide",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-tls"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "hostname",
+ "hyper-util",
+ "leetium-common",
+ "leetium-config",
+ "rcgen",
+ "rustls 0.23.36",
+ "rustls-pemfile 2.2.0",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tower",
+ "tracing",
+]
+
+[[package]]
+name = "leetium-tools"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "futures",
+ "image",
+ "ipnet",
+ "leetium-agents",
+ "leetium-browser",
+ "leetium-common",
+ "leetium-config",
+ "leetium-cron",
+ "leetium-metrics",
+ "leetium-network-filter",
+ "leetium-providers",
+ "leetium-sessions",
+ "leetium-skills",
+ "mockito",
+ "regex",
+ "reqwest 0.12.28",
+ "rstest",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shell-words",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "url",
+ "uuid",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
+name = "leetium-vault"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "base64 0.22.1",
+ "chacha20poly1305",
+ "leetium-metrics",
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "leetium-voice"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "dirs 6.0.0",
+ "futures",
+ "reqwest 0.12.28",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "urlencoding",
+ "which 7.0.3",
+ "wiremock",
+]
+
+[[package]]
+name = "leetium-wasm-calc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "wit-bindgen 0.41.0",
+ "wit-bindgen-rt",
+]
+
+[[package]]
+name = "leetium-wasm-precompile"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wasmtime",
+]
+
+[[package]]
+name = "leetium-wasm-web-fetch"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "url",
+ "wit-bindgen 0.41.0",
+ "wit-bindgen-rt",
+]
+
+[[package]]
+name = "leetium-wasm-web-search"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "url",
+ "wit-bindgen 0.41.0",
+ "wit-bindgen-rt",
+]
+
+[[package]]
+name = "leetium-web"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "axum",
+ "axum-extra",
+ "base64 0.22.1",
+ "chrono",
+ "futures",
+ "gix",
+ "include_dir",
+ "leetium-channels",
+ "leetium-config",
+ "leetium-cron",
+ "leetium-gateway",
+ "leetium-media",
+ "leetium-skills",
+ "leetium-tools",
+ "portable-pty",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+ "which 8.0.0",
+]
+
+[[package]]
+name = "leetium-whatsapp"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "dashmap 6.1.0",
+ "leetium-channels",
+ "leetium-common",
+ "leetium-config",
+ "leetium-media",
+ "leetium-metrics",
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
+ "sled",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "wa-rs",
+ "wa-rs-binary",
+ "wa-rs-core",
+ "wa-rs-proto",
+ "wa-rs-tokio-transport",
+ "wa-rs-ureq-http",
+]
+
+[[package]]
 name = "levenshtein"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5752,1146 +6902,6 @@ dependencies = [
  "smallvec",
  "tagptr",
  "uuid",
-]
-
-[[package]]
-name = "moltis"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "clap",
- "dotenvy",
- "moltis-agents",
- "moltis-browser",
- "moltis-common",
- "moltis-config",
- "moltis-cron",
- "moltis-gateway",
- "moltis-memory",
- "moltis-node-host",
- "moltis-oauth",
- "moltis-onboarding",
- "moltis-openclaw-import",
- "moltis-plugins",
- "moltis-projects",
- "moltis-sessions",
- "moltis-skills",
- "moltis-tools",
- "moltis-web",
- "open",
- "rand 0.9.2",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde_json",
- "sqlx",
- "tempfile",
- "tikv-jemallocator",
- "time",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "which 8.0.0",
-]
-
-[[package]]
-name = "moltis-agents"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-stream",
- "async-trait",
- "axum",
- "futures",
- "http 1.4.0",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "moltis-sessions",
- "moltis-skills",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-auth"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "argon2",
- "async-trait",
- "axum",
- "base64 0.22.1",
- "dashmap 6.1.0",
- "moltis-config",
- "moltis-tools",
- "moltis-vault",
- "openssl",
- "password-hash",
- "rand 0.9.2",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "tempfile",
- "tokio",
- "tracing",
- "webauthn-rs",
- "webauthn-rs-proto",
-]
-
-[[package]]
-name = "moltis-auto-reply"
-version = "0.10.11"
-dependencies = [
- "moltis-agents",
- "moltis-common",
- "moltis-metrics",
- "moltis-routing",
- "moltis-sessions",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-browser"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "chromiumoxide",
- "futures",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "rand 0.9.2",
- "serde",
- "serde_json",
- "sysinfo",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "url",
- "uuid",
- "which 8.0.0",
-]
-
-[[package]]
-name = "moltis-caldav"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "http 1.4.0",
- "hyper 1.8.1",
- "hyper-rustls 0.27.7",
- "hyper-util",
- "icalendar",
- "libdav",
- "moltis-agents",
- "moltis-config",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "tokio",
- "tower-http",
- "tower-service",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-canvas"
-version = "0.10.11"
-dependencies = [
- "axum",
- "moltis-common",
- "moltis-metrics",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-channels"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "bytes",
- "http 1.4.0",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "rand 0.9.2",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-chat"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "chrono",
- "chrono-tz",
- "futures",
- "moltis-agents",
- "moltis-channels",
- "moltis-common",
- "moltis-config",
- "moltis-memory",
- "moltis-metrics",
- "moltis-plugins",
- "moltis-projects",
- "moltis-providers",
- "moltis-service-traits",
- "moltis-sessions",
- "moltis-skills",
- "moltis-telegram",
- "moltis-tools",
- "moltis-voice",
- "serde",
- "serde_json",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
- "toml",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-common"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "futures",
- "moltis-metrics",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-config"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "chrono-tz",
- "directories",
- "ipnet",
- "moltis-metrics",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "thiserror 2.0.18",
- "toml",
- "toml_edit 0.22.27",
- "tracing",
-]
-
-[[package]]
-name = "moltis-courier"
-version = "0.10.11"
-dependencies = [
- "a2",
- "anyhow",
- "axum",
- "clap",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "moltis-cron"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "chrono",
- "chrono-tz",
- "cron",
- "moltis-agents",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "rstest",
- "serde",
- "serde_json",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-discord"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "image",
- "moltis-channels",
- "moltis-common",
- "moltis-media",
- "moltis-metrics",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "serenity",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "moltis-gateway"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-graphql-axum",
- "async-trait",
- "axum",
- "axum-extra",
- "axum-server",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "chrono-tz",
- "dashmap 6.1.0",
- "futures",
- "gix",
- "hostname",
- "hyper 1.8.1",
- "hyper-util",
- "include_dir",
- "mdns-sd",
- "moltis-agents",
- "moltis-auth",
- "moltis-browser",
- "moltis-caldav",
- "moltis-canvas",
- "moltis-channels",
- "moltis-chat",
- "moltis-common",
- "moltis-config",
- "moltis-cron",
- "moltis-discord",
- "moltis-graphql",
- "moltis-mcp",
- "moltis-media",
- "moltis-memory",
- "moltis-metrics",
- "moltis-msteams",
- "moltis-network-filter",
- "moltis-oauth",
- "moltis-onboarding",
- "moltis-openclaw-import",
- "moltis-plugins",
- "moltis-projects",
- "moltis-protocol",
- "moltis-provider-setup",
- "moltis-providers",
- "moltis-qmd",
- "moltis-routing",
- "moltis-service-traits",
- "moltis-sessions",
- "moltis-skills",
- "moltis-slack",
- "moltis-tailscale",
- "moltis-telegram",
- "moltis-tls",
- "moltis-tools",
- "moltis-vault",
- "moltis-voice",
- "moltis-web",
- "moltis-whatsapp",
- "p256",
- "portable-pty",
- "pulldown-cmark 0.12.2",
- "qrcode",
- "rand 0.9.2",
- "rcgen",
- "reqwest 0.12.28",
- "rustls 0.23.36",
- "rustls-pemfile 2.2.0",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "sysinfo",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "tokio-rustls 0.26.4",
- "tokio-stream",
- "tokio-tungstenite 0.26.2",
- "tokio-util",
- "toml",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "url",
- "urlencoding",
- "uuid",
- "web-push",
- "webauthn-rs",
- "which 8.0.0",
-]
-
-[[package]]
-name = "moltis-graphql"
-version = "0.10.11"
-dependencies = [
- "async-graphql",
- "async-stream",
- "async-trait",
- "bytes",
- "moltis-service-traits",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
-]
-
-[[package]]
-name = "moltis-mcp"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "futures",
- "mockito",
- "moltis-common",
- "moltis-metrics",
- "moltis-oauth",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-test",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "moltis-media"
-version = "0.10.11"
-dependencies = [
- "image",
- "moltis-common",
- "moltis-metrics",
- "reqwest 0.12.28",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-memory"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "bytemuck",
- "chrono",
- "directories",
- "futures",
- "llama-cpp-2",
- "moltis-agents",
- "moltis-common",
- "moltis-metrics",
- "notify-debouncer-full",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "tempfile",
- "text-splitter",
- "tokio",
- "tracing",
- "tree-sitter-bash",
- "tree-sitter-c",
- "tree-sitter-cpp",
- "tree-sitter-css",
- "tree-sitter-go",
- "tree-sitter-html",
- "tree-sitter-java",
- "tree-sitter-javascript",
- "tree-sitter-json",
- "tree-sitter-md",
- "tree-sitter-python",
- "tree-sitter-ruby",
- "tree-sitter-rust",
- "tree-sitter-toml-ng",
- "tree-sitter-typescript",
- "walkdir",
-]
-
-[[package]]
-name = "moltis-metrics"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "metrics 0.24.3",
- "metrics-exporter-prometheus",
- "metrics-tracing-context",
- "once_cell",
- "serde",
- "serde_json",
- "sqlx",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "moltis-msteams"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "http 1.4.0",
- "moltis-channels",
- "moltis-common",
- "moltis-metrics",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "subtle",
- "tokio",
- "tracing",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "moltis-network-filter"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "moltis-metrics",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-node-host"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "futures",
- "moltis-metrics",
- "moltis-protocol",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "sysinfo",
- "tokio",
- "tokio-tungstenite 0.26.2",
- "tracing",
- "url",
- "uuid",
- "which 8.0.0",
-]
-
-[[package]]
-name = "moltis-oauth"
-version = "0.10.11"
-dependencies = [
- "axum",
- "base64 0.22.1",
- "mockito",
- "moltis-config",
- "moltis-metrics",
- "rand 0.9.2",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "moltis-onboarding"
-version = "0.10.11"
-dependencies = [
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "moltis-openclaw-import"
-version = "0.10.11"
-dependencies = [
- "dirs-next",
- "json5",
- "moltis-common",
- "moltis-config",
- "moltis-oauth",
- "notify-debouncer-full",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "toml",
- "tracing",
- "walkdir",
-]
-
-[[package]]
-name = "moltis-plugins"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "moltis-sessions",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "moltis-projects"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "moltis-metrics",
- "serde",
- "serde_json",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-protocol"
-version = "0.10.11"
-dependencies = [
- "moltis-metrics",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "moltis-provider-setup"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "axum",
- "moltis-agents",
- "moltis-config",
- "moltis-oauth",
- "moltis-providers",
- "moltis-service-traits",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "moltis-providers"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-openai",
- "async-stream",
- "async-trait",
- "axum",
- "base64 0.22.1",
- "directories",
- "encoding_rs",
- "futures",
- "genai",
- "http 1.4.0",
- "llama-cpp-2",
- "moltis-agents",
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "moltis-oauth",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sysinfo",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
- "tokio-tungstenite 0.26.2",
- "tracing",
-]
-
-[[package]]
-name = "moltis-qmd"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "moltis-memory",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-routing"
-version = "0.10.11"
-dependencies = [
- "moltis-common",
- "moltis-config",
- "moltis-metrics",
- "moltis-sessions",
- "serde_json",
- "thiserror 2.0.18",
- "tracing",
-]
-
-[[package]]
-name = "moltis-schema-export"
-version = "0.10.11"
-dependencies = [
- "moltis-graphql",
- "moltis-service-traits",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "moltis-service-traits"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "bytes",
- "moltis-protocol",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-sessions"
-version = "0.10.11"
-dependencies = [
- "fd-lock",
- "moltis-common",
- "moltis-metrics",
- "serde",
- "serde_json",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-skills"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "flate2",
- "moltis-config",
- "moltis-metrics",
- "notify-debouncer-full",
- "reqwest 0.12.28",
- "rstest",
- "serde",
- "serde_json",
- "serde_yaml",
- "tar",
- "tempfile",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-slack"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "hmac",
- "http 1.4.0",
- "moltis-channels",
- "moltis-common",
- "moltis-metrics",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "slack-morphism",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "moltis-swift-bridge"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "axum",
- "metrics 0.24.3",
- "moltis-agents",
- "moltis-config",
- "moltis-gateway",
- "moltis-network-filter",
- "moltis-projects",
- "moltis-provider-setup",
- "moltis-providers",
- "moltis-sessions",
- "moltis-tools",
- "moltis-web",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "serial_test",
- "sqlx",
- "tokio",
- "tokio-stream",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "moltis-tailscale"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "moltis-telegram"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "axum",
- "base64 0.22.1",
- "moltis-auto-reply",
- "moltis-channels",
- "moltis-common",
- "moltis-media",
- "moltis-metrics",
- "rand 0.9.2",
- "reqwest 0.12.28",
- "rstest",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "teloxide",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "moltis-tls"
-version = "0.10.11"
-dependencies = [
- "axum",
- "hostname",
- "hyper-util",
- "moltis-common",
- "moltis-config",
- "rcgen",
- "rustls 0.23.36",
- "rustls-pemfile 2.2.0",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "tokio-rustls 0.26.4",
- "tower",
- "tracing",
-]
-
-[[package]]
-name = "moltis-tools"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "futures",
- "image",
- "ipnet",
- "mockito",
- "moltis-agents",
- "moltis-browser",
- "moltis-common",
- "moltis-config",
- "moltis-cron",
- "moltis-metrics",
- "moltis-network-filter",
- "moltis-providers",
- "moltis-sessions",
- "moltis-skills",
- "regex",
- "reqwest 0.12.28",
- "rstest",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "sha2",
- "shell-words",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "time",
- "tokio",
- "tokio-stream",
- "tracing",
- "url",
- "uuid",
- "wasmtime",
- "wasmtime-wasi",
-]
-
-[[package]]
-name = "moltis-vault"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "argon2",
- "base64 0.22.1",
- "chacha20poly1305",
- "moltis-metrics",
- "rand 0.9.2",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "zeroize",
-]
-
-[[package]]
-name = "moltis-voice"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "dirs 6.0.0",
- "futures",
- "reqwest 0.12.28",
- "secrecy 0.8.0",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "urlencoding",
- "which 7.0.3",
- "wiremock",
-]
-
-[[package]]
-name = "moltis-wasm-calc"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen 0.41.0",
- "wit-bindgen-rt",
-]
-
-[[package]]
-name = "moltis-wasm-precompile"
-version = "0.10.11"
-dependencies = [
- "anyhow",
- "wasmtime",
-]
-
-[[package]]
-name = "moltis-wasm-web-fetch"
-version = "0.10.11"
-dependencies = [
- "serde_json",
- "url",
- "wit-bindgen 0.41.0",
- "wit-bindgen-rt",
-]
-
-[[package]]
-name = "moltis-wasm-web-search"
-version = "0.10.11"
-dependencies = [
- "serde_json",
- "url",
- "wit-bindgen 0.41.0",
- "wit-bindgen-rt",
-]
-
-[[package]]
-name = "moltis-web"
-version = "0.10.11"
-dependencies = [
- "askama",
- "axum",
- "axum-extra",
- "base64 0.22.1",
- "chrono",
- "futures",
- "gix",
- "include_dir",
- "moltis-channels",
- "moltis-config",
- "moltis-cron",
- "moltis-gateway",
- "moltis-media",
- "moltis-skills",
- "moltis-tools",
- "portable-pty",
- "serde",
- "serde_json",
- "sysinfo",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uuid",
- "which 8.0.0",
-]
-
-[[package]]
-name = "moltis-whatsapp"
-version = "0.10.11"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "dashmap 6.1.0",
- "moltis-channels",
- "moltis-common",
- "moltis-config",
- "moltis-media",
- "moltis-metrics",
- "rand 0.9.2",
- "serde",
- "serde_json",
- "sled",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "wacore",
- "wacore-binary",
- "waproto",
- "whatsapp-rust",
- "whatsapp-rust-tokio-transport",
- "whatsapp-rust-ureq-http-client",
 ]
 
 [[package]]
@@ -10599,6 +10609,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-appender"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "786d480bce6247ab75f005b14ae1624ad978d3029d9113f0a22fa1ac773faeaf"
+dependencies = [
+ "crossbeam-channel",
+ "thiserror 2.0.18",
+ "time",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tracing-attributes"
 version = "0.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10920,6 +10942,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-builder"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31aa81521b70f94402501d848ccc0ecaa8f93c8eb6999eb9747e72287757ffda"
+dependencies = [
+ "typed-builder-macro",
+]
+
+[[package]]
+name = "typed-builder-macro"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "076a02dc54dd46795c2e9c8282ed40bcfb1e22747e955de9389a1de28190fb26"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
+]
+
+[[package]]
 name = "typemap_rev"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11170,10 +11212,77 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
-name = "wacore"
+name = "wa-rs"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c38f75041655201a01725a43d99da2f258de6e9e17033b167f99d458070c4f1"
+checksum = "0fecb468bdfe1e7d4c06a1bd12908c66edaca59024862cb64757ad11c3b948b1"
+dependencies = [
+ "anyhow",
+ "async-channel 2.5.0",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "dashmap 6.1.0",
+ "env_logger",
+ "hex",
+ "log",
+ "moka",
+ "prost",
+ "rand 0.9.2",
+ "rand_core 0.10.0",
+ "scopeguard",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "wa-rs-binary",
+ "wa-rs-core",
+ "wa-rs-proto",
+ "wa-rs-tokio-transport",
+ "wa-rs-ureq-http",
+]
+
+[[package]]
+name = "wa-rs-appstate"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3845137b3aead2d99de7c6744784bf2f5a908be9dc97a3dbd7585dc40296925c"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "hex",
+ "hkdf",
+ "log",
+ "prost",
+ "serde",
+ "serde-big-array",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "wa-rs-binary",
+ "wa-rs-libsignal",
+ "wa-rs-proto",
+]
+
+[[package]]
+name = "wa-rs-binary"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3b30a6e11aebb39c07392675256ead5e2570c31382bd4835d6ddc877284b6be"
+dependencies = [
+ "flate2",
+ "phf 0.13.1",
+ "phf_codegen",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "wa-rs-core"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed13bb2aff2de43fc4dd821955f03ea48a1d31eda3c80efe6f905898e304d11f"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -11195,55 +11304,37 @@ dependencies = [
  "prost",
  "protobuf",
  "rand 0.9.2",
- "rand_core 0.9.5",
- "serde",
- "serde-big-array",
- "sha2",
- "thiserror 2.0.18",
- "wacore-appstate",
- "wacore-binary",
- "wacore-libsignal",
- "waproto",
-]
-
-[[package]]
-name = "wacore-appstate"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8128197fd310dbc350cf7d417666d31591a84fa2d42b3b5692e48da9e0500ea"
-dependencies = [
- "anyhow",
- "hkdf",
- "prost",
+ "rand_core 0.10.0",
  "serde",
  "serde-big-array",
  "serde_json",
  "sha2",
  "thiserror 2.0.18",
- "wacore-binary",
- "wacore-libsignal",
- "waproto",
+ "typed-builder",
+ "wa-rs-appstate",
+ "wa-rs-binary",
+ "wa-rs-derive",
+ "wa-rs-libsignal",
+ "wa-rs-noise",
+ "wa-rs-proto",
 ]
 
 [[package]]
-name = "wacore-binary"
+name = "wa-rs-derive"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d560076c8483f9197ca0e2c46e98e3cb01fc30c089114704b851b3f73b6b94d6"
+checksum = "75c03f610c9bc960e653d5d6d2a4cced9013bedbe5e6e8948787bbd418e4137c"
 dependencies = [
- "flate2",
- "indexmap 2.13.0",
- "phf 0.13.1",
- "phf_codegen",
- "serde",
- "serde_json",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]
-name = "wacore-libsignal"
+name = "wa-rs-libsignal"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02751fcbb54d2abb19b61261217e444f06889fdd85b8f035b2a420d7636a92ee"
+checksum = "3471be8ff079ae4959fcddf2e7341281e5c6756bdc6a66454ea1a8e474d14576"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -11269,8 +11360,74 @@ dependencies = [
  "subtle",
  "thiserror 2.0.18",
  "uuid",
- "waproto",
+ "wa-rs-proto",
  "x25519-dalek",
+]
+
+[[package]]
+name = "wa-rs-noise"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3efb3891c1e22ce54646dc581e34e79377dc402ed8afb11a7671c5ef629b3ae"
+dependencies = [
+ "aes-gcm",
+ "anyhow",
+ "bytes",
+ "hkdf",
+ "log",
+ "prost",
+ "rand 0.9.2",
+ "rand_core 0.10.0",
+ "sha2",
+ "thiserror 2.0.18",
+ "wa-rs-binary",
+ "wa-rs-libsignal",
+ "wa-rs-proto",
+]
+
+[[package]]
+name = "wa-rs-proto"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59ada50ee03752f0e66ada8cf415ed5f90d572d34039b058ce23d8b13493e510"
+dependencies = [
+ "prost",
+ "prost-build",
+ "serde",
+]
+
+[[package]]
+name = "wa-rs-tokio-transport"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfc638c168949dc99cbb756a776869898d4ae654b36b90d5f7ce2d32bf92a404"
+dependencies = [
+ "anyhow",
+ "async-channel 2.5.0",
+ "async-trait",
+ "bytes",
+ "futures-util",
+ "http 1.4.0",
+ "log",
+ "rustls 0.23.36",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tokio-websockets",
+ "wa-rs-core",
+ "webpki-roots 1.0.6",
+]
+
+[[package]]
+name = "wa-rs-ureq-http"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88d0c7fff8a7bd93d0c17af8d797a3934144fa269fe47a615635f3bf04238806"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "tokio",
+ "ureq",
+ "wa-rs-core",
 ]
 
 [[package]]
@@ -11296,17 +11453,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa7760aed19e106de2c7c0b581b509f2f25d3dacaf737cb82ac61bc6d760b0e"
 dependencies = [
  "try-lock",
-]
-
-[[package]]
-name = "waproto"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0fac064a4b1d339d7343612c0544739118e23969464f3e215eae2813e4f65d0"
-dependencies = [
- "prost",
- "prost-build",
- "serde",
 ]
 
 [[package]]
@@ -12028,73 +12174,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22cfaf3c063993ff62e73cb4311efde4db1efb31ab78a3e5c457939ad5cc0bed"
 dependencies = [
  "rustls-pki-types",
-]
-
-[[package]]
-name = "whatsapp-rust"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af27e10258392b3d8accee86ec80815673815e07ea5fc53897eba73aacb372b6"
-dependencies = [
- "anyhow",
- "async-channel 2.5.0",
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "dashmap 6.1.0",
- "env_logger",
- "hex",
- "indexmap 2.13.0",
- "log",
- "moka",
- "prost",
- "rand 0.9.2",
- "rand_core 0.9.5",
- "scopeguard",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "wacore",
- "wacore-binary",
- "waproto",
- "whatsapp-rust-tokio-transport",
- "whatsapp-rust-ureq-http-client",
-]
-
-[[package]]
-name = "whatsapp-rust-tokio-transport"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0da5151ff392012ef834b8820785d03e44b78f6139e60a3b02614bfbc477d17a"
-dependencies = [
- "anyhow",
- "async-channel 2.5.0",
- "async-trait",
- "bytes",
- "futures-util",
- "http 1.4.0",
- "log",
- "rustls 0.23.36",
- "tokio",
- "tokio-rustls 0.26.4",
- "tokio-websockets",
- "wacore",
- "webpki-roots 1.0.6",
-]
-
-[[package]]
-name = "whatsapp-rust-ureq-http-client"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063d5d6d08711de6cade6903cefeebd708070e5979c984ac025d0271f655b97f"
-dependencies = [
- "anyhow",
- "async-trait",
- "tokio",
- "ureq",
- "wacore",
 ]
 
 [[package]]

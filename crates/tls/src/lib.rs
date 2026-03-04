@@ -31,7 +31,7 @@ use {
 
 /// The hostname used for loopback URLs instead of raw `127.0.0.1`.
 /// Subdomains of `.localhost` resolve to loopback per RFC 6761.
-pub const LOCALHOST_DOMAIN: &str = "moltis.localhost";
+pub const LOCALHOST_DOMAIN: &str = "leetium.localhost";
 
 /// DNS SAN names that must always exist on generated server certificates.
 fn required_dns_san_names() -> Vec<String> {
@@ -99,10 +99,10 @@ impl FsCertManager {
     }
 }
 
-/// Returns the certificate storage directory (`~/.config/moltis/certs/`).
+/// Returns the certificate storage directory (`~/.config/leetium/certs/`).
 pub fn cert_dir() -> Result<PathBuf> {
-    let dir = moltis_config::config_dir()
-        .unwrap_or_else(|| PathBuf::from(".moltis"))
+    let dir = leetium_config::config_dir()
+        .unwrap_or_else(|| PathBuf::from(".leetium"))
         .join("certs");
     std::fs::create_dir_all(&dir).context("failed to create certs directory")?;
     Ok(dir)
@@ -158,7 +158,7 @@ fn is_expired(path: &Path, days: u64) -> bool {
     if age > time::Duration::days(days as i64).unsigned_abs() {
         return true;
     }
-    // Regenerate if the cert predates the moltis.localhost SAN migration.
+    // Regenerate if the cert predates the leetium.localhost SAN migration.
     needs_san_update(path)
 }
 
@@ -191,10 +191,10 @@ fn generate_all() -> Result<(String, String, String, String)> {
     let mut ca_params = CertificateParams::new(Vec::<String>::new())?;
     ca_params
         .distinguished_name
-        .push(DnType::CommonName, "Moltis Local CA");
+        .push(DnType::CommonName, "Leetium Local CA");
     ca_params
         .distinguished_name
-        .push(DnType::OrganizationName, "Moltis");
+        .push(DnType::OrganizationName, "Leetium");
     ca_params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
     ca_params.key_usages = vec![KeyUsagePurpose::KeyCertSign, KeyUsagePurpose::CrlSign];
     // 10-year validity from today.
@@ -327,7 +327,7 @@ async fn serve_ca_cert(State(state): State<HttpRedirectState>) -> impl IntoRespo
             ("content-type", "application/x-pem-file"),
             (
                 "content-disposition",
-                "attachment; filename=\"moltis-ca.pem\"",
+                "attachment; filename=\"leetium-ca.pem\"",
             ),
         ],
         state.ca_pem.as_ref().clone(),
@@ -611,7 +611,7 @@ mod tests {
         let mut headers = axum::http::HeaderMap::new();
         headers.insert(
             axum::http::header::HOST,
-            "moltis.localhost:18080".parse().unwrap(),
+            "leetium.localhost:18080".parse().unwrap(),
         );
         let uri: axum::http::Uri = "/foo?bar=baz".parse().unwrap();
         let response = redirect_to_https(State(state), headers, uri)

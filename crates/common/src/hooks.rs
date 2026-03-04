@@ -1,8 +1,8 @@
 //! Core hook types shared across crates.
 //!
 //! These types define the hook event system. The full registry and shell handler
-//! live in `moltis-plugins`; this module provides the trait and types needed by
-//! crates like `moltis-agents` that cannot depend on plugins.
+//! live in `leetium-plugins`; this module provides the trait and types needed by
+//! crates like `leetium-agents` that cannot depend on plugins.
 
 use std::{
     collections::HashMap,

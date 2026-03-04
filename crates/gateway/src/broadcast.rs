@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use {
-    moltis_protocol::{EventFrame, StateVersion, scopes},
+    leetium_protocol::{EventFrame, StateVersion, scopes},
     tracing::{debug, warn},
 };
 

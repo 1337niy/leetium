@@ -857,7 +857,7 @@ function sendChat() {
 	if (text) {
 		S.chatHistory.push(text);
 		if (S.chatHistory.length > 200) S.setChatHistory(S.chatHistory.slice(-200));
-		localStorage.setItem("moltis-chat-history", JSON.stringify(S.chatHistory));
+		localStorage.setItem("leetium-chat-history", JSON.stringify(S.chatHistory));
 	}
 	S.setChatHistoryIdx(-1);
 	S.setChatHistoryDraft("");
@@ -1145,7 +1145,7 @@ registerPrefix(
 		if (sessionKeyFromUrl) {
 			sessionKey = sessionKeyFromUrl;
 		} else {
-			sessionKey = localStorage.getItem("moltis-session") || "main";
+			sessionKey = localStorage.getItem("leetium-session") || "main";
 			history.replaceState(null, "", sessionPath(sessionKey));
 		}
 

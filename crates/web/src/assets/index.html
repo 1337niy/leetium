@@ -14,9 +14,9 @@
 <!-- iOS PWA Meta Tags -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="moltis">
+<meta name="apple-mobile-web-app-title" content="leetium">
 <link rel="apple-touch-icon" href="{{ asset_prefix }}icons/apple-touch-icon.png">
-<script nonce="{{ nonce }}">!function(){var t=localStorage.getItem("moltis-theme")||"system";if(t==="system")t=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);document.documentElement.style.background=t==="dark"?"#0f1115":"#fafafa";document.documentElement.style.color=t==="dark"?"#e0e0e0":"#222"}()</script>
+<script nonce="{{ nonce }}">!function(){var t=localStorage.getItem("leetium-theme")||"system";if(t==="system")t=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);document.documentElement.style.background=t==="dark"?"#0f1115":"#fafafa";document.documentElement.style.color=t==="dark"?"#e0e0e0":"#222"}()</script>
 <title>{{ share_site_name }}</title>
 <meta name="description" content="{{ share_description }}">
 <meta property="og:title" content="{{ share_title }}">
@@ -37,8 +37,8 @@
 <link rel="icon" type="image/png" sizes="96x96" href="{{ asset_prefix }}icons/icon-96.png">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ asset_prefix }}icons/icon-72.png">
 <meta name="build-ts" content="{{ build_ts }}">
-<script nonce="{{ nonce }}">window.__MOLTIS__={{ gon_json|safe }};</script>
-<script nonce="{{ nonce }}">!function(){var g=window.__MOLTIS__;var i=g&&g.identity;var e=i&&typeof i.emoji==="string"?i.emoji.trim():"";if(!e)return;var safe=e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="52">'+safe+"</text></svg>";var href="data:image/svg+xml,"+encodeURIComponent(svg);var links=Array.from(document.querySelectorAll('link[rel="icon"]'));if(links.length===0){var fallback=document.createElement("link");fallback.rel="icon";document.head.appendChild(fallback);links.push(fallback)}for(var n=0;n<links.length;n++){var link=links[n];link.type="image/svg+xml";link.removeAttribute("sizes");link.href=href}}()</script>
+<script nonce="{{ nonce }}">window.__LEETIUM__={{ gon_json|safe }};</script>
+<script nonce="{{ nonce }}">!function(){var g=window.__LEETIUM__;var i=g&&g.identity;var e=i&&typeof i.emoji==="string"?i.emoji.trim():"";if(!e)return;var safe=e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="52">'+safe+"</text></svg>";var href="data:image/svg+xml,"+encodeURIComponent(svg);var links=Array.from(document.querySelectorAll('link[rel="icon"]'));if(links.length===0){var fallback=document.createElement("link");fallback.rel="icon";document.head.appendChild(fallback);links.push(fallback)}for(var n=0;n<links.length;n++){var link=links[n];link.type="image/svg+xml";link.removeAttribute("sizes");link.href=href}}()</script>
 <script nonce="{{ nonce }}" type="importmap">
 {
   "imports": {
@@ -115,8 +115,8 @@
 
 <!-- Top bar -->
 <header class="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
-  <a href="{{ routes.chats }}" id="titleLink" class="text-base font-medium tracking-wide text-[var(--text-strong)] no-underline cursor-pointer"><span id="titleEmoji"></span><span id="titleName">moltis</span></a>
-  <script nonce="{{ nonce }}">!function(){var g=window.__MOLTIS__;if(!g||!g.identity)return;var i=g.identity;var e=document.getElementById("titleEmoji");var n=document.getElementById("titleName");if(e&&i.emoji)e.textContent=i.emoji+" ";if(n&&i.name)n.textContent=i.name;var a=(i&&i.name&&String(i.name).trim())||"moltis";document.title=a}()</script>
+  <a href="{{ routes.chats }}" id="titleLink" class="text-base font-medium tracking-wide text-[var(--text-strong)] no-underline cursor-pointer"><span id="titleEmoji"></span><span id="titleName">leetium</span></a>
+  <script nonce="{{ nonce }}">!function(){var g=window.__LEETIUM__;if(!g||!g.identity)return;var i=g.identity;var e=document.getElementById("titleEmoji");var n=document.getElementById("titleName");if(e&&i.emoji)e.textContent=i.emoji+" ";if(n&&i.name)n.textContent=i.name;var a=(i&&i.name&&String(i.name).trim())||"leetium";document.title=a}()</script>
   <span class="status-dot" id="statusDot"></span>
   <span class="text-xs text-[var(--muted)]" id="statusText">disconnected</span>
   <div class="flex-1"></div>
@@ -133,7 +133,7 @@
       <span class="header-link-label">Settings</span>
     </button>
     <a
-      href="https://github.com/moltis-org/moltis/issues/new"
+      href="https://github.com/1337leetium/leetium/issues/new"
       target="_blank"
       rel="noopener noreferrer"
       class="header-link-btn"
@@ -182,13 +182,13 @@
 
 <!-- Auth disabled warning banner (shown by JS when auth is removed) -->
 <div id="authDisabledBanner" class="auth-disabled-banner" style="display:none">
-  <span>Authentication is disabled. Anyone with network access can control moltis and your computer.</span>
+  <span>Authentication is disabled. Anyone with network access can control leetium and your computer.</span>
   <a href="{{ routes.security }}" class="auth-disabled-setup">Set up authentication</a>
 </div>
 
 <!-- Vault sealed banner (shown after restart until user unlocks) -->
 <div id="vaultBanner" class="info-banner" style="display:none">
-  <span>Your encryption vault is locked. Please log in or unlock it so Moltis can read your keys.</span>
+  <span>Your encryption vault is locked. Please log in or unlock it so Leetium can read your keys.</span>
   <a href="/settings/vault" class="auth-disabled-setup">Unlock vault</a>
 </div>
 
@@ -198,14 +198,14 @@
     An update is available
     <strong id="updateLatestVersion"></strong>
   </span>
-  <a id="updateReleaseLink" href="https://github.com/moltis-org/moltis/releases/latest" target="_blank" rel="noopener noreferrer" class="auth-disabled-setup">View release</a>
+  <a id="updateReleaseLink" href="https://github.com/1337leetium/leetium/releases/latest" target="_blank" rel="noopener noreferrer" class="auth-disabled-setup">View release</a>
   <button id="updateDismissBtn" type="button" class="auth-disabled-setup bg-transparent border-0 p-0 cursor-pointer">Dismiss</button>
 </div>
 
 <!-- PWA Install Banner (shown on mobile when not installed) -->
 <div id="installBanner" class="hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg flex-col gap-3 md:hidden">
   <div class="flex items-start gap-3">
-    <img src="{{ asset_prefix }}icons/icon-72.png" alt="moltis" class="w-12 h-12 rounded-lg shrink-0">
+    <img src="{{ asset_prefix }}icons/icon-72.png" alt="leetium" class="w-12 h-12 rounded-lg shrink-0">
     <div data-instructions class="flex-1 min-w-0"></div>
   </div>
   <div class="flex gap-2 justify-end">
@@ -335,7 +335,7 @@
 
 <div id="ts-funnel-security-warning" class="alert-warning-text max-w-form" style="display:none">
   <span class="alert-label-warn">Warning:</span>
-  Enabling Funnel exposes moltis to the public internet. This code has not been security-audited. Use at your own risk.
+  Enabling Funnel exposes leetium to the public internet. This code has not been security-audited. Use at your own risk.
 </div>
 <div id="ts-funnel-auth-btn" style="display:none">
   <a href="{{ routes.security }}" class="provider-btn">Set up authentication</a>
@@ -347,24 +347,24 @@
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded">brew install whisper-cpp</code>
   <br />
   <strong>Configuration:</strong><br />
-  Add to your <code class="font-mono text-xs">moltis.toml</code>:
+  Add to your <code class="font-mono text-xs">leetium.toml</code>:
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded whitespace-pre-wrap">[voice.stt]
 provider = "whisper-cli"
 
 [voice.stt.whisper_cli]
-model_path = "~/.moltis/models/ggml-base.en.bin"</code>
+model_path = "~/.leetium/models/ggml-base.en.bin"</code>
   Download models from <a href="https://huggingface.co/ggerganov/whisper.cpp/tree/main" target="_blank" rel="noopener" class="hover:underline text-[var(--accent)]">Hugging Face</a>.
 </div>
 
 <div id="voice-sherpa-onnx-instructions" class="text-xs text-[var(--muted)]" style="display:none;line-height:1.6;">
   See <a href="https://k2-fsa.github.io/sherpa/onnx/install.html" target="_blank" rel="noopener" class="hover:underline text-[var(--accent)]">sherpa-onnx documentation</a> for installation.<br /><br />
   <strong>Configuration:</strong><br />
-  Add to your <code class="font-mono text-xs">moltis.toml</code>:
+  Add to your <code class="font-mono text-xs">leetium.toml</code>:
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded whitespace-pre-wrap">[voice.stt]
 provider = "sherpa-onnx"
 
 [voice.stt.sherpa_onnx]
-model_dir = "~/.moltis/models/sherpa-onnx"</code>
+model_dir = "~/.leetium/models/sherpa-onnx"</code>
 </div>
 
 <div id="voice-piper-instructions" class="text-xs text-[var(--muted)]" style="display:none;line-height:1.6;">
@@ -374,12 +374,12 @@ model_dir = "~/.moltis/models/sherpa-onnx"</code>
   <strong>Download a voice model:</strong><br />
   Browse voices at <a href="https://rhasspy.github.io/piper-samples/" target="_blank" rel="noopener" class="hover:underline text-[var(--accent)]">piper-samples</a> and download the .onnx file.<br /><br />
   <strong>Configuration:</strong><br />
-  Add to your <code class="font-mono text-xs">moltis.toml</code>:
+  Add to your <code class="font-mono text-xs">leetium.toml</code>:
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded whitespace-pre-wrap">[voice.tts]
 provider = "piper"
 
 [voice.tts.piper]
-model_path = "~/.moltis/models/en_US-lessac-medium.onnx"</code>
+model_path = "~/.leetium/models/en_US-lessac-medium.onnx"</code>
 </div>
 
 <div id="voice-coqui-instructions" class="text-xs text-[var(--muted)]" style="display:none;line-height:1.6;">
@@ -392,7 +392,7 @@ model_path = "~/.moltis/models/en_US-lessac-medium.onnx"</code>
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded">docker run -p 5002:5002 ghcr.io/coqui-ai/tts</code>
   <br />
   <strong>Configuration:</strong><br />
-  Add to your <code class="font-mono text-xs">moltis.toml</code>:
+  Add to your <code class="font-mono text-xs">leetium.toml</code>:
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded whitespace-pre-wrap">[voice.tts]
 provider = "coqui"
 
@@ -414,7 +414,7 @@ endpoint = "http://localhost:5002"</code>
   --load_format mistral</code>
   3. The model downloads automatically on first run (~3GB)<br /><br />
   <strong>Configuration:</strong><br />
-  Add to your <code class="font-mono text-xs">moltis.toml</code>:
+  Add to your <code class="font-mono text-xs">leetium.toml</code>:
   <code class="font-mono text-xs block my-1 p-1.5 bg-[var(--bg)] rounded whitespace-pre-wrap">[voice.stt]
 provider = "voxtral-local"
 

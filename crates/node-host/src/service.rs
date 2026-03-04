@@ -1,9 +1,9 @@
 //! Install / manage a headless node as an OS service.
 //!
-//! - **macOS**: launchd user agent (`~/Library/LaunchAgents/org.moltis.node.plist`)
-//! - **Linux**: systemd user unit (`~/.config/systemd/user/moltis-node.service`)
+//! - **macOS**: launchd user agent (`~/Library/LaunchAgents/org.leetium.node.plist`)
+//! - **Linux**: systemd user unit (`~/.config/systemd/user/leetium-node.service`)
 //!
-//! The service wraps `moltis node run` with the persisted connection parameters.
+//! The service wraps `leetium node run` with the persisted connection parameters.
 
 use std::{
     fs,
@@ -18,7 +18,7 @@ use {
 
 // ── Persisted connection config ────────────────────────────────────────────
 
-/// Connection parameters saved to `~/.moltis/node.json` so the service can
+/// Connection parameters saved to `~/.leetium/node.json` so the service can
 /// start without CLI flags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceConfig {
@@ -62,10 +62,10 @@ impl ServiceConfig {
 // ── Platform constants ─────────────────────────────────────────────────────
 
 /// macOS launchd label.
-const LAUNCHD_LABEL: &str = "org.moltis.node";
+const LAUNCHD_LABEL: &str = "org.leetium.node";
 
 /// systemd user unit name.
-const SYSTEMD_UNIT: &str = "moltis-node.service";
+const SYSTEMD_UNIT: &str = "leetium-node.service";
 
 // ── Service actions ────────────────────────────────────────────────────────
 
@@ -75,13 +75,13 @@ const SYSTEMD_UNIT: &str = "moltis-node.service";
 pub fn install(data_dir: &Path, config: &ServiceConfig) -> anyhow::Result<()> {
     config.save(data_dir)?;
 
-    let moltis_bin = resolve_binary()?;
+    let leetium_bin = resolve_binary()?;
     let log_path = data_dir.join("node.log");
 
     if cfg!(target_os = "macos") {
-        install_launchd(&moltis_bin, config, &log_path)
+        install_launchd(&leetium_bin, config, &log_path)
     } else if cfg!(target_os = "linux") {
-        install_systemd(&moltis_bin, config, &log_path)
+        install_systemd(&leetium_bin, config, &log_path)
     } else {
         anyhow::bail!("service install not supported on {}", std::env::consts::OS)
     }
@@ -176,14 +176,14 @@ fn resolve_binary() -> anyhow::Result<PathBuf> {
     // Prefer the running binary if it looks right.
     if let Ok(exe) = std::env::current_exe() {
         let name = exe.file_name().unwrap_or_default().to_string_lossy();
-        if name == "moltis" || name.starts_with("moltis-") {
+        if name == "leetium" || name.starts_with("leetium-") {
             return Ok(exe);
         }
     }
 
     // Fall back to PATH lookup.
-    which::which("moltis").map_err(|_| {
-        anyhow::anyhow!("cannot find 'moltis' binary; ensure it is installed and in PATH")
+    which::which("leetium").map_err(|_| {
+        anyhow::anyhow!("cannot find 'leetium' binary; ensure it is installed and in PATH")
     })
 }
 
@@ -199,11 +199,11 @@ fn launchd_plist_path() -> anyhow::Result<PathBuf> {
 
 /// Generate a launchd plist XML string.
 pub fn generate_launchd_plist(
-    moltis_bin: &Path,
+    leetium_bin: &Path,
     config: &ServiceConfig,
     log_path: &Path,
 ) -> String {
-    let bin = moltis_bin.display();
+    let bin = leetium_bin.display();
     let log = log_path.display();
 
     let mut args = vec![
@@ -266,7 +266,7 @@ pub fn generate_launchd_plist(
 }
 
 fn install_launchd(
-    moltis_bin: &Path,
+    leetium_bin: &Path,
     config: &ServiceConfig,
     log_path: &Path,
 ) -> anyhow::Result<()> {
@@ -281,7 +281,7 @@ fn install_launchd(
         ])
         .output();
 
-    let plist = generate_launchd_plist(moltis_bin, config, log_path);
+    let plist = generate_launchd_plist(leetium_bin, config, log_path);
 
     if let Some(parent) = plist_path.parent() {
         fs::create_dir_all(parent)?;
@@ -410,8 +410,8 @@ fn systemd_unit_path() -> anyhow::Result<PathBuf> {
 }
 
 /// Generate a systemd user unit file.
-pub fn generate_systemd_unit(moltis_bin: &Path, config: &ServiceConfig, log_path: &Path) -> String {
-    let bin = moltis_bin.display();
+pub fn generate_systemd_unit(leetium_bin: &Path, config: &ServiceConfig, log_path: &Path) -> String {
+    let bin = leetium_bin.display();
     let log = log_path.display();
 
     let mut exec_args = format!(
@@ -431,7 +431,7 @@ pub fn generate_systemd_unit(moltis_bin: &Path, config: &ServiceConfig, log_path
 
     format!(
         r#"[Unit]
-Description=Moltis Node Host
+Description=Leetium Node Host
 After=network-online.target
 Wants=network-online.target
 
@@ -451,7 +451,7 @@ WantedBy=default.target
 }
 
 fn install_systemd(
-    moltis_bin: &Path,
+    leetium_bin: &Path,
     config: &ServiceConfig,
     log_path: &Path,
 ) -> anyhow::Result<()> {
@@ -462,7 +462,7 @@ fn install_systemd(
         .args(["--user", "stop", SYSTEMD_UNIT])
         .output();
 
-    let unit = generate_systemd_unit(moltis_bin, config, log_path);
+    let unit = generate_systemd_unit(leetium_bin, config, log_path);
 
     if let Some(parent) = unit_path.parent() {
         fs::create_dir_all(parent)?;
@@ -614,7 +614,7 @@ mod tests {
 
     #[test]
     fn service_config_save_and_load() {
-        let dir = std::env::temp_dir().join("moltis-service-test");
+        let dir = std::env::temp_dir().join("leetium-service-test");
         let _ = fs::remove_dir_all(&dir);
 
         let config = ServiceConfig {
@@ -639,7 +639,7 @@ mod tests {
 
     #[test]
     fn launchd_plist_contains_required_elements() {
-        let bin = PathBuf::from("/usr/local/bin/moltis");
+        let bin = PathBuf::from("/usr/local/bin/leetium");
         let config = ServiceConfig {
             gateway_url: "ws://gw:9090/ws".into(),
             device_token: "tok_test".into(),
@@ -652,8 +652,8 @@ mod tests {
 
         let plist = generate_launchd_plist(&bin, &config, &log);
 
-        assert!(plist.contains("org.moltis.node"));
-        assert!(plist.contains("/usr/local/bin/moltis"));
+        assert!(plist.contains("org.leetium.node"));
+        assert!(plist.contains("/usr/local/bin/leetium"));
         assert!(plist.contains("ws://gw:9090/ws"));
         assert!(plist.contains("tok_test"));
         assert!(plist.contains("node-42"));
@@ -670,7 +670,7 @@ mod tests {
 
     #[test]
     fn launchd_plist_omits_optional_fields() {
-        let bin = PathBuf::from("/usr/local/bin/moltis");
+        let bin = PathBuf::from("/usr/local/bin/leetium");
         let config = ServiceConfig {
             gateway_url: "ws://gw:9090/ws".into(),
             device_token: "tok_test".into(),
@@ -690,7 +690,7 @@ mod tests {
 
     #[test]
     fn systemd_unit_contains_required_elements() {
-        let bin = PathBuf::from("/usr/bin/moltis");
+        let bin = PathBuf::from("/usr/bin/leetium");
         let config = ServiceConfig {
             gateway_url: "ws://gw:9090/ws".into(),
             device_token: "tok_sys".into(),
@@ -699,7 +699,7 @@ mod tests {
             working_dir: Some("/srv".into()),
             timeout: 600,
         };
-        let log = PathBuf::from("/var/log/moltis/node.log");
+        let log = PathBuf::from("/var/log/leetium/node.log");
 
         let unit = generate_systemd_unit(&bin, &config, &log);
 
@@ -707,7 +707,7 @@ mod tests {
         assert!(unit.contains("[Service]"));
         assert!(unit.contains("[Install]"));
         assert!(unit.contains("network-online.target"));
-        assert!(unit.contains("/usr/bin/moltis node run"));
+        assert!(unit.contains("/usr/bin/leetium node run"));
         assert!(unit.contains("ws://gw:9090/ws"));
         assert!(unit.contains("tok_sys"));
         assert!(unit.contains("--node-id sys-node"));
@@ -716,13 +716,13 @@ mod tests {
         assert!(unit.contains("--timeout 600"));
         assert!(unit.contains("Restart=on-failure"));
         assert!(unit.contains("RestartSec=10"));
-        assert!(unit.contains("/var/log/moltis/node.log"));
+        assert!(unit.contains("/var/log/leetium/node.log"));
         assert!(unit.contains("WantedBy=default.target"));
     }
 
     #[test]
     fn systemd_unit_omits_optional_fields() {
-        let bin = PathBuf::from("/usr/bin/moltis");
+        let bin = PathBuf::from("/usr/bin/leetium");
         let config = ServiceConfig {
             gateway_url: "ws://gw:9090/ws".into(),
             device_token: "tok_min".into(),

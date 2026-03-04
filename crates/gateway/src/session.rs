@@ -9,13 +9,13 @@ use {
 };
 
 use {
-    moltis_common::hooks::HookRegistry,
-    moltis_projects::ProjectStore,
-    moltis_sessions::{
+    leetium_common::hooks::HookRegistry,
+    leetium_projects::ProjectStore,
+    leetium_sessions::{
         message::PersistedMessage, metadata::SqliteSessionMetadata, state_store::SessionStateStore,
         store::SessionStore,
     },
-    moltis_tools::sandbox::SandboxRouter,
+    leetium_tools::sandbox::SandboxRouter,
 };
 
 use crate::{
@@ -114,7 +114,7 @@ fn message_text(msg: &Value) -> Option<String> {
 fn sanitize_tts_text(text: &str) -> String {
     #[cfg(feature = "voice")]
     {
-        moltis_voice::tts::sanitize_text_for_tts(text).to_string()
+        leetium_voice::tts::sanitize_text_for_tts(text).to_string()
     }
 
     #[cfg(not(feature = "voice"))]
@@ -297,7 +297,7 @@ async fn tool_result_image_for_share(
         (image_mime_type(filename).to_string(), bytes)
     };
 
-    let full_meta = moltis_media::image_ops::get_image_metadata(&full_bytes).ok()?;
+    let full_meta = leetium_media::image_ops::get_image_metadata(&full_bytes).ok()?;
     let full_asset = SharedImageAsset {
         data_url: build_image_data_url(&full_mime, &full_bytes),
         width: full_meta.width,
@@ -307,7 +307,7 @@ async fn tool_result_image_for_share(
     let needs_preview_resize = full_meta.width > SHARE_PREVIEW_MAX_IMAGE_WIDTH
         || full_meta.height > SHARE_PREVIEW_MAX_IMAGE_HEIGHT;
     let preview_bytes = if needs_preview_resize {
-        moltis_media::image_ops::resize_image(
+        leetium_media::image_ops::resize_image(
             &full_bytes,
             SHARE_PREVIEW_MAX_IMAGE_WIDTH,
             SHARE_PREVIEW_MAX_IMAGE_HEIGHT,
@@ -316,7 +316,7 @@ async fn tool_result_image_for_share(
     } else {
         full_bytes.clone()
     };
-    let preview_meta = moltis_media::image_ops::get_image_metadata(&preview_bytes).ok()?;
+    let preview_meta = leetium_media::image_ops::get_image_metadata(&preview_bytes).ok()?;
     let preview_mime = sniff_image_mime(&preview_bytes, &full_mime);
     let preview_asset = SharedImageAsset {
         data_url: build_image_data_url(&preview_mime, &preview_bytes),
@@ -855,7 +855,7 @@ impl LiveSessionService {
 
     async fn resolve_agent_id_for_entry(
         &self,
-        entry: &moltis_sessions::metadata::SessionEntry,
+        entry: &leetium_sessions::metadata::SessionEntry,
         patch_if_invalid: bool,
     ) -> String {
         let fallback = self.default_agent_id().await;
@@ -912,7 +912,7 @@ impl LiveSessionService {
         &self,
         key: &str,
         inherit_from_key: Option<&str>,
-    ) -> Option<moltis_sessions::metadata::SessionEntry> {
+    ) -> Option<leetium_sessions::metadata::SessionEntry> {
         let entry = self.metadata.get(key).await?;
         if entry
             .agent_id
@@ -954,7 +954,7 @@ impl SessionService for LiveSessionService {
             // Check if this session is the active one for its channel binding.
             let active_channel = if let Some(ref binding_json) = e.channel_binding {
                 if let Ok(target) =
-                    serde_json::from_str::<moltis_channels::ChannelReplyTarget>(binding_json)
+                    serde_json::from_str::<leetium_channels::ChannelReplyTarget>(binding_json)
                 {
                     self.metadata
                         .get_active_session(
@@ -1060,7 +1060,7 @@ impl SessionService for LiveSessionService {
         if history.is_empty()
             && let Some(ref hooks) = self.hook_registry
         {
-            let payload = moltis_common::hooks::HookPayload::SessionStart {
+            let payload = leetium_common::hooks::HookPayload::SessionStart {
                 session_key: key.to_string(),
             };
             if let Err(e) = hooks.dispatch(&payload).await {
@@ -1455,7 +1455,7 @@ impl SessionService for LiveSessionService {
             .map_err(ServiceError::message)?;
 
         // Remove pre-rendered static files.
-        let shares_dir = moltis_config::data_dir().join("shares");
+        let shares_dir = leetium_config::data_dir().join("shares");
         let _ = std::fs::remove_file(shares_dir.join(format!("{id}.html")));
         let _ = std::fs::remove_file(shares_dir.join(format!("{id}-og.svg")));
 
@@ -1498,13 +1498,13 @@ impl SessionService for LiveSessionService {
             && let Ok(Some(project)) = project_store.get(project_id).await
         {
             let project_dir = &project.directory;
-            let wt_dir = project_dir.join(".moltis-worktrees").join(key);
+            let wt_dir = project_dir.join(".leetium-worktrees").join(key);
 
             // Safety checks unless force is set.
             if !force
                 && wt_dir.exists()
                 && let Ok(true) =
-                    moltis_projects::WorktreeManager::has_uncommitted_changes(&wt_dir).await
+                    leetium_projects::WorktreeManager::has_uncommitted_changes(&wt_dir).await
             {
                 return Err(
                     "worktree has uncommitted changes; use force: true to delete anyway".into(),
@@ -1515,13 +1515,13 @@ impl SessionService for LiveSessionService {
             if let Some(ref cmd) = project.teardown_command
                 && wt_dir.exists()
                 && let Err(e) =
-                    moltis_projects::WorktreeManager::run_teardown(&wt_dir, cmd, project_dir, key)
+                    leetium_projects::WorktreeManager::run_teardown(&wt_dir, cmd, project_dir, key)
                         .await
             {
                 tracing::warn!("worktree teardown failed: {e}");
             }
 
-            if let Err(e) = moltis_projects::WorktreeManager::cleanup(project_dir, key).await {
+            if let Err(e) = leetium_projects::WorktreeManager::cleanup(project_dir, key).await {
                 tracing::warn!("worktree cleanup failed: {e}");
             }
         }
@@ -1546,7 +1546,7 @@ impl SessionService for LiveSessionService {
 
         // Dispatch SessionEnd hook (read-only).
         if let Some(ref hooks) = self.hook_registry {
-            let payload = moltis_common::hooks::HookPayload::SessionEnd {
+            let payload = leetium_common::hooks::HookPayload::SessionEnd {
                 session_key: key.to_string(),
             };
             if let Err(e) = hooks.dispatch(&payload).await {
@@ -2610,7 +2610,7 @@ mod tests {
     async fn sqlite_pool() -> sqlx::SqlitePool {
         let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
         // Projects table must exist before sessions (FK constraint).
-        moltis_projects::run_migrations(&pool).await.unwrap();
+        leetium_projects::run_migrations(&pool).await.unwrap();
         SqliteSessionMetadata::init(&pool).await.unwrap();
         pool
     }

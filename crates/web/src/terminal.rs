@@ -18,15 +18,15 @@ use {
     },
     base64::Engine as _,
     futures::{SinkExt, StreamExt},
-    moltis_gateway::server::AppState,
+    leetium_gateway::server::AppState,
     portable_pty::{CommandBuilder, PtySize, native_pty_system},
     tracing::{debug, info, warn},
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const HOST_TERMINAL_SESSION_NAME: &str = "moltis-host-terminal";
-const HOST_TERMINAL_TMUX_SOCKET_NAME: &str = "moltis-host-terminal";
+const HOST_TERMINAL_SESSION_NAME: &str = "leetium-host-terminal";
+const HOST_TERMINAL_TMUX_SOCKET_NAME: &str = "leetium-host-terminal";
 const HOST_TERMINAL_TMUX_CONFIG_PATH: &str = "/dev/null";
 const HOST_TERMINAL_MAX_INPUT_BYTES: usize = 8 * 1024;
 const HOST_TERMINAL_DEFAULT_COLS: u16 = 220;
@@ -590,7 +590,7 @@ fn spawn_host_terminal_reader(
 ) -> TerminalResult<tokio::sync::mpsc::UnboundedReceiver<HostTerminalOutputEvent>> {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<HostTerminalOutputEvent>();
     std::thread::Builder::new()
-        .name("moltis-host-terminal-reader".to_string())
+        .name("leetium-host-terminal-reader".to_string())
         .spawn(move || {
             let mut buf = vec![0_u8; 16 * 1024];
             loop {
@@ -724,7 +724,7 @@ fn is_loopback_host(host: &str) -> bool {
 ///
 /// A connection is considered local when **all** of the following hold:
 ///
-/// - `MOLTIS_BEHIND_PROXY` is **not** set (`behind_proxy == false`)
+/// - `LEETIUM_BEHIND_PROXY` is **not** set (`behind_proxy == false`)
 /// - No proxy headers are present (X-Forwarded-For, X-Real-IP, etc.)
 /// - The `Host` header resolves to a loopback address (or is absent)
 /// - The TCP source IP is loopback
@@ -758,7 +758,7 @@ fn is_local_connection(
 
 async fn websocket_header_authenticated(
     headers: &axum::http::HeaderMap,
-    credential_store: Option<&Arc<moltis_gateway::auth::CredentialStore>>,
+    credential_store: Option<&Arc<leetium_gateway::auth::CredentialStore>>,
     is_local: bool,
 ) -> bool {
     let Some(store) = credential_store else {
@@ -766,8 +766,8 @@ async fn websocket_header_authenticated(
     };
 
     matches!(
-        moltis_gateway::auth_middleware::check_auth(store, headers, is_local).await,
-        moltis_gateway::auth_middleware::AuthResult::Allowed(_)
+        leetium_gateway::auth_middleware::check_auth(store, headers, is_local).await,
+        leetium_gateway::auth_middleware::AuthResult::Allowed(_)
     )
 }
 
@@ -813,7 +813,7 @@ fn is_same_origin(origin: &str, host: &str) -> bool {
     let hh = strip_port(host);
 
     // Normalise loopback variants so 127.0.0.1 == localhost == ::1.
-    // Subdomains of .localhost (e.g. moltis.localhost) are also loopback per RFC 6761.
+    // Subdomains of .localhost (e.g. leetium.localhost) are also loopback per RFC 6761.
     let is_loopback =
         |h: &str| matches!(h, "localhost" | "127.0.0.1" | "::1") || h.ends_with(".localhost");
 

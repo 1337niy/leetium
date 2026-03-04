@@ -1,8 +1,8 @@
-name: moltis
+name: leetium
 version: '0.2.0'
 summary: Personal AI gateway inspired by OpenClaw
 description: |
-  Moltis is a personal AI gateway inspired by OpenClaw. One binary, multiple LLM providers.
+  Leetium is a personal AI gateway inspired by OpenClaw. One binary, multiple LLM providers.
 
 base: core24
 grade: stable
@@ -13,16 +13,16 @@ platforms:
   arm64:
 
 apps:
-  moltis:
-    command: bin/moltis
+  leetium:
+    command: bin/leetium
     environment:
-      MOLTIS_SHARE_DIR: $SNAP/share/moltis
+      LEETIUM_SHARE_DIR: $SNAP/share/leetium
     plugs:
       - network
       - network-bind
 
 parts:
-  moltis:
+  leetium:
     plugin: rust
     source: .
     rust-path: ["crates/cli"]
@@ -41,10 +41,10 @@ parts:
       chmod +x "$TW"
       cd crates/web/ui && TAILWINDCSS="../../../$TW" ./build.sh && cd ../../..
       rustup target add wasm32-wasip2
-      cargo build --target wasm32-wasip2 -p moltis-wasm-calc -p moltis-wasm-web-fetch -p moltis-wasm-web-search --release
+      cargo build --target wasm32-wasip2 -p leetium-wasm-calc -p leetium-wasm-web-fetch -p leetium-wasm-web-search --release
       craftctl default
-      mkdir -p "$CRAFT_PART_INSTALL/share/moltis/web" "$CRAFT_PART_INSTALL/share/moltis/wasm"
-      cp -R "crates/web/src/assets/." "$CRAFT_PART_INSTALL/share/moltis/web/"
-      cp "target/wasm32-wasip2/release/moltis_wasm_calc.wasm" "$CRAFT_PART_INSTALL/share/moltis/wasm/"
-      cp "target/wasm32-wasip2/release/moltis_wasm_web_fetch.wasm" "$CRAFT_PART_INSTALL/share/moltis/wasm/"
-      cp "target/wasm32-wasip2/release/moltis_wasm_web_search.wasm" "$CRAFT_PART_INSTALL/share/moltis/wasm/"
+      mkdir -p "$CRAFT_PART_INSTALL/share/leetium/web" "$CRAFT_PART_INSTALL/share/leetium/wasm"
+      cp -R "crates/web/src/assets/." "$CRAFT_PART_INSTALL/share/leetium/web/"
+      cp "target/wasm32-wasip2/release/leetium_wasm_calc.wasm" "$CRAFT_PART_INSTALL/share/leetium/wasm/"
+      cp "target/wasm32-wasip2/release/leetium_wasm_web_fetch.wasm" "$CRAFT_PART_INSTALL/share/leetium/wasm/"
+      cp "target/wasm32-wasip2/release/leetium_wasm_web_search.wasm" "$CRAFT_PART_INSTALL/share/leetium/wasm/"

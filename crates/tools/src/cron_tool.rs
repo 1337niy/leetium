@@ -10,8 +10,8 @@ use {
 use crate::{Result, error::Error};
 
 use {
-    moltis_agents::tool_registry::AgentTool,
-    moltis_cron::{
+    leetium_agents::tool_registry::AgentTool,
+    leetium_cron::{
         parse::{parse_absolute_time_ms, parse_duration_ms},
         service::CronService,
         types::{CronJobCreate, CronJobPatch},
@@ -797,7 +797,7 @@ impl AgentTool for CronTool {
 mod tests {
     use std::sync::Arc;
 
-    use moltis_cron::{
+    use leetium_cron::{
         service::{AgentTurnFn, CronService, SystemEventFn},
         store_memory::InMemoryStore,
     };
@@ -811,7 +811,7 @@ mod tests {
     fn noop_agent() -> AgentTurnFn {
         Arc::new(|_| {
             Box::pin(async {
-                Ok(moltis_cron::service::AgentTurnResult {
+                Ok(leetium_cron::service::AgentTurnResult {
                     output: "ok".into(),
                     input_tokens: None,
                     output_tokens: None,

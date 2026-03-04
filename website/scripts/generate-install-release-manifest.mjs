@@ -4,8 +4,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
-const DEFAULT_SITE = "https://moltis.org";
-const DEFAULT_REPO = "moltis-org/moltis";
+const DEFAULT_SITE = "https://leetnex.ru";
+const DEFAULT_REPO = "1337leetium/leetium";
 const DEFAULT_CHANNEL = "stable";
 
 const RELEASE_TARGETS = [
@@ -24,8 +24,8 @@ Options:
   --version <x.y.z>           Release version (required)
   --published-at <YYYY-MM-DD> Release date (default: UTC today)
   --channel <name>            Channel to update (default: stable)
-  --repo <owner/repo>         GitHub repo (default: moltis-org/moltis)
-  --site <https://host>       Site origin (default: https://moltis.org)
+  --repo <owner/repo>         GitHub repo (default: 1337leetium/leetium)
+  --site <https://host>       Site origin (default: https://leetnex.ru)
   --checksums-file <path>     File containing lines: <sha256> <filename>
   --allow-missing-sha         Allow missing SHA256 entries
 `);
@@ -100,7 +100,7 @@ function parseChecksums(content) {
 }
 
 function releaseAsset(version, target, ext, repo) {
-  const filename = `moltis-${version}-${target}.${ext}`;
+  const filename = `leetium-${version}-${target}.${ext}`;
   const base = `https://github.com/${repo}/releases/download/v${version}`;
   return {
     target,
@@ -130,8 +130,8 @@ async function main() {
   }
 
   const root = process.cwd();
-  const channelDir = path.join(root, ".well-known", "moltis-install", "channels");
-  const releaseDir = path.join(root, ".well-known", "moltis-install", "releases");
+  const channelDir = path.join(root, ".well-known", "leetium-install", "channels");
+  const releaseDir = path.join(root, ".well-known", "leetium-install", "releases");
 
   await mkdir(channelDir, { recursive: true });
   await mkdir(releaseDir, { recursive: true });
@@ -175,7 +175,7 @@ async function main() {
     channel: opts.channel,
     updated_at: new Date().toISOString(),
     latest_version: opts.version,
-    release_manifest: `${opts.site}/.well-known/moltis-install/releases/${opts.version}.json`,
+    release_manifest: `${opts.site}/.well-known/leetium-install/releases/${opts.version}.json`,
     release_notes_url: `https://github.com/${opts.repo}/releases/tag/v${opts.version}`
   };
 

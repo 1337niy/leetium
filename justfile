@@ -17,7 +17,7 @@ format-check:
 lockfile-check:
     cargo fetch --locked
 
-# Lint Rust code using clippy
+# Lint Rust code using clippy (nightly required for -Z unstable-options to support specific lints)
 lint: lockfile-check
     cargo +{{nightly_toolchain}} clippy -Z unstable-options --workspace --all-features --all-targets --timings -- -D warnings
 
@@ -35,26 +35,26 @@ build-release:
 
 # Build embedded WASM guest tools and pre-compile to .cwasm for AOT loading.
 wasm-tools:
-    cargo build --target wasm32-wasip2 -p moltis-wasm-calc -p moltis-wasm-web-fetch -p moltis-wasm-web-search --release
-    cargo run -p moltis-wasm-precompile --release
+    cargo build --target wasm32-wasip2 -p leetium-wasm-calc -p leetium-wasm-web-fetch -p leetium-wasm-web-search --release
+    cargo run -p leetium-wasm-precompile --release
 
 # Run local dev server with workspace-local config/data dirs.
 dev-server:
-    MOLTIS_CONFIG_DIR=.moltis/config MOLTIS_DATA_DIR=.moltis/ cargo run --bin moltis
+    LEETIUM_CONFIG_DIR=.leetium/config LEETIUM_DATA_DIR=.leetium/ cargo run --bin leetium
 
 # Build Debian package for the current architecture
 deb: build-release
-    cargo deb -p moltis --no-build
+    cargo deb -p leetium --no-build
 
 # Build Debian package for amd64
 deb-amd64:
     cargo build --release --target x86_64-unknown-linux-gnu
-    cargo deb -p moltis --no-build --target x86_64-unknown-linux-gnu
+    cargo deb -p leetium --no-build --target x86_64-unknown-linux-gnu
 
 # Build Debian package for arm64
 deb-arm64:
     cargo build --release --target aarch64-unknown-linux-gnu
-    cargo deb -p moltis --no-build --target aarch64-unknown-linux-gnu
+    cargo deb -p leetium --no-build --target aarch64-unknown-linux-gnu
 
 # Build Debian packages for all architectures
 deb-all: deb-amd64 deb-arm64
@@ -68,19 +68,19 @@ arch-pkg: build-release
     PKG_DIR="target/arch-pkg"
     rm -rf "$PKG_DIR"
     mkdir -p "$PKG_DIR/usr/bin"
-    cp target/release/moltis "$PKG_DIR/usr/bin/moltis"
-    chmod 755 "$PKG_DIR/usr/bin/moltis"
+    cp target/release/leetium "$PKG_DIR/usr/bin/leetium"
+    chmod 755 "$PKG_DIR/usr/bin/leetium"
     cat > "$PKG_DIR/.PKGINFO" <<PKGINFO
-    pkgname = moltis
+    pkgname = leetium
     pkgver = ${VERSION}-1
     pkgdesc = Personal AI gateway inspired by OpenClaw
-    url = https://www.moltis.org/
+    url = https://www.leetnex.ru/
     arch = ${ARCH}
     license = MIT
     PKGINFO
     cd "$PKG_DIR"
-    fakeroot -- tar --zstd -cf "../../moltis-${VERSION}-1-${ARCH}.pkg.tar.zst" .PKGINFO usr/
-    echo "Built moltis-${VERSION}-1-${ARCH}.pkg.tar.zst"
+    fakeroot -- tar --zstd -cf "../../leetium-${VERSION}-1-${ARCH}.pkg.tar.zst" .PKGINFO usr/
+    echo "Built leetium-${VERSION}-1-${ARCH}.pkg.tar.zst"
 
 # Build Arch package for x86_64
 arch-pkg-x86_64:
@@ -91,19 +91,19 @@ arch-pkg-x86_64:
     PKG_DIR="target/arch-pkg-x86_64"
     rm -rf "$PKG_DIR"
     mkdir -p "$PKG_DIR/usr/bin"
-    cp target/x86_64-unknown-linux-gnu/release/moltis "$PKG_DIR/usr/bin/moltis"
-    chmod 755 "$PKG_DIR/usr/bin/moltis"
+    cp target/x86_64-unknown-linux-gnu/release/leetium "$PKG_DIR/usr/bin/leetium"
+    chmod 755 "$PKG_DIR/usr/bin/leetium"
     cat > "$PKG_DIR/.PKGINFO" <<PKGINFO
-    pkgname = moltis
+    pkgname = leetium
     pkgver = ${VERSION}-1
     pkgdesc = Personal AI gateway inspired by OpenClaw
-    url = https://www.moltis.org/
+    url = https://www.leetnex.ru/
     arch = x86_64
     license = MIT
     PKGINFO
     cd "$PKG_DIR"
-    fakeroot -- tar --zstd -cf "../../moltis-${VERSION}-1-x86_64.pkg.tar.zst" .PKGINFO usr/
-    echo "Built moltis-${VERSION}-1-x86_64.pkg.tar.zst"
+    fakeroot -- tar --zstd -cf "../../leetium-${VERSION}-1-x86_64.pkg.tar.zst" .PKGINFO usr/
+    echo "Built leetium-${VERSION}-1-x86_64.pkg.tar.zst"
 
 # Build Arch package for aarch64
 arch-pkg-aarch64:
@@ -114,19 +114,19 @@ arch-pkg-aarch64:
     PKG_DIR="target/arch-pkg-aarch64"
     rm -rf "$PKG_DIR"
     mkdir -p "$PKG_DIR/usr/bin"
-    cp target/aarch64-unknown-linux-gnu/release/moltis "$PKG_DIR/usr/bin/moltis"
-    chmod 755 "$PKG_DIR/usr/bin/moltis"
+    cp target/aarch64-unknown-linux-gnu/release/leetium "$PKG_DIR/usr/bin/leetium"
+    chmod 755 "$PKG_DIR/usr/bin/leetium"
     cat > "$PKG_DIR/.PKGINFO" <<PKGINFO
-    pkgname = moltis
+    pkgname = leetium
     pkgver = ${VERSION}-1
     pkgdesc = Personal AI gateway inspired by OpenClaw
-    url = https://www.moltis.org/
+    url = https://www.leetnex.ru/
     arch = aarch64
     license = MIT
     PKGINFO
     cd "$PKG_DIR"
-    fakeroot -- tar --zstd -cf "../../moltis-${VERSION}-1-aarch64.pkg.tar.zst" .PKGINFO usr/
-    echo "Built moltis-${VERSION}-1-aarch64.pkg.tar.zst"
+    fakeroot -- tar --zstd -cf "../../leetium-${VERSION}-1-aarch64.pkg.tar.zst" .PKGINFO usr/
+    echo "Built leetium-${VERSION}-1-aarch64.pkg.tar.zst"
 
 # Build Arch packages for all architectures
 arch-pkg-all: arch-pkg-x86_64 arch-pkg-aarch64
@@ -154,37 +154,37 @@ appimage: build-release
     set -euo pipefail
     VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
     ARCH=$(uname -m)
-    APP_DIR="target/moltis.AppDir"
+    APP_DIR="target/leetium.AppDir"
     rm -rf "$APP_DIR"
     mkdir -p "$APP_DIR/usr/bin"
-    cp target/release/moltis "$APP_DIR/usr/bin/moltis"
-    chmod 755 "$APP_DIR/usr/bin/moltis"
-    cat > "$APP_DIR/moltis.desktop" <<DESKTOP
+    cp target/release/leetium "$APP_DIR/usr/bin/leetium"
+    chmod 755 "$APP_DIR/usr/bin/leetium"
+    cat > "$APP_DIR/leetium.desktop" <<DESKTOP
     [Desktop Entry]
     Type=Application
-    Name=Moltis
-    Exec=moltis
-    Icon=moltis
+    Name=Leetium
+    Exec=leetium
+    Icon=leetium
     Categories=Network;
     Terminal=true
     DESKTOP
-    cat > "$APP_DIR/moltis.svg" <<SVG
+    cat > "$APP_DIR/leetium.svg" <<SVG
     <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#333"/><text x="128" y="140" font-size="120" text-anchor="middle" fill="white">M</text></svg>
     SVG
-    ln -sf moltis.svg "$APP_DIR/.DirIcon"
+    ln -sf leetium.svg "$APP_DIR/.DirIcon"
     cat > "$APP_DIR/AppRun" <<'APPRUN'
     #!/bin/sh
     SELF=$(readlink -f "$0")
     HERE=${SELF%/*}
-    exec "$HERE/usr/bin/moltis" "$@"
+    exec "$HERE/usr/bin/leetium" "$@"
     APPRUN
     chmod +x "$APP_DIR/AppRun"
     if [ ! -f target/appimagetool ]; then
         wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage" -O target/appimagetool
         chmod +x target/appimagetool
     fi
-    ARCH=${ARCH} target/appimagetool --appimage-extract-and-run "$APP_DIR" "moltis-${VERSION}-${ARCH}.AppImage"
-    echo "Built moltis-${VERSION}-${ARCH}.AppImage"
+    ARCH=${ARCH} target/appimagetool --appimage-extract-and-run "$APP_DIR" "leetium-${VERSION}-${ARCH}.AppImage"
+    echo "Built leetium-${VERSION}-${ARCH}.AppImage"
 
 # Build Snap package
 snap:
@@ -192,7 +192,7 @@ snap:
 
 # Build Flatpak
 flatpak:
-    cd flatpak && flatpak-builder --repo=repo --force-clean builddir org.moltbot.Moltis.yml
+    cd flatpak && flatpak-builder --repo=repo --force-clean builddir org.moltbot.Leetium.yml
 
 # Run all CI checks (format, lint, build, test)
 ci: format-check lint i18n-check build-css build test
@@ -286,10 +286,10 @@ test:
 
 # Run contract test suites (channel, provider, memory, tools)
 contract-tests:
-    cargo test -p moltis-channels contract
-    cargo test -p moltis-providers contract
-    cargo test -p moltis-memory contract
-    cargo test -p moltis-tools contract
+    cargo test -p leetium-channels contract
+    cargo test -p leetium-providers contract
+    cargo test -p leetium-memory contract
+    cargo test -p leetium-tools contract
 
 # Verify locale key parity across frontend i18n bundles.
 i18n-check:
@@ -301,12 +301,12 @@ ui-e2e-install:
 
 # Run gateway web UI e2e tests (Playwright).
 ui-e2e:
-    cargo +{{nightly_toolchain}} build --bin moltis
+    cargo +{{nightly_toolchain}} build --bin leetium
     cd crates/web/ui && npm run e2e
 
 # Run gateway web UI e2e tests with headed browser.
 ui-e2e-headed:
-    cargo +{{nightly_toolchain}} build --bin moltis
+    cargo +{{nightly_toolchain}} build --bin leetium
     cd crates/web/ui && npm run e2e:headed
 
 # Build all Linux packages (deb + rpm + arch + appimage) for all architectures
@@ -338,7 +338,7 @@ swift-run: swift-build-rust swift-generate
 
 # Open generated project in Xcode.
 swift-open: swift-build-rust swift-generate
-    open apps/macos/Moltis.xcodeproj
+    open apps/macos/Leetium.xcodeproj
 
 # Generate iOS app Xcode project.
 ios-generate:
@@ -346,12 +346,12 @@ ios-generate:
 
 # Generate Apollo GraphQL types for iOS.
 ios-graphql:
-    cargo run -p moltis-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls
+    cargo run -p leetium-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls
     ./scripts/generate-ios-graphql.sh
 
 # Build iOS app (generic iOS destination, no signing).
 ios-build: ios-graphql ios-generate
-    xcodebuild -project apps/ios/Moltis.xcodeproj -scheme Moltis -configuration Debug -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO build
+    xcodebuild -project apps/ios/Leetium.xcodeproj -scheme Leetium -configuration Debug -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO build
 
 # Lint iOS app sources with SwiftLint.
 ios-lint:
@@ -359,15 +359,15 @@ ios-lint:
 
 # Open iOS project in Xcode (regenerates GraphQL types and project first).
 ios-open: ios-graphql ios-generate
-    open apps/ios/Moltis.xcodeproj
+    open apps/ios/Leetium.xcodeproj
 
 # Build the APNS push relay.
 courier-build:
-    cargo build -p moltis-courier --release
+    cargo build -p leetium-courier --release
 
 # Cross-compile courier for linux/x86_64.
 courier-cross:
-    cargo build -p moltis-courier --release --target x86_64-unknown-linux-gnu
+    cargo build -p leetium-courier --release --target x86_64-unknown-linux-gnu
 
 # Deploy courier to remote server(s) via Ansible.
 courier-deploy:
@@ -375,4 +375,4 @@ courier-deploy:
 
 # Run the APNS push relay (dev).
 courier-run *ARGS:
-    cargo run -p moltis-courier -- {{ARGS}}
+    cargo run -p leetium-courier -- {{ARGS}}

@@ -11,7 +11,7 @@ use {
     tracing::{debug, error, info, warn},
 };
 
-use moltis_channels::{ChannelEventSink, message_log::MessageLog};
+use leetium_channels::{ChannelEventSink, message_log::MessageLog};
 
 use crate::{
     config::TelegramAccountConfig,

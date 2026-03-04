@@ -21,4 +21,4 @@ fi
 
 xcodegen generate --spec project.yml
 
-echo "Generated ${IOS_APP_DIR}/Moltis.xcodeproj"
+echo "Generated ${IOS_APP_DIR}/Leetium.xcodeproj"

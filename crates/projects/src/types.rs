@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-/// A project represents a codebase directory that moltis can work with.
+/// A project represents a codebase directory that leetium can work with.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
     pub id: String,
@@ -108,11 +108,11 @@ mod tests {
         let ctx = ProjectContext {
             project: test_project(),
             context_files: vec![],
-            worktree_dir: Some(PathBuf::from("/projects/test/.moltis-worktrees/session1")),
+            worktree_dir: Some(PathBuf::from("/projects/test/.leetium-worktrees/session1")),
         };
         let section = ctx.to_prompt_section();
         assert!(section.contains("Working directory (worktree):"));
-        assert!(section.contains(".moltis-worktrees/session1"));
+        assert!(section.contains(".leetium-worktrees/session1"));
     }
 
     #[test]

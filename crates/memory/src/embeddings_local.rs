@@ -101,11 +101,11 @@ impl LocalGgufEmbeddingProvider {
         Ok(model_path)
     }
 
-    /// Default cache directory: `~/.moltis/models/`.
+    /// Default cache directory: `~/.leetium/models/`.
     pub fn default_cache_dir() -> PathBuf {
-        directories::ProjectDirs::from("", "", "moltis")
+        directories::ProjectDirs::from("", "", "leetium")
             .map(|d: directories::ProjectDirs| d.data_dir().join("models"))
-            .unwrap_or_else(|| PathBuf::from(".moltis/models"))
+            .unwrap_or_else(|| PathBuf::from(".leetium/models"))
     }
 }
 

@@ -9,7 +9,7 @@ use {
     tracing::{info, warn},
 };
 
-use moltis_channels::{
+use leetium_channels::{
     ChannelConfigView, Error as ChannelError, Result as ChannelResult,
     message_log::MessageLog,
     plugin::{
@@ -18,7 +18,7 @@ use moltis_channels::{
     },
 };
 
-use moltis_channels::otp::OtpState;
+use leetium_channels::otp::OtpState;
 
 use crate::{
     config::DiscordAccountConfig,
@@ -309,7 +309,7 @@ impl ChannelStatus for DiscordPlugin {
 mod tests {
     use {
         super::*,
-        moltis_channels::{ChannelType, InboundMode},
+        leetium_channels::{ChannelType, InboundMode},
     };
 
     #[test]

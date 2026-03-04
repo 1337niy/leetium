@@ -5,8 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MACOS_APP_DIR="${REPO_ROOT}/apps/macos"
 
-if [ ! -d "${MACOS_APP_DIR}/Moltis.xcodeproj" ]; then
-  echo "error: Moltis.xcodeproj does not exist. Run: just swift-generate" >&2
+if [ ! -d "${MACOS_APP_DIR}/Leetium.xcodeproj" ]; then
+  echo "error: Leetium.xcodeproj does not exist. Run: just swift-generate" >&2
   exit 1
 fi
 
@@ -16,9 +16,9 @@ if [ -z "${DEVELOPER_DIR:-}" ] && [ -d "/Applications/Xcode.app/Contents/Develop
 fi
 
 xcodebuild \
-  -project "${MACOS_APP_DIR}/Moltis.xcodeproj" \
-  -scheme Moltis \
+  -project "${MACOS_APP_DIR}/Leetium.xcodeproj" \
+  -scheme Leetium \
   -destination "platform=macOS" \
   build
 
-echo "xcodebuild succeeded for Moltis"
+echo "xcodebuild succeeded for Leetium"

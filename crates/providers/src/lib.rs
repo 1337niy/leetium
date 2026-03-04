@@ -36,12 +36,12 @@ use std::{
 };
 
 use {
-    moltis_config::schema::{ProviderStreamTransport, ProvidersConfig},
+    leetium_config::schema::{ProviderStreamTransport, ProvidersConfig},
     secrecy::ExposeSecret,
     tokio_stream::Stream,
 };
 
-use moltis_agents::model::{ChatMessage, LlmProvider, StreamEvent};
+use leetium_agents::model::{ChatMessage, LlmProvider, StreamEvent};
 
 /// Shared HTTP client for LLM providers.
 ///
@@ -405,11 +405,11 @@ async fn probe_ollama_model_info(
 /// - Fall back to the hardcoded family whitelist only when capabilities are
 ///   unavailable (pre-0.5.x Ollama).
 fn resolve_ollama_tool_mode(
-    config_tool_mode: moltis_config::ToolMode,
+    config_tool_mode: leetium_config::ToolMode,
     model_name: &str,
     probe_result: Option<&OllamaShowResponse>,
-) -> moltis_config::ToolMode {
-    use moltis_config::ToolMode;
+) -> leetium_config::ToolMode {
+    use leetium_config::ToolMode;
 
     match config_tool_mode {
         ToolMode::Native | ToolMode::Text | ToolMode::Off => config_tool_mode,
@@ -504,7 +504,7 @@ impl LlmProvider for RegistryModelProvider {
         &self,
         messages: &[ChatMessage],
         tools: &[serde_json::Value],
-    ) -> anyhow::Result<moltis_agents::model::CompletionResponse> {
+    ) -> anyhow::Result<leetium_agents::model::CompletionResponse> {
         self.inner.complete(messages, tools).await
     }
 
@@ -512,7 +512,7 @@ impl LlmProvider for RegistryModelProvider {
         self.inner.supports_tools()
     }
 
-    fn tool_mode(&self) -> Option<moltis_config::ToolMode> {
+    fn tool_mode(&self) -> Option<leetium_config::ToolMode> {
         self.inner.tool_mode()
     }
 
@@ -2103,11 +2103,11 @@ impl ProviderRegistry {
                         &model_id,
                         ollama_probes.get(&model_id),
                     )
-                } else if !matches!(config_tool_mode, moltis_config::ToolMode::Auto) {
+                } else if !matches!(config_tool_mode, leetium_config::ToolMode::Auto) {
                     config_tool_mode
                 } else {
                     // Non-Ollama providers: let OpenAiProvider use its default logic.
-                    moltis_config::ToolMode::Auto
+                    leetium_config::ToolMode::Auto
                 };
 
                 let mut oai = openai::OpenAiProvider::new_with_name(
@@ -2118,7 +2118,7 @@ impl ProviderRegistry {
                 )
                 .with_stream_transport(stream_transport);
 
-                if !matches!(effective_tool_mode, moltis_config::ToolMode::Auto) {
+                if !matches!(effective_tool_mode, leetium_config::ToolMode::Auto) {
                     oai = oai.with_tool_mode(effective_tool_mode);
                 }
 
@@ -2195,7 +2195,7 @@ impl ProviderRegistry {
                     name.clone(),
                 )
                 .with_stream_transport(entry.stream_transport);
-                if !matches!(custom_tool_mode, moltis_config::ToolMode::Auto) {
+                if !matches!(custom_tool_mode, leetium_config::ToolMode::Auto) {
                     oai = oai.with_tool_mode(custom_tool_mode);
                 }
                 let provider = Arc::new(oai);
@@ -2410,14 +2410,14 @@ mod tests {
         };
         config.providers.insert(
             "openai-codex".into(),
-            moltis_config::schema::ProviderEntry {
+            leetium_config::schema::ProviderEntry {
                 enabled: false,
                 ..Default::default()
             },
         );
         config.providers.insert(
             "github-copilot".into(),
-            moltis_config::schema::ProviderEntry {
+            leetium_config::schema::ProviderEntry {
                 enabled: false,
                 ..Default::default()
             },
@@ -2791,7 +2791,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config.providers.insert(
             "openai-codex".into(),
-            moltis_config::schema::ProviderEntry {
+            leetium_config::schema::ProviderEntry {
                 enabled: false,
                 ..Default::default()
             },
@@ -2811,7 +2811,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("mistral".into(), moltis_config::schema::ProviderEntry {
+            .insert("mistral".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-mistral".into())),
                 ..Default::default()
             });
@@ -2838,7 +2838,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("cerebras".into(), moltis_config::schema::ProviderEntry {
+            .insert("cerebras".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-cerebras".into())),
                 ..Default::default()
             });
@@ -2857,7 +2857,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("minimax".into(), moltis_config::schema::ProviderEntry {
+            .insert("minimax".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-minimax".into())),
                 ..Default::default()
             });
@@ -2883,7 +2883,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("zai".into(), moltis_config::schema::ProviderEntry {
+            .insert("zai".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-zai".into())),
                 ..Default::default()
             });
@@ -2897,7 +2897,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("moonshot".into(), moltis_config::schema::ProviderEntry {
+            .insert("moonshot".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-moonshot".into())),
                 ..Default::default()
             });
@@ -2911,7 +2911,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("deepseek".into(), moltis_config::schema::ProviderEntry {
+            .insert("deepseek".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-deepseek".into())),
                 ..Default::default()
             });
@@ -2943,7 +2943,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("openrouter".into(), moltis_config::schema::ProviderEntry {
+            .insert("openrouter".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-or".into())),
                 ..Default::default()
             });
@@ -2957,7 +2957,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("openrouter".into(), moltis_config::schema::ProviderEntry {
+            .insert("openrouter".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-or".into())),
                 models: vec!["anthropic/claude-3-haiku".into()],
                 ..Default::default()
@@ -2981,7 +2981,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("openrouter".into(), moltis_config::schema::ProviderEntry {
+            .insert("openrouter".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-or".into())),
                 models: vec!["openai::gpt-5.2".into()],
                 ..Default::default()
@@ -3006,7 +3006,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("ollama".into(), moltis_config::schema::ProviderEntry {
+            .insert("ollama".into(), leetium_config::schema::ProviderEntry {
                 models: vec!["llama3".into()],
                 ..Default::default()
             });
@@ -3021,7 +3021,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("venice".into(), moltis_config::schema::ProviderEntry {
+            .insert("venice".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test-venice".into())),
                 ..Default::default()
             });
@@ -3035,7 +3035,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("mistral".into(), moltis_config::schema::ProviderEntry {
+            .insert("mistral".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test".into())),
                 enabled: false,
                 ..Default::default()
@@ -3061,7 +3061,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("mistral".into(), moltis_config::schema::ProviderEntry {
+            .insert("mistral".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test".into())),
                 base_url: Some("https://custom.mistral.example.com/v1".into()),
                 ..Default::default()
@@ -3076,7 +3076,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("mistral".into(), moltis_config::schema::ProviderEntry {
+            .insert("mistral".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test".into())),
                 models: vec!["mistral-small-latest".into()],
                 fetch_models: false,
@@ -3099,7 +3099,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("mistral".into(), moltis_config::schema::ProviderEntry {
+            .insert("mistral".into(), leetium_config::schema::ProviderEntry {
                 api_key: Some(secrecy::Secret::new("sk-test".into())),
                 models: vec!["codestral-latest".into()],
                 ..Default::default()
@@ -3287,7 +3287,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("local".into(), moltis_config::schema::ProviderEntry {
+            .insert("local".into(), leetium_config::schema::ProviderEntry {
                 ..Default::default()
             });
 
@@ -3301,7 +3301,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("local".into(), moltis_config::schema::ProviderEntry {
+            .insert("local".into(), leetium_config::schema::ProviderEntry {
                 models: vec!["qwen2.5-coder-7b-q4_k_m".into()],
                 ..Default::default()
             });
@@ -3322,7 +3322,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("local".into(), moltis_config::schema::ProviderEntry {
+            .insert("local".into(), leetium_config::schema::ProviderEntry {
                 enabled: false,
                 models: vec!["qwen2.5-coder-7b-q4_k_m".into()],
                 ..Default::default()
@@ -3338,7 +3338,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("local-llm".into(), moltis_config::schema::ProviderEntry {
+            .insert("local-llm".into(), leetium_config::schema::ProviderEntry {
                 models: vec!["qwen2.5-coder-7b-q4_k_m".into()],
                 ..Default::default()
             });
@@ -3356,7 +3356,7 @@ mod tests {
         let mut config = ProvidersConfig::default();
         config
             .providers
-            .insert("local-llm".into(), moltis_config::schema::ProviderEntry {
+            .insert("local-llm".into(), leetium_config::schema::ProviderEntry {
                 enabled: false,
                 models: vec!["qwen2.5-coder-7b-q4_k_m".into()],
                 ..Default::default()
@@ -3552,7 +3552,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_explicit_override() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // Explicit modes are passed through regardless of probe result.
         assert_eq!(
             resolve_ollama_tool_mode(ToolMode::Native, "anything", None),
@@ -3570,7 +3570,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_auto_with_probe() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
                 family: Some("llama3.1".into()),
@@ -3586,7 +3586,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_auto_unknown_model() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
                 family: Some("starcoder2".into()),
@@ -3622,7 +3622,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_capabilities_override_family() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // Model is NOT in the family whitelist but Ollama reports "tools" capability.
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
@@ -3639,7 +3639,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_capabilities_no_tools() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // Model has capabilities but "tools" is not among them.
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
@@ -3657,7 +3657,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_empty_capabilities_falls_back_to_family() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // Empty capabilities (pre-0.5.x Ollama) — falls back to family whitelist.
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
@@ -3674,7 +3674,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_no_probe_result_falls_back_to_name_heuristic() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // No probe result at all — falls back to model name matching.
         assert_eq!(
             resolve_ollama_tool_mode(ToolMode::Auto, "llama3.1:8b", None),
@@ -3688,7 +3688,7 @@ mod tests {
 
     #[test]
     fn resolve_ollama_tool_mode_explicit_overrides_capabilities() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         // Even with capabilities saying "tools", explicit Text override wins.
         let show_resp = OllamaShowResponse {
             details: OllamaModelDetails {
@@ -3740,7 +3740,7 @@ mod tests {
 
     #[test]
     fn openai_provider_supports_tools_respects_override() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         let make = |mode: ToolMode| {
             openai::OpenAiProvider::new(secret("key"), "gpt-4o".into(), "http://x".into())
                 .with_tool_mode(mode)
@@ -3754,7 +3754,7 @@ mod tests {
 
     #[test]
     fn openai_provider_tool_mode_returns_override() {
-        use moltis_config::ToolMode;
+        use leetium_config::ToolMode;
         let p = openai::OpenAiProvider::new(secret("key"), "gpt-4o".into(), "http://x".into())
             .with_tool_mode(ToolMode::Text);
         assert_eq!(p.tool_mode(), Some(ToolMode::Text));

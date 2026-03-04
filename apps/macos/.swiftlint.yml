@@ -4,7 +4,7 @@ included:
 
 excluded:
   - Generated
-  - Moltis.xcodeproj
+  - Leetium.xcodeproj
 
 file_length:
   warning: 450

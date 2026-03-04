@@ -1,22 +1,22 @@
-# Moltis Docker Compose example
+# Leetium Docker Compose example
 #
 # Usage:
 #   docker compose up -d
 #   open https://localhost:13131
 #
 # On first launch, a setup code is printed to the logs:
-#   docker compose logs moltis
+#   docker compose logs leetium
 #
 # Configuration and data are stored in local directories:
-#   ./config - moltis.toml, credentials.json, mcp-servers.json
+#   ./config - leetium.toml, credentials.json, mcp-servers.json
 #   ./data   - databases, sessions, memory files
 #
 # For Podman, see the rootless/rootful socket paths below.
 
 services:
-  moltis:
-    image: ghcr.io/moltis-org/moltis:latest
-    container_name: moltis
+  leetium:
+    image: ghcr.io/1337leetium/leetium:latest
+    container_name: leetium
     restart: unless-stopped
     ports:
       - "13131:13131"
@@ -24,10 +24,10 @@ services:
       - "1455:1455"   # OAuth callback (OpenAI Codex, etc.)
     volumes:
       # Configuration files (editable from host)
-      - ./config:/home/moltis/.config/moltis
+      - ./config:/home/leetium/.config/leetium
 
       # Data directory (databases, sessions, memory)
-      - ./data:/home/moltis/.moltis
+      - ./data:/home/leetium/.leetium
 
       # Docker socket for sandbox command execution
       # Without this, the agent cannot run shell commands in isolated containers

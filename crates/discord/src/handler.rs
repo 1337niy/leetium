@@ -17,7 +17,7 @@ use crate::config::{
 
 use crate::access;
 
-use moltis_channels::{
+use leetium_channels::{
     ChannelEvent, ChannelType,
     gating::DmPolicy,
     message_log::MessageLogEntry,
@@ -292,9 +292,9 @@ impl EventHandler for Handler {
 
         // Check DM / guild / mention policy.
         let chat_type = if is_guild {
-            moltis_common::types::ChatType::Group
+            leetium_common::types::ChatType::Group
         } else {
-            moltis_common::types::ChatType::Dm
+            leetium_common::types::ChatType::Dm
         };
         let guild_id_str = msg.guild_id.map(|g| g.to_string());
         let policy_allowed = access::check_access(
@@ -458,9 +458,9 @@ impl EventHandler for Handler {
         );
 
         #[cfg(feature = "metrics")]
-        moltis_metrics::counter!(
-            moltis_metrics::channels::MESSAGES_RECEIVED_TOTAL,
-            moltis_metrics::labels::CHANNEL => "discord"
+        leetium_metrics::counter!(
+            leetium_metrics::channels::MESSAGES_RECEIVED_TOTAL,
+            leetium_metrics::labels::CHANNEL => "discord"
         )
         .increment(1);
 

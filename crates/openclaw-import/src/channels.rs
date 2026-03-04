@@ -124,7 +124,7 @@ pub fn import_channels(detection: &OpenClawDetection) -> (CategoryReport, Import
     // Record unsupported channels as warnings/skips.
     let mut skipped = 0;
     for ch in &detection.unsupported_channels {
-        warnings.push(format!("channel '{ch}' is not yet supported by Moltis"));
+        warnings.push(format!("channel '{ch}' is not yet supported by Leetium"));
         skipped += 1;
     }
 

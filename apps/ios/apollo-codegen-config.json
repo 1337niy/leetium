@@ -1,5 +1,5 @@
 {
-  "schemaNamespace": "MoltisAPI",
+  "schemaNamespace": "LeetiumAPI",
   "input": {
     "operationSearchPaths": [
       "GraphQL/Operations/**/*.graphql"
@@ -13,10 +13,10 @@
       "none": {}
     },
     "schemaTypes": {
-      "path": "Sources/GraphQL/Generated/MoltisAPI",
+      "path": "Sources/GraphQL/Generated/LeetiumAPI",
       "moduleType": {
         "embeddedInTarget": {
-          "name": "Moltis"
+          "name": "Leetium"
         }
       }
     },

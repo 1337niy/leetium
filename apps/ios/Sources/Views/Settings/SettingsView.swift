@@ -50,7 +50,7 @@ struct SettingsView: View {
                 }
 
                 Section("Location") {
-                    Toggle("Share Location with Moltis", isOn: $locationSharingStore.isEnabled)
+                    Toggle("Share Location with Leetium", isOn: $locationSharingStore.isEnabled)
 
                     LabeledContent(
                         "Permission",

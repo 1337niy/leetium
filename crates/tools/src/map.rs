@@ -12,7 +12,7 @@ use {
     async_trait::async_trait,
     base64::{Engine as _, engine::general_purpose::STANDARD as BASE64},
     image::{ImageFormat, RgbaImage, imageops},
-    moltis_agents::tool_registry::AgentTool,
+    leetium_agents::tool_registry::AgentTool,
     serde::Deserialize,
     tracing::{debug, warn},
 };
@@ -455,7 +455,7 @@ async fn fetch_tile(client: &reqwest::Client, url: &str) -> Option<RgbaImage> {
     debug!(url = %url, "fetching OSM tile");
     let resp = client
         .get(url)
-        .header("User-Agent", "moltis/0.3")
+        .header("User-Agent", "leetium/0.3")
         .timeout(std::time::Duration::from_secs(10))
         .send()
         .await
@@ -786,7 +786,7 @@ impl AgentTool for ShowMapTool {
         // Compose the static map image from OSM tiles (in-process via image crate).
         // Falls back to ImageMagick CLI if the in-process approach fails.
         let screenshot = compose_static_map(
-            crate::shared_http_client(),
+            leetium_common::http::shared_http_client(),
             center_lat,
             center_lon,
             zoom,
@@ -1181,7 +1181,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let url = format!("{}/15/5241/12666.png", server.url());
         let tile = fetch_tile(&client, &url).await;
         assert!(tile.is_some());
@@ -1197,7 +1197,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let url = format!("{}/15/0/0.png", server.url());
         let tile = fetch_tile(&client, &url).await;
         assert!(tile.is_none());
@@ -1225,7 +1225,7 @@ mod tests {
 
         // We can't redirect compose_static_map to mock, but we can test
         // compose_static_map_with_base_url directly.
-        let client = reqwest::Client::new();
+        let client = leetium_common::http::shared_http_client().clone();
         let markers = vec![Marker {
             lat: 37.76,
             lon: -122.42,

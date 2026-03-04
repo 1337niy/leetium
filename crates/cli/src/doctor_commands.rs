@@ -1,4 +1,4 @@
-//! `moltis doctor` — health check, config validation, and environment audit.
+//! `leetium doctor` — health check, config validation, and environment audit.
 //!
 //! Runs a series of checks against the local installation and prints a
 //! structured report with `[ok]`, `[warn]`, `[fail]`, `[skip]`, or `[info]`
@@ -8,8 +8,8 @@ use std::path::{Path, PathBuf};
 
 use {
     anyhow::Result,
-    moltis_config::{
-        MoltisConfig,
+    leetium_config::{
+        LeetiumConfig,
         validate::{self, Severity},
     },
     secrecy::ExposeSecret,
@@ -133,10 +133,10 @@ const OAUTH_PROVIDERS: &[&str] = &["openai-codex", "github-copilot"];
 // ── Entry point ─────────────────────────────────────────────────────────────
 
 pub async fn handle_doctor() -> Result<()> {
-    let config_dir = moltis_config::config_dir();
-    let data_dir = moltis_config::data_dir();
+    let config_dir = leetium_config::config_dir();
+    let data_dir = leetium_config::data_dir();
 
-    eprintln!("{BOLD}moltis doctor{RESET}");
+    eprintln!("{BOLD}leetium doctor{RESET}");
     eprintln!("{BOLD}============={RESET}\n");
 
     let mut sections = Vec::new();
@@ -145,7 +145,7 @@ pub async fn handle_doctor() -> Result<()> {
     sections.push(check_config(config_dir.as_deref()));
 
     // Load config for subsequent checks (best-effort)
-    let config = moltis_config::discover_and_load();
+    let config = leetium_config::discover_and_load();
 
     // 2. Security audit
     sections.push(check_security(&config, config_dir.as_deref(), &data_dir));
@@ -181,7 +181,7 @@ pub async fn handle_doctor() -> Result<()> {
 
 fn check_config(config_dir: Option<&Path>) -> Section {
     let label = config_dir
-        .map(|d| d.join("moltis.toml").display().to_string())
+        .map(|d| d.join("leetium.toml").display().to_string())
         .unwrap_or_else(|| "default config".into());
     let mut section = Section::new(format!("Config ({label})"));
 
@@ -261,7 +261,7 @@ fn check_config(config_dir: Option<&Path>) -> Section {
 
 // ── 2. Security audit ───────────────────────────────────────────────────────
 
-fn check_security(config: &MoltisConfig, config_dir: Option<&Path>, data_dir: &Path) -> Section {
+fn check_security(config: &LeetiumConfig, config_dir: Option<&Path>, data_dir: &Path) -> Section {
     let mut section = Section::new("Security");
 
     // Check for API keys in config file (should use env vars or credential store)
@@ -292,7 +292,7 @@ fn check_security(config: &MoltisConfig, config_dir: Option<&Path>, data_dir: &P
 
         // Config file permissions
         if let Some(dir) = config_dir {
-            let config_file = dir.join("moltis.toml");
+            let config_file = dir.join("leetium.toml");
             if let Ok(meta) = std::fs::metadata(&config_file) {
                 let mode = meta.permissions().mode();
                 if mode & 0o044 != 0 {
@@ -390,21 +390,21 @@ fn check_directories(config_dir: Option<&Path>, data_dir: &Path) -> Section {
 
     // Check for expected files
     if let Some(dir) = config_dir {
-        let config_file = dir.join("moltis.toml");
+        let config_file = dir.join("leetium.toml");
         if config_file.exists() {
-            section.push(Status::Ok, "moltis.toml present");
+            section.push(Status::Ok, "leetium.toml present");
         } else {
-            section.push(Status::Info, "moltis.toml not found (using defaults)");
+            section.push(Status::Info, "leetium.toml not found (using defaults)");
         }
     }
 
-    let db_file = data_dir.join("moltis.db");
+    let db_file = data_dir.join("leetium.db");
     if db_file.exists() {
-        section.push(Status::Ok, "moltis.db present");
+        section.push(Status::Ok, "leetium.db present");
     } else {
         section.push(
             Status::Info,
-            "moltis.db not found (will be created on first gateway start)",
+            "leetium.db not found (will be created on first gateway start)",
         );
     }
 
@@ -412,7 +412,7 @@ fn check_directories(config_dir: Option<&Path>, data_dir: &Path) -> Section {
 }
 
 fn check_writable(section: &mut Section, dir: &Path, label: &str) {
-    let probe = dir.join(".moltis-doctor-probe");
+    let probe = dir.join(".leetium-doctor-probe");
     match std::fs::write(&probe, b"probe") {
         Ok(()) => {
             let _ = std::fs::remove_file(&probe);
@@ -429,11 +429,11 @@ fn check_writable(section: &mut Section, dir: &Path, label: &str) {
 async fn check_database(data_dir: &Path) -> Section {
     let mut section = Section::new("Database");
 
-    let db_path = data_dir.join("moltis.db");
+    let db_path = data_dir.join("leetium.db");
     if !db_path.exists() {
         section.push(
             Status::Skip,
-            "moltis.db not found (skipping connectivity check)",
+            "leetium.db not found (skipping connectivity check)",
         );
         return section;
     }
@@ -468,7 +468,7 @@ async fn check_database(data_dir: &Path) -> Section {
 
 // ── 5. Provider readiness ───────────────────────────────────────────────────
 
-fn check_providers(config: &MoltisConfig) -> Section {
+fn check_providers(config: &LeetiumConfig) -> Section {
     let mut section = Section::new("Providers");
 
     if config.providers.providers.is_empty() {
@@ -528,7 +528,7 @@ fn check_providers(config: &MoltisConfig) -> Section {
 // ── 6. TLS health ───────────────────────────────────────────────────────────
 
 #[cfg(feature = "tls")]
-fn check_tls(config: &MoltisConfig) -> Section {
+fn check_tls(config: &LeetiumConfig) -> Section {
     let mut section = Section::new("TLS");
 
     if !config.tls.enabled {
@@ -545,7 +545,7 @@ fn check_tls(config: &MoltisConfig) -> Section {
 
     // Auto-generated certs
     if config.tls.auto_generate {
-        match moltis_gateway::tls::cert_dir() {
+        match leetium_gateway::tls::cert_dir() {
             Ok(cert_dir) => {
                 let ca_path = cert_dir.join("ca.pem");
                 let server_cert = cert_dir.join("server.pem");
@@ -614,7 +614,7 @@ fn cert_age_days(path: &Path) -> Option<i64> {
 
 // ── 7. MCP server health ───────────────────────────────────────────────────
 
-fn check_mcp_servers(config: &MoltisConfig) -> Section {
+fn check_mcp_servers(config: &LeetiumConfig) -> Section {
     let mut section = Section::new("MCP Servers");
 
     if config.mcp.servers.is_empty() {
@@ -680,7 +680,7 @@ fn check_mcp_servers(config: &MoltisConfig) -> Section {
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod tests {
-    use {super::*, moltis_config::MoltisConfig};
+    use {super::*, leetium_config::LeetiumConfig};
 
     #[test]
     fn status_labels() {
@@ -719,7 +719,7 @@ mod tests {
 
     #[test]
     fn check_providers_empty_config() {
-        let config = MoltisConfig::default();
+        let config = LeetiumConfig::default();
         let section = check_providers(&config);
         assert_eq!(section.items.len(), 1);
         assert_eq!(section.items[0].status, Status::Info);
@@ -728,8 +728,8 @@ mod tests {
 
     #[test]
     fn check_providers_with_config_key() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::ProviderEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::ProviderEntry {
             api_key: Some(secrecy::Secret::new("sk-test-fake".to_string())),
             ..Default::default()
         };
@@ -749,11 +749,11 @@ mod tests {
 
     #[test]
     fn check_providers_missing_key_warns() {
-        let mut config = MoltisConfig::default();
+        let mut config = LeetiumConfig::default();
         // Use a provider unlikely to have its env var set in CI
         config.providers.providers.insert(
             "minimax".to_string(),
-            moltis_config::schema::ProviderEntry::default(),
+            leetium_config::schema::ProviderEntry::default(),
         );
 
         // Only assert warning if the env var is genuinely absent
@@ -767,10 +767,10 @@ mod tests {
 
     #[test]
     fn check_providers_ollama_optional() {
-        let mut config = MoltisConfig::default();
+        let mut config = LeetiumConfig::default();
         config.providers.providers.insert(
             "ollama".to_string(),
-            moltis_config::schema::ProviderEntry::default(),
+            leetium_config::schema::ProviderEntry::default(),
         );
 
         // Ollama key is optional — if the env var happens to be set,
@@ -787,8 +787,8 @@ mod tests {
 
     #[test]
     fn check_providers_disabled_skipped() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::ProviderEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::ProviderEntry {
             enabled: false,
             ..Default::default()
         };
@@ -805,10 +805,10 @@ mod tests {
 
     #[test]
     fn check_providers_oauth_skipped() {
-        let mut config = MoltisConfig::default();
+        let mut config = LeetiumConfig::default();
         config.providers.providers.insert(
             "github-copilot".to_string(),
-            moltis_config::schema::ProviderEntry::default(),
+            leetium_config::schema::ProviderEntry::default(),
         );
 
         let section = check_providers(&config);
@@ -822,7 +822,7 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_empty() {
-        let config = MoltisConfig::default();
+        let config = LeetiumConfig::default();
         let section = check_mcp_servers(&config);
         assert_eq!(section.items.len(), 1);
         assert_eq!(section.items[0].status, Status::Info);
@@ -830,8 +830,8 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_disabled_skipped() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::McpServerEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::McpServerEntry {
             command: "node".to_string(),
             args: vec![],
             env: Default::default(),
@@ -850,8 +850,8 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_missing_command_fails() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::McpServerEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::McpServerEntry {
             command: String::new(),
             args: vec![],
             env: Default::default(),
@@ -870,8 +870,8 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_sse_with_url_ok() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::McpServerEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::McpServerEntry {
             command: String::new(),
             args: vec![],
             env: Default::default(),
@@ -890,8 +890,8 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_sse_without_url_fails() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::McpServerEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::McpServerEntry {
             command: String::new(),
             args: vec![],
             env: Default::default(),
@@ -913,8 +913,8 @@ mod tests {
 
     #[test]
     fn check_mcp_servers_nonexistent_command_fails() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::McpServerEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::McpServerEntry {
             command: "definitely-not-a-real-command-xyz123".to_string(),
             args: vec![],
             env: Default::default(),
@@ -980,7 +980,7 @@ mod tests {
     #[tokio::test]
     async fn check_database_valid_db() {
         let temp = tempfile::TempDir::new().unwrap();
-        let db_path = temp.path().join("moltis.db");
+        let db_path = temp.path().join("leetium.db");
 
         // Create a minimal SQLite database
         let db_url = format!("sqlite:{}?mode=rwc", db_path.display());
@@ -1006,7 +1006,7 @@ mod tests {
 
     #[test]
     fn check_security_no_api_keys_in_config() {
-        let config = MoltisConfig::default();
+        let config = LeetiumConfig::default();
         let temp = tempfile::TempDir::new().unwrap();
         let section = check_security(&config, Some(temp.path()), temp.path());
 
@@ -1020,8 +1020,8 @@ mod tests {
 
     #[test]
     fn check_security_api_keys_in_config_warns() {
-        let mut config = MoltisConfig::default();
-        let entry = moltis_config::schema::ProviderEntry {
+        let mut config = LeetiumConfig::default();
+        let entry = leetium_config::schema::ProviderEntry {
             api_key: Some(secrecy::Secret::new("sk-test".to_string())),
             ..Default::default()
         };

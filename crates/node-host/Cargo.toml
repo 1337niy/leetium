@@ -1,17 +1,18 @@
 [package]
 edition.workspace = true
-name              = "moltis-node-host"
+name              = "leetium-node-host"
 version.workspace = true
 
 [features]
 default = ["metrics"]
-metrics = ["dep:moltis-metrics"]
+metrics = ["dep:leetium-metrics"]
 
 [dependencies]
 anyhow            = { workspace = true }
 futures           = { workspace = true }
-moltis-metrics    = { optional = true, workspace = true }
-moltis-protocol   = { workspace = true }
+leetium-common.workspace = true
+leetium-metrics    = { optional = true, workspace = true }
+leetium-protocol   = { workspace = true }
 reqwest           = { workspace = true }
 serde             = { workspace = true }
 serde_json        = { workspace = true }

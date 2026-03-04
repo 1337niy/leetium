@@ -1,6 +1,6 @@
 //! Static asset serving with three-tier resolution:
 //!
-//! 1. **Dev filesystem** — `MOLTIS_ASSETS_DIR` env var or auto-detected from
+//! 1. **Dev filesystem** — `LEETIUM_ASSETS_DIR` env var or auto-detected from
 //!    the crate source tree when running via `cargo run`.
 //! 2. **External share dir** — `share_dir()/web/` for packaged deployments
 //!    (Debian, RPM, Docker) where assets live outside the binary.
@@ -31,7 +31,7 @@ const _: &str = include_str!("assets/style.css");
 
 /// Resolved asset source, checked once at startup.
 enum AssetSource {
-    /// Filesystem directory (dev mode or `MOLTIS_ASSETS_DIR`).
+    /// Filesystem directory (dev mode or `LEETIUM_ASSETS_DIR`).
     Filesystem(PathBuf),
     /// External share directory (`share_dir()/web/`).
     External(PathBuf),
@@ -45,7 +45,7 @@ enum AssetSource {
 
 static ASSET_SOURCE: LazyLock<AssetSource> = LazyLock::new(|| {
     // 1. Explicit env var
-    if let Ok(dir) = std::env::var("MOLTIS_ASSETS_DIR") {
+    if let Ok(dir) = std::env::var("LEETIUM_ASSETS_DIR") {
         let p = PathBuf::from(dir);
         if p.is_dir() {
             info!("Serving assets from filesystem: {}", p.display());
@@ -61,7 +61,7 @@ static ASSET_SOURCE: LazyLock<AssetSource> = LazyLock::new(|| {
     }
 
     // 3. External share directory
-    if let Some(share) = moltis_config::share_dir() {
+    if let Some(share) = leetium_config::share_dir() {
         let web_dir = share.join("web");
         if web_dir.is_dir() {
             info!(
@@ -269,8 +269,8 @@ fn serve_asset(path: &str, cache_control: &'static str) -> axum::response::Respo
             if matches!(*ASSET_SOURCE, AssetSource::Unavailable) {
                 (
                     StatusCode::SERVICE_UNAVAILABLE,
-                    "Web assets are not available. Install assets to /usr/share/moltis/web/ \
-                     or set MOLTIS_SHARE_DIR to the directory containing them.",
+                    "Web assets are not available. Install assets to /usr/share/leetium/web/ \
+                     or set LEETIUM_SHARE_DIR to the directory containing them.",
                 )
                     .into_response()
             } else {

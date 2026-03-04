@@ -16,4 +16,4 @@ pub use {
 };
 
 #[cfg(feature = "vault")]
-pub use moltis_vault;
+pub use leetium_vault;

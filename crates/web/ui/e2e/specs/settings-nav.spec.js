@@ -93,7 +93,7 @@ test.describe("Settings navigation", () => {
 		await navigateAndWait(page, "/settings/identity");
 
 		const nextValues = await page.evaluate(() => {
-			var id = window.__MOLTIS__?.identity || {};
+			var id = window.__LEETIUM__?.identity || {};
 			var nextBotName = id.name === "AutoBotNameA" ? "AutoBotNameB" : "AutoBotNameA";
 			var nextUserName = id.user_name === "AutoUserNameA" ? "AutoUserNameB" : "AutoUserNameA";
 			return { nextBotName, nextUserName };
@@ -104,7 +104,7 @@ test.describe("Settings navigation", () => {
 		await botNameInput.blur();
 		await expect(page.getByText("Saved", { exact: true })).toBeVisible();
 		await expect
-			.poll(() => page.evaluate(() => (window.__MOLTIS__?.identity?.name || "").trim()))
+			.poll(() => page.evaluate(() => (window.__LEETIUM__?.identity?.name || "").trim()))
 			.toBe(nextValues.nextBotName);
 
 		const userNameInput = page.getByPlaceholder("e.g. Alice");
@@ -112,7 +112,7 @@ test.describe("Settings navigation", () => {
 		await userNameInput.blur();
 		await expect(page.getByText("Saved", { exact: true })).toBeVisible();
 		await expect
-			.poll(() => page.evaluate(() => (window.__MOLTIS__?.identity?.user_name || "").trim()))
+			.poll(() => page.evaluate(() => (window.__LEETIUM__?.identity?.user_name || "").trim()))
 			.toBe(nextValues.nextUserName);
 
 		expect(pageErrors).toEqual([]);
@@ -127,7 +127,7 @@ test.describe("Settings navigation", () => {
 		await pickBtn.click();
 
 		const selectedEmoji = await page.evaluate(() => {
-			var current = (window.__MOLTIS__?.identity?.emoji || "").trim();
+			var current = (window.__LEETIUM__?.identity?.emoji || "").trim();
 			var options = ["🦊", "🐙", "🤖", "🐶"];
 			return options.find((emoji) => emoji !== current) || "🦊";
 		});
@@ -161,7 +161,7 @@ test.describe("Settings navigation", () => {
 		await pickBtn.click();
 
 		const selectedEmoji = await page.evaluate(() => {
-			var current = (window.__MOLTIS__?.identity?.emoji || "").trim();
+			var current = (window.__LEETIUM__?.identity?.emoji || "").trim();
 			var options = ["🦊", "🐙", "🤖", "🐶"];
 			return options.find((emoji) => emoji !== current) || "🦊";
 		});

@@ -1,6 +1,6 @@
 # SQLite Database Migrations
 
-Moltis uses [sqlx](https://github.com/launchbadge/sqlx) for database access and its
+Leetium uses [sqlx](https://github.com/launchbadge/sqlx) for database access and its
 built-in migration system for schema management. Each crate owns its migrations,
 keeping schema definitions close to the code that uses them.
 
@@ -27,7 +27,7 @@ crates/
 ├── gateway/
 │   ├── migrations/
 │   │   └── 20240205100003_init.sql   # auth, message_log, channels
-│   └── src/server.rs                  # orchestrates moltis.db migrations
+│   └── src/server.rs                  # orchestrates leetium.db migrations
 └── memory/
     ├── migrations/
     │   └── 20240205100004_init.sql   # files, chunks, embedding_cache, FTS
@@ -42,11 +42,11 @@ Each crate is autonomous and owns its schema:
 
 | Crate | Database | Tables | Migration File |
 |-------|----------|--------|----------------|
-| `moltis-projects` | `moltis.db` | `projects` | `20240205100000_init.sql` |
-| `moltis-sessions` | `moltis.db` | `sessions`, `channel_sessions` | `20240205100001_init.sql` |
-| `moltis-cron` | `moltis.db` | `cron_jobs`, `cron_runs` | `20240205100002_init.sql` |
-| `moltis-gateway` | `moltis.db` | `auth_*`, `passkeys`, `api_keys`, `env_variables`, `message_log`, `channels` | `20240205100003_init.sql` |
-| `moltis-memory` | `memory.db` | `files`, `chunks`, `embedding_cache`, `chunks_fts` | `20240205100004_init.sql` |
+| `leetium-projects` | `leetium.db` | `projects` | `20240205100000_init.sql` |
+| `leetium-sessions` | `leetium.db` | `sessions`, `channel_sessions` | `20240205100001_init.sql` |
+| `leetium-cron` | `leetium.db` | `cron_jobs`, `cron_runs` | `20240205100002_init.sql` |
+| `leetium-gateway` | `leetium.db` | `auth_*`, `passkeys`, `api_keys`, `env_variables`, `message_log`, `channels` | `20240205100003_init.sql` |
+| `leetium-memory` | `memory.db` | `files`, `chunks`, `embedding_cache`, `chunks_fts` | `20240205100004_init.sql` |
 
 ### Startup Sequence
 
@@ -54,9 +54,9 @@ The gateway runs migrations in dependency order:
 
 ```rust
 // server.rs
-moltis_projects::run_migrations(&db_pool).await?;   // 1. projects first
-moltis_sessions::run_migrations(&db_pool).await?;   // 2. sessions (FK → projects)
-moltis_cron::run_migrations(&db_pool).await?;       // 3. cron (independent)
+leetium_projects::run_migrations(&db_pool).await?;   // 1. projects first
+leetium_sessions::run_migrations(&db_pool).await?;   // 2. sessions (FK → projects)
+leetium_cron::run_migrations(&db_pool).await?;       // 3. cron (independent)
 sqlx::migrate!("./migrations").run(&db_pool).await?; // 4. gateway tables
 ```
 
@@ -78,8 +78,8 @@ must be globally unique across all crates.
 
 | Database | Location | Crates |
 |----------|----------|--------|
-| `moltis.db` | `~/.moltis/moltis.db` | projects, sessions, cron, gateway |
-| `memory.db` | `~/.moltis/memory.db` | memory (separate, managed internally) |
+| `leetium.db` | `~/.leetium/leetium.db` | projects, sessions, cron, gateway |
+| `memory.db` | `~/.leetium/memory.db` | memory (separate, managed internally) |
 
 ## Adding New Migrations
 
@@ -141,7 +141,19 @@ mkdir -p crates/new-feature/migrations
 touch crates/new-feature/migrations/20240401100000_init.sql
 ```
 
-3. Add `run_migrations()` to the crate's `lib.rs`:
+3. Write the initial migration SQL (always include WAL mode for new databases):
+
+```sql
+-- 20240401100000_init.sql
+PRAGMA journal_mode=WAL;
+PRAGMA synchronous=NORMAL;
+
+CREATE TABLE IF NOT EXISTS new_feature_table (
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+);
+```
+
+4. Add `run_migrations()` to the crate's `lib.rs`:
 
 ```rust
 pub async fn run_migrations(pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
@@ -150,10 +162,10 @@ pub async fn run_migrations(pool: &sqlx::SqlitePool) -> anyhow::Result<()> {
 }
 ```
 
-4. Call it from `server.rs` in the appropriate order:
+5. Call it from `server.rs` in the appropriate order:
 
 ```rust
-moltis_new_feature::run_migrations(&db_pool).await?;
+leetium_new_feature::run_migrations(&db_pool).await?;
 ```
 
 ## Timestamp Convention
@@ -229,7 +241,7 @@ In production, migrations handle schema creation.
 
 ### "failed to run migrations"
 
-1. Check file permissions on `~/.moltis/`
+1. Check file permissions on `~/.leetium/`
 2. Ensure the database file isn't locked by another process
 3. Check for syntax errors in migration SQL files
 
@@ -241,14 +253,14 @@ tables must be created before child tables with FK references.
 ### Checking Migration Status
 
 ```bash
-sqlite3 ~/.moltis/moltis.db "SELECT version, description, success FROM _sqlx_migrations ORDER BY version"
+sqlite3 ~/.leetium/leetium.db "SELECT version, description, success FROM _sqlx_migrations ORDER BY version"
 ```
 
 ### Resetting Migrations (Development Only)
 
 ```bash
 # Backup first!
-rm ~/.moltis/moltis.db
+rm ~/.leetium/leetium.db
 cargo run  # Creates fresh database with all migrations
 ```
 

@@ -1,16 +1,17 @@
 [package]
 edition.workspace    = true
-name                 = "moltis-provider-setup"
+name                 = "leetium-provider-setup"
 repository.workspace = true
 version.workspace    = true
 
 [dependencies]
 async-trait           = { workspace = true }
-moltis-agents         = { workspace = true }
-moltis-config         = { workspace = true }
-moltis-oauth          = { workspace = true }
-moltis-providers      = { workspace = true }
-moltis-service-traits = { workspace = true }
+leetium-agents         = { workspace = true }
+leetium-common.workspace = true
+leetium-config         = { workspace = true }
+leetium-oauth          = { workspace = true }
+leetium-providers      = { workspace = true }
+leetium-service-traits = { workspace = true }
 reqwest               = { workspace = true }
 secrecy               = { workspace = true }
 serde                 = { workspace = true }

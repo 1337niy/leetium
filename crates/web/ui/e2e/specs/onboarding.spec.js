@@ -228,7 +228,7 @@ test.describe("Onboarding wizard", () => {
 			return;
 		}
 
-		const voiceEnabledType = await page.evaluate(() => typeof window.__MOLTIS__?.voice_enabled);
+		const voiceEnabledType = await page.evaluate(() => typeof window.__LEETIUM__?.voice_enabled);
 		expect(voiceEnabledType).toBe("boolean");
 		expect(pageErrors).toEqual([]);
 	});

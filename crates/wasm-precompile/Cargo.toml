@@ -1,10 +1,10 @@
 [package]
 edition.workspace = true
-name              = "moltis-wasm-precompile"
+name              = "leetium-wasm-precompile"
 version.workspace = true
 
 [[bin]]
-name = "moltis-wasm-precompile"
+name = "leetium-wasm-precompile"
 path = "src/main.rs"
 
 [dependencies]

@@ -1,6 +1,6 @@
 //! GraphQL HTTP handlers for the gateway.
 //!
-//! These handlers bridge `AppState` to the `moltis-graphql` schema, providing
+//! These handlers bridge `AppState` to the `leetium-graphql` schema, providing
 //! GraphiQL on GET `/graphql`, query/mutation execution on POST `/graphql`,
 //! and WebSocket subscriptions on GET `/graphql`.
 
@@ -28,7 +28,7 @@ pub struct GatewaySystemInfoService {
 }
 
 #[async_trait::async_trait]
-impl moltis_service_traits::SystemInfoService for GatewaySystemInfoService {
+impl leetium_service_traits::SystemInfoService for GatewaySystemInfoService {
     async fn health(&self) -> ServiceResult {
         let count = self.state.client_count().await;
         Ok(serde_json::json!({
@@ -213,7 +213,7 @@ fn graphql_ws_response(
 
 fn graphiql_response() -> Response {
     let asset_guard_plugin = GraphiQLPlugin {
-        name: "MoltisGraphiQLAssetGuard",
+        name: "LeetiumGraphiQLAssetGuard",
         constructor: "",
         head_assets: Some(
             r##"<script>

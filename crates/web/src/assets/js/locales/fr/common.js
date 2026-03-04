@@ -62,7 +62,7 @@ export default {
 	},
 	banners: {
 		authDisabled:
-			"L'authentification est désactivée. Toute personne ayant un accès réseau peut contrôler moltis et votre ordinateur.",
+			"L'authentification est désactivée. Toute personne ayant un accès réseau peut contrôler leetium et votre ordinateur.",
 		setupAuthentication: "Configurer l'authentification",
 		updateAvailable: "Une mise à jour est disponible",
 		viewRelease: "Voir la version",

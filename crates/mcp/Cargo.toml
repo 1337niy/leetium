@@ -1,18 +1,18 @@
 [package]
 edition.workspace = true
-name              = "moltis-mcp"
+name              = "leetium-mcp"
 version.workspace = true
 
 [features]
 default = ["metrics"]
-metrics = ["dep:moltis-metrics"]
+metrics = ["dep:leetium-metrics"]
 
 [dependencies]
 async-trait    = { workspace = true }
 futures        = { workspace = true }
-moltis-common  = { workspace = true }
-moltis-metrics = { optional = true, workspace = true }
-moltis-oauth   = { workspace = true }
+leetium-common  = { workspace = true }
+leetium-metrics = { optional = true, workspace = true }
+leetium-oauth   = { workspace = true }
 reqwest        = { workspace = true }
 secrecy        = { workspace = true }
 serde          = { workspace = true }

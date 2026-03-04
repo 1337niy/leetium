@@ -46,6 +46,8 @@ jobs:
             context: local/macos-app
           - label: ios-app
             context: local/ios-app
+          - label: windows-exe
+            context: local/windows-exe
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -236,7 +238,7 @@ jobs:
           ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
           cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
       - name: Generate coverage
-        run: cargo llvm-cov --workspace --exclude moltis-tools --exclude moltis-swift-bridge --lcov --output-path lcov.info
+        run: cargo llvm-cov --workspace --exclude leetium-tools --exclude leetium-swift-bridge --lcov --output-path lcov.info
       - name: Upload to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
@@ -274,8 +276,8 @@ jobs:
           ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
           cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
 
-      - name: Build moltis binary
-        run: cargo build --bin moltis
+      - name: Build leetium binary
+        run: cargo build --bin leetium
 
       - name: Install Playwright browsers
         working-directory: crates/web/ui
@@ -340,8 +342,8 @@ jobs:
       - name: Build macOS app
         run: |
           xcodebuild \
-            -project apps/macos/Moltis.xcodeproj \
-            -scheme Moltis \
+            -project apps/macos/Leetium.xcodeproj \
+            -scheme Leetium \
             -configuration Release \
             -destination "platform=macOS" \
             -derivedDataPath apps/macos/.derivedData-ci \
@@ -374,19 +376,60 @@ jobs:
 
       - name: Export GraphQL schema and generate project
         run: |
-          cargo run -p moltis-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls
+          cargo run -p leetium-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls
           ./scripts/generate-ios-graphql.sh
           ./scripts/generate-ios-project.sh
 
       - name: Build iOS app
         run: |
           xcodebuild \
-            -project apps/ios/Moltis.xcodeproj \
-            -scheme Moltis \
+            -project apps/ios/Leetium.xcodeproj \
+            -scheme Leetium \
             -configuration Debug \
             -destination "generic/platform=iOS" \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+  windows-exe:
+    name: Windows EXE
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: [fmt, biome]
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561 # master
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc, wasm32-wasip2
+
+      - name: Configure Perl for vendored OpenSSL
+        shell: pwsh
+        run: |
+          $strawberryPerl = "C:\Strawberry\perl\bin\perl.exe"
+          Add-Content -Path $env:GITHUB_ENV -Value "OPENSSL_SRC_PERL=$strawberryPerl"
+          Add-Content -Path $env:GITHUB_ENV -Value "PERL=$strawberryPerl"
+
+      - name: Build Tailwind CSS
+        shell: bash
+        run: |
+          ./scripts/download-tailwindcss-cli.sh tailwindcss-windows-x64.exe
+          cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-windows-x64.exe ./build.sh
+
+      - name: Build WASM components
+        shell: bash
+        run: |
+          cargo build --target wasm32-wasip2 -p leetium-wasm-calc -p leetium-wasm-web-fetch -p leetium-wasm-web-search
+          cargo run -p leetium-wasm-precompile
+
+      - name: Check Windows compilation
+        shell: bash
+        run: cargo check --target x86_64-pc-windows-msvc --features embedded-assets,embedded-wasm
 
   rust-full-targets:
     name: Rust Full Targets (scheduled)

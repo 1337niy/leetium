@@ -7,7 +7,7 @@
 /// Generate the default config template with a specific port.
 pub fn default_config_template(port: u16) -> String {
     format!(
-        r##"# Moltis Configuration
+        r##"# Leetium Configuration
 # ====================
 # This file contains all available configuration options.
 # Uncomment and modify settings as needed.
@@ -25,7 +25,7 @@ bind = "127.0.0.1"                # Address to bind to ("0.0.0.0" for all interf
 port = {port}                           # Port number (auto-generated for this installation)
 http_request_logs = false              # Enable verbose Axum HTTP request/response logs (debugging)
 ws_request_logs = false                # Enable WebSocket RPC request/response logs (debugging)
-update_releases_url = "https://www.moltis.org/releases.json"    # Releases manifest URL for update checks (override to use a custom URL)
+update_releases_url = "https://www.leetnex.ru/releases.json"    # Releases manifest URL for update checks (override to use a custom URL)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AUTHENTICATION
@@ -33,7 +33,7 @@ update_releases_url = "https://www.moltis.org/releases.json"    # Releases manif
 
 [auth]
 disabled = false                  # true = disable auth entirely (DANGEROUS if exposed)
-                                  # When disabled, anyone with network access can use moltis
+                                  # When disabled, anyone with network access can use leetium
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GRAPHQL
@@ -61,7 +61,7 @@ auto_generate = true              # Auto-generate local CA and server certificat
 # Customize your agent's personality. These are typically set during onboarding.
 
 [identity]
-# name = "moltis"                 # Agent's display name
+# name = "leetium"                 # Agent's display name
 # emoji = "🦊"                    # Agent's emoji/avatar
 # theme = "wise owl"              # Theme for agent personality (e.g. wise owl, chill fox)
 # soul = ""                       # Freeform personality text injected into system prompt
@@ -258,7 +258,7 @@ backend = "auto"                  # Container backend:
                                   #   "apple-container" - Use Apple Container (macOS only)
 no_network = true                 # Disable network access in sandbox (recommended)
 # image = "custom-image:tag"      # Custom Docker image (default: auto-built)
-# container_prefix = "moltis"     # Prefix for container names
+# container_prefix = "leetium"     # Prefix for container names
 
 # Packages installed in sandbox containers via apt-get.
 # This list is used to build the sandbox image. Customize as needed.
@@ -402,7 +402,7 @@ idle_timeout_secs = 300           # Close idle browsers after this many seconds 
 navigation_timeout_ms = 30000     # Page load timeout in milliseconds (30 sec)
 sandbox = false                   # Run browser in Docker/Apple Container for isolation
 # container_host = "127.0.0.1"   # Host/IP to reach browser container (default: localhost)
-                                  # Set to "host.docker.internal" when Moltis runs inside Docker
+                                  # Set to "host.docker.internal" when Leetium runs inside Docker
 # chrome_path = "/path/to/chrome" # Custom Chrome/Chromium binary path (auto-detected)
 # user_agent = "Custom UA"        # Custom user agent string
 # chrome_args = []                # Extra Chrome command-line arguments
@@ -427,7 +427,7 @@ allowed_domains = []              # Empty = all domains allowed
 [skills]
 enabled = true                    # Enable skills system
 search_paths = []                 # Additional directories to search for skills
-                                  # Default locations: ~/.config/moltis/skills/, ./skills/
+                                  # Default locations: ~/.config/leetium/skills/, ./skills/
 auto_load = []                    # Skills to always load without explicit activation
                                   # Example: ["code-review", "commit"]
 
@@ -541,7 +541,7 @@ providers = ["whisper", "mistral", "elevenlabs"] # UI allowlist (empty = show al
 # ══════════════════════════════════════════════════════════════════════════════
 # TAILSCALE
 # ══════════════════════════════════════════════════════════════════════════════
-# Expose moltis via Tailscale Serve (private) or Funnel (public).
+# Expose leetium via Tailscale Serve (private) or Funnel (public).
 
 [tailscale]
 mode = "off"                      # Tailscale mode:
@@ -609,7 +609,7 @@ reset_on_exit = true              # Reset serve/funnel when gateway shuts down
 # ══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT VARIABLES
 # ══════════════════════════════════════════════════════════════════════════════
-# Variables injected into the Moltis process at startup.
+# Variables injected into the Leetium process at startup.
 # Useful for API keys in Docker where you can't easily pass env vars.
 # Process env vars (docker -e, host env) take precedence — existing vars
 # are NOT overwritten.
@@ -645,8 +645,8 @@ reset_on_exit = true              # Reset serve/funnel when gateway shuts down
 #     "MessageSent",               # After a response is delivered
 #     "SessionStart",              # When a new session begins
 #     "SessionEnd",                # When a session ends
-#     "GatewayStart",              # When Moltis starts
-#     "GatewayStop",               # When Moltis shuts down
+#     "GatewayStart",              # When Leetium starts
+#     "GatewayStop",               # When Leetium shuts down
 #     "Command",                   # When a slash command is used
 # ]
 # timeout = 10                    # Command timeout in seconds

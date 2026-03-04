@@ -89,9 +89,9 @@ impl McpToolBridge {
     }
 }
 
-/// Trait for agent-callable tools, matching `AgentTool` in moltis-agents.
+/// Trait for agent-callable tools, matching `AgentTool` in leetium-agents.
 ///
-/// We define our own copy here to avoid a circular dependency on moltis-agents.
+/// We define our own copy here to avoid a circular dependency on leetium-agents.
 /// The gateway wires `McpToolBridge` into the `ToolRegistry` via a thin adapter.
 #[async_trait]
 pub trait McpAgentTool: Send + Sync {

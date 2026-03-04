@@ -1,1 +1,1 @@
-pub use moltis_auth::webauthn::*;
+pub use leetium_auth::webauthn::*;

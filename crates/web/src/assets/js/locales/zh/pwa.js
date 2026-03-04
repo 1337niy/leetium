@@ -2,8 +2,8 @@
 
 export default {
 	install: {
-		title: "在你的设备上安装 moltis",
-		quickAccessTitle: "安装 moltis 以快速访问",
+		title: "在你的设备上安装 leetium",
+		quickAccessTitle: "安装 leetium 以快速访问",
 		quickAccessDesc: "获得原生应用体验及离线支持。",
 	},
 	ios: {

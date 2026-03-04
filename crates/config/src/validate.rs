@@ -5,7 +5,7 @@
 
 use std::{collections::HashMap, path::Path};
 
-use crate::schema::MoltisConfig;
+use crate::schema::LeetiumConfig;
 
 /// Severity level for a diagnostic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -773,7 +773,7 @@ pub fn validate_toml_str(toml_str: &str) -> ValidationResult {
     }
 
     // 4. Type check — attempt full deserialization
-    if let Err(e) = toml::from_str::<MoltisConfig>(toml_str) {
+    if let Err(e) = toml::from_str::<LeetiumConfig>(toml_str) {
         diagnostics.push(Diagnostic {
             severity: Severity::Error,
             category: "type-error",
@@ -783,7 +783,7 @@ pub fn validate_toml_str(toml_str: &str) -> ValidationResult {
     }
 
     // 5. Semantic warnings on parsed config (only if it parses)
-    if let Ok(config) = toml::from_str::<MoltisConfig>(toml_str) {
+    if let Ok(config) = toml::from_str::<LeetiumConfig>(toml_str) {
         check_semantic_warnings(&config, &mut diagnostics);
     }
 
@@ -904,7 +904,7 @@ fn check_provider_names(
 }
 
 /// Run semantic checks on a successfully parsed config.
-fn check_semantic_warnings(config: &MoltisConfig, diagnostics: &mut Vec<Diagnostic>) {
+fn check_semantic_warnings(config: &LeetiumConfig, diagnostics: &mut Vec<Diagnostic>) {
     let is_localhost = config.server.bind == "127.0.0.1"
         || config.server.bind == "localhost"
         || config.server.bind == "::1";
@@ -1308,7 +1308,7 @@ fn check_semantic_warnings(config: &MoltisConfig, diagnostics: &mut Vec<Diagnost
 /// Check that file paths referenced in TLS config exist on disk.
 fn check_file_references(toml_str: &str, _config_path: &Path, diagnostics: &mut Vec<Diagnostic>) {
     // Only check if we can parse the config
-    let Ok(config) = toml::from_str::<MoltisConfig>(toml_str) else {
+    let Ok(config) = toml::from_str::<LeetiumConfig>(toml_str) else {
         return;
     };
 
@@ -1905,18 +1905,18 @@ unknwon = "value"
         );
     }
 
-    /// Schema drift guard: verify every key from `MoltisConfig::default()` is
+    /// Schema drift guard: verify every key from `LeetiumConfig::default()` is
     /// represented in `build_schema_map()`.
     #[test]
     fn schema_drift_guard() {
-        let config = MoltisConfig::default();
+        let config = LeetiumConfig::default();
         let toml_value = toml::Value::try_from(&config).expect("serialize default config");
         let schema = build_schema_map();
         let mut missing = Vec::new();
         collect_missing_keys(&toml_value, &schema, "", &mut missing);
         assert!(
             missing.is_empty(),
-            "schema map is missing keys present in MoltisConfig::default(): {missing:?}\n\
+            "schema map is missing keys present in LeetiumConfig::default(): {missing:?}\n\
              Update build_schema_map() in validate.rs to include these fields."
         );
     }

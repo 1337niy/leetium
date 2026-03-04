@@ -1,7 +1,7 @@
-//! Project management for moltis.
+//! Project management for leetium.
 //!
 //! A project represents a codebase directory. When a session is bound to a
-//! project, moltis loads `CLAUDE.md` and `AGENTS.md` context files from the
+//! project, leetium loads `CLAUDE.md` and `AGENTS.md` context files from the
 //! directory hierarchy and can create git worktrees for session isolation.
 
 pub mod complete;

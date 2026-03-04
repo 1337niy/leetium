@@ -42,7 +42,7 @@ async function generateToken() {
 		generatedToken.value = {
 			token: res.payload.deviceToken,
 			deviceId: res.payload.deviceId,
-			command: `moltis node run --host ${wsUrl} --token ${res.payload.deviceToken}`,
+			command: `leetium node run --host ${wsUrl} --token ${res.payload.deviceToken}`,
 		};
 		showToast("Token generated", "success");
 		await refreshPairedDevices();

@@ -1,11 +1,11 @@
 <p align="center">
-  <a href="https://moltis.org"><img src="favicon.svg" alt="Moltis" width="100"></a>
+  <a href="https://leetnex.ru"><img src="favicon.svg" alt="Leetium" width="100"></a>
 </p>
 
-# Moltis Website (Cloudflare Worker)
+# Leetium Website (Cloudflare Worker)
 
-This directory contains the static site and worker for [moltis.org](https://moltis.org).
-It was moved into the main `moltis` repository so website, installer, and release manifests can be updated together.
+This directory contains the static site and worker for [leetnex.ru](https://leetnex.ru).
+It was moved into the main `leetium` repository so website, installer, and release manifests can be updated together.
 
 ## Deploy
 
@@ -21,9 +21,9 @@ When updating `install.sh`, keep `website/install.sh` in sync with the repo-root
 
 The website publishes machine-readable install/discovery files under `/.well-known/`:
 
-- `/.well-known/moltis-install.json` (stable root manifest)
-- `/.well-known/moltis-install/channels/stable.json` (moving channel pointer)
-- `/.well-known/moltis-install/releases/<version>.json` (immutable per-release manifest)
+- `/.well-known/leetium-install.json` (stable root manifest)
+- `/.well-known/leetium-install/channels/stable.json` (moving channel pointer)
+- `/.well-known/leetium-install/releases/<version>.json` (immutable per-release manifest)
 
 Update channel/release manifests at release time with:
 

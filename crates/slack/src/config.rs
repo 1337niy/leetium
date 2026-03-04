@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use {
-    moltis_channels::{
+    leetium_channels::{
         config_view::ChannelConfigView,
         gating::{DmPolicy, GroupPolicy, MentionMode},
     },

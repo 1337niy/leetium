@@ -116,8 +116,8 @@ async function completeIdentityStep(page) {
 /**
  * Onboarding tests for remote access (auth required).
  *
- * Uses a gateway started with MOLTIS_BEHIND_PROXY=true (simulates remote)
- * and MOLTIS_E2E_SETUP_CODE=123456 (deterministic setup code).
+ * Uses a gateway started with LEETIUM_BEHIND_PROXY=true (simulates remote)
+ * and LEETIUM_E2E_SETUP_CODE=123456 (deterministic setup code).
  * The test verifies that after completing auth, the WebSocket reconnects
  * immediately so subsequent RPC calls (identity save) succeed.
  */

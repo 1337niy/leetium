@@ -27,7 +27,7 @@ import { initTheme, injectMarkdownStyles } from "./theme.js";
 import { connect } from "./websocket.js";
 
 // Expose stores on window for E2E test access.
-window.__moltis_stores = { sessionStore, modelStore, projectStore };
+window.__leetium_stores = { sessionStore, modelStore, projectStore };
 
 // Import page modules to register their routes
 import "./page-chat.js";
@@ -43,7 +43,7 @@ import "./session-search.js";
 import "./time-format.js";
 
 function preferredChatPath() {
-	var key = localStorage.getItem("moltis-session") || "main";
+	var key = localStorage.getItem("leetium-session") || "main";
 	return sessionPath(key);
 }
 
@@ -78,7 +78,7 @@ function startAppAfterI18n() {
 	});
 }
 
-var UPDATE_DISMISS_KEY = "moltis-update-dismissed-version";
+var UPDATE_DISMISS_KEY = "leetium-update-dismissed-version";
 var currentUpdateVersion = null;
 
 // Apply server-injected identity immediately (no async wait), and
@@ -239,7 +239,7 @@ function refreshAuthChrome() {
 		.catch(() => null);
 }
 
-window.addEventListener("moltis:auth-status-changed", () => {
+window.addEventListener("leetium:auth-status-changed", () => {
 	refreshAuthChrome().then((auth) => {
 		if (!auth) return;
 		if (auth.setup_required) {
@@ -352,7 +352,7 @@ function applyIdentity(identity) {
 	var emojiEl = document.getElementById("titleEmoji");
 	var nameEl = document.getElementById("titleName");
 	if (emojiEl) emojiEl.textContent = identity?.emoji ? `${identity.emoji} ` : "";
-	if (nameEl) nameEl.textContent = identity?.name || "moltis";
+	if (nameEl) nameEl.textContent = identity?.name || "leetium";
 	applyIdentityFavicon(identity);
 	var branch = gon.get("git_branch");
 
@@ -371,7 +371,7 @@ function applyModels(models) {
 	// Dual-write to state.js for backward compat
 	S.setModels(arr);
 	if (arr.length === 0) return;
-	var saved = localStorage.getItem("moltis-model") || "";
+	var saved = localStorage.getItem("leetium-model") || "";
 	var found = arr.find((m) => m.id === saved);
 	if (found) {
 		modelStore.select(found.id);
@@ -379,7 +379,7 @@ function applyModels(models) {
 	} else {
 		modelStore.select(arr[0].id);
 		S.setSelectedModelId(arr[0].id);
-		localStorage.setItem("moltis-model", modelStore.selectedModelId.value);
+		localStorage.setItem("leetium-model", modelStore.selectedModelId.value);
 	}
 }
 

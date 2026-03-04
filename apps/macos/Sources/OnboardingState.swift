@@ -3,7 +3,7 @@ import Foundation
 
 final class OnboardingState: ObservableObject {
     @Published private(set) var isCompleted: Bool
-    private static let skipOnboardingEnv = "MOLTIS_UI_TEST_SKIP_ONBOARDING"
+    private static let skipOnboardingEnv = "LEETIUM_UI_TEST_SKIP_ONBOARDING"
 
     private let defaults: UserDefaults
     private let completionKey: String

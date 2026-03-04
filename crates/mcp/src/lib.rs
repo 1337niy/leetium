@@ -1,4 +1,4 @@
-//! MCP (Model Context Protocol) client support for moltis.
+//! MCP (Model Context Protocol) client support for leetium.
 //!
 //! This crate provides:
 //! - JSON-RPC 2.0 over stdio transport (`transport`)

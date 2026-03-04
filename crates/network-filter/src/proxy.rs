@@ -17,7 +17,7 @@ use {
 };
 
 #[cfg(feature = "metrics")]
-use moltis_metrics::{counter, gauge, histogram};
+use leetium_metrics::{counter, gauge, histogram};
 
 use crate::{
     ApprovalSource, AuditSender, DomainDecision, FilterAction, FilterOutcome, NetworkAuditEntry,

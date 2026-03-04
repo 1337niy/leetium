@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://moltis.org/.well-known/moltis-install.release.schema.json",
-  "title": "Moltis Install Release Manifest",
+  "$id": "https://leetnex.ru/.well-known/leetium-install.release.schema.json",
+  "title": "Leetium Install Release Manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -1144,8 +1144,8 @@ function handleNetworkAuditEntry(payload) {
 }
 
 function handleAuthCredentialsChanged(payload) {
-	if (payload?.reason === "password_changed" && window.__moltisSuppressNextPasswordChangedRedirect === true) {
-		window.__moltisSuppressNextPasswordChangedRedirect = false;
+	if (payload?.reason === "password_changed" && window.__leetiumSuppressNextPasswordChangedRedirect === true) {
+		window.__leetiumSuppressNextPasswordChangedRedirect = false;
 		console.info("Deferring redirect for password_changed to show recovery key first");
 		return;
 	}
@@ -1194,7 +1194,7 @@ var connectOpts = {
 			minute: "2-digit",
 			second: "2-digit",
 		});
-		chatAddMsg("system", `Connected to moltis gateway v${hello.server.version} at ${ts}`);
+		chatAddMsg("system", `Connected to leetium gateway v${hello.server.version} at ${ts}`);
 		if (S.sandboxInfo?.image_building) {
 			chatAddMsg("system", "Building sandbox image (installing packages)\u2026");
 		}

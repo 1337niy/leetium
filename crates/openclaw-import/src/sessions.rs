@@ -1,10 +1,10 @@
-//! Import session JSONL files from OpenClaw to Moltis format.
+//! Import session JSONL files from OpenClaw to Leetium format.
 //!
 //! OpenClaw sessions live at either:
 //! - `~/.openclaw/agents/<id>/sessions/<key>.jsonl` (legacy layout), or
 //! - `~/.openclaw/agents/<id>/agent/sessions/<key>.jsonl` (newer layout).
 //!
-//! Moltis sessions live at `<data_dir>/sessions/<safe-key>.jsonl` with metadata
+//! Leetium sessions live at `<data_dir>/sessions/<safe-key>.jsonl` with metadata
 //! in `metadata.json`.
 
 use std::{
@@ -28,7 +28,7 @@ use crate::{
     },
 };
 
-/// Minimal session metadata for the Moltis `metadata.json` index.
+/// Minimal session metadata for the Leetium `metadata.json` index.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportedSessionEntry {
     pub id: String,
@@ -53,10 +53,10 @@ pub struct ImportedSessionEntry {
     pub version: u64,
 }
 
-/// A converted Moltis message (matches `PersistedMessage` serde format).
+/// A converted Leetium message (matches `PersistedMessage` serde format).
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "role", rename_all = "lowercase")]
-enum MoltisMessage {
+enum LeetiumMessage {
     System {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,9 +88,9 @@ enum MoltisMessage {
 ///
 /// In addition to converting JSONL files, this also generates markdown
 /// transcripts in `memory_sessions_dir` (typically `<data>/memory/sessions/`)
-/// so that imported conversations are searchable by the Moltis memory system.
+/// so that imported conversations are searchable by the Leetium memory system.
 ///
-/// `agent_id_mapping` maps OpenClaw agent IDs to Moltis agent IDs. If empty,
+/// `agent_id_mapping` maps OpenClaw agent IDs to Leetium agent IDs. If empty,
 /// agent IDs are used as-is (backward compatible for single-agent installs).
 pub fn import_sessions(
     detection: &OpenClawDetection,
@@ -121,7 +121,7 @@ pub fn import_sessions(
     let existing_metadata = load_session_metadata(&metadata_path);
 
     for openclaw_agent_id in &detection.agent_ids {
-        let moltis_agent_id = agent_id_mapping
+        let leetium_agent_id = agent_id_mapping
             .get(openclaw_agent_id.as_str())
             .cloned()
             .unwrap_or_else(|| openclaw_agent_id.clone());
@@ -149,7 +149,7 @@ pub fn import_sessions(
                 .file_stem()
                 .and_then(|s| s.to_str())
                 .unwrap_or("unknown");
-            let dest_key = format!("oc:{moltis_agent_id}:{stem}");
+            let dest_key = format!("oc:{leetium_agent_id}:{stem}");
             let dest_file =
                 dest_sessions_dir.join(format!("{}.jsonl", sanitize_session_key(&dest_key)));
 
@@ -209,10 +209,10 @@ pub fn import_sessions(
                     };
 
                     // Set agent_id for non-default agents
-                    let agent_id = if moltis_agent_id == "main" {
+                    let agent_id = if leetium_agent_id == "main" {
                         None
                     } else {
-                        Some(moltis_agent_id.clone())
+                        Some(leetium_agent_id.clone())
                     };
 
                     entries.push(ImportedSessionEntry {
@@ -432,7 +432,7 @@ fn convert_message(
     msg: &crate::types::OpenClawMessage,
     timestamp_ms: Option<u64>,
     stats: &mut ConvertStats,
-) -> Option<MoltisMessage> {
+) -> Option<LeetiumMessage> {
     let content = msg.content.as_ref().map(OpenClawContent::as_text)?;
     if content.is_empty() {
         return None;
@@ -458,15 +458,15 @@ fn convert_message(
     }
 
     match msg.role {
-        OpenClawRole::System => Some(MoltisMessage::System {
+        OpenClawRole::System => Some(LeetiumMessage::System {
             content,
             created_at: Some(created_at),
         }),
-        OpenClawRole::User => Some(MoltisMessage::User {
+        OpenClawRole::User => Some(LeetiumMessage::User {
             content,
             created_at: Some(created_at),
         }),
-        OpenClawRole::Assistant => Some(MoltisMessage::Assistant {
+        OpenClawRole::Assistant => Some(LeetiumMessage::Assistant {
             content,
             created_at: Some(created_at),
             model: None,
@@ -474,7 +474,7 @@ fn convert_message(
         }),
         OpenClawRole::Tool | OpenClawRole::ToolResult => {
             let tool_call_id = msg.tool_use_id.clone().unwrap_or_default();
-            Some(MoltisMessage::Tool {
+            Some(LeetiumMessage::Tool {
                 tool_call_id,
                 content,
                 created_at: Some(created_at),
@@ -569,7 +569,7 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 /// Write a markdown transcript of a session for memory search indexing.
 ///
 /// The file is placed in `memory/sessions/` and includes all user/assistant
-/// messages so they become searchable by the Moltis memory system.
+/// messages so they become searchable by the Leetium memory system.
 fn write_transcript(
     dir: &Path,
     dest_key: &str,
