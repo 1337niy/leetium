@@ -38,6 +38,14 @@ wasm-tools:
     cargo build --target wasm32-wasip2 -p leetium-wasm-calc -p leetium-wasm-web-fetch -p leetium-wasm-web-search --release
     cargo run -p leetium-wasm-precompile --release
 
+# Build just the release WASM artifacts expected by embedded-wasm builds.
+build-wasm-artifacts: wasm-tools
+    @echo "Built target/wasm32-wasip2/release/{moltis_wasm_calc,moltis_wasm_web_fetch,moltis_wasm_web_search}.{wasm,cwasm}"
+
+# Build release after ensuring embedded WASM artifacts are present.
+build-release-with-wasm: build-wasm-artifacts
+    cargo build --release
+
 # Run local dev server with workspace-local config/data dirs.
 dev-server:
     LEETIUM_CONFIG_DIR=.leetium/config LEETIUM_DATA_DIR=.leetium/ cargo run --bin leetium

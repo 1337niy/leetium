@@ -133,11 +133,14 @@ impl leetium_tools::location::LocationRequester for GatewayLocationRequester {
         {
             let mut inner_w = self.state.inner.write().await;
             let invokes = &mut inner_w.pending_invokes;
-            invokes.insert(request_id.clone(), crate::state::PendingInvoke {
-                request_id: request_id.clone(),
-                sender: tx,
-                created_at: std::time::Instant::now(),
-            });
+            invokes.insert(
+                request_id.clone(),
+                crate::state::PendingInvoke {
+                    request_id: request_id.clone(),
+                    sender: tx,
+                    created_at: std::time::Instant::now(),
+                },
+            );
         }
 
         // Wait up to 30 seconds for the user to grant/deny permission.
@@ -251,13 +254,14 @@ impl leetium_tools::location::LocationRequester for GatewayLocationRequester {
         let (tx, rx) = tokio::sync::oneshot::channel();
         {
             let mut inner = self.state.inner.write().await;
-            inner
-                .pending_invokes
-                .insert(pending_key.clone(), crate::state::PendingInvoke {
+            inner.pending_invokes.insert(
+                pending_key.clone(),
+                crate::state::PendingInvoke {
                     request_id: pending_key.clone(),
                     sender: tx,
                     created_at: std::time::Instant::now(),
-                });
+                },
+            );
         }
 
         // Wait up to 60 seconds — user needs to navigate Telegram's UI.
@@ -457,7 +461,12 @@ fn log_startup_model_inventory(reg: &ProviderRegistry) {
 
 async fn ollama_has_model(base_url: &str, model: &str) -> bool {
     let url = format!("{}/api/tags", base_url.trim_end_matches('/'));
-    let response = match leetium_common::http::shared_http_client().clone().get(url).send().await {
+    let response = match leetium_common::http::shared_http_client()
+        .clone()
+        .get(url)
+        .send()
+        .await
+    {
         Ok(resp) => resp,
         Err(_) => return false,
     };
@@ -492,7 +501,8 @@ async fn ensure_ollama_model(base_url: &str, model: &str) {
     );
 
     let url = format!("{}/api/pull", base_url.trim_end_matches('/'));
-    let pull = leetium_common::http::shared_http_client().clone()
+    let pull = leetium_common::http::shared_http_client()
+        .clone()
         .post(url)
         .json(&serde_json::json!({ "name": model, "stream": false }))
         .send()
@@ -883,6 +893,56 @@ fn env_flag_enabled(name: &str) -> bool {
         .unwrap_or(false)
 }
 
+fn process_rss_bytes() -> u64 {
+    let mut sys = sysinfo::System::new();
+    let Some(pid) = sysinfo::get_current_pid().ok() else {
+        return 0;
+    };
+    sys.refresh_memory();
+    sys.refresh_processes_specifics(
+        sysinfo::ProcessesToUpdate::Some(&[pid]),
+        false,
+        sysinfo::ProcessRefreshKind::nothing().with_memory(),
+    );
+    sys.process(pid).map(|p| p.memory()).unwrap_or(0)
+}
+
+struct StartupMemProbe {
+    enabled: bool,
+    last_rss_bytes: u64,
+}
+
+impl StartupMemProbe {
+    fn new() -> Self {
+        let enabled = env_flag_enabled("MOLTIS_STARTUP_MEM_TRACE");
+        let last_rss_bytes = if enabled {
+            process_rss_bytes()
+        } else {
+            0
+        };
+        Self {
+            enabled,
+            last_rss_bytes,
+        }
+    }
+
+    fn checkpoint(&mut self, stage: &str) {
+        if !self.enabled {
+            return;
+        }
+        let rss_bytes = process_rss_bytes();
+        let delta_bytes = rss_bytes as i128 - self.last_rss_bytes as i128;
+        self.last_rss_bytes = rss_bytes;
+
+        info!(
+            stage,
+            rss_bytes,
+            delta_bytes = delta_bytes as i64,
+            "startup memory checkpoint"
+        );
+    }
+}
+
 fn validate_proxy_tls_configuration(
     behind_proxy: bool,
     tls_enabled: bool,
@@ -1103,6 +1163,11 @@ fn spawn_post_listener_warmups(
     browser_service: Arc<dyn crate::services::BrowserService>,
     browser_tool: Option<Arc<dyn leetium_agents::tool_registry::AgentTool>>,
 ) {
+    if !env_flag_enabled("MOLTIS_BROWSER_WARMUP") {
+        debug!("startup browser warmup disabled (set MOLTIS_BROWSER_WARMUP=1 to enable)");
+        return;
+    }
+
     tokio::spawn(async move {
         browser_service.warmup().await;
         if let Some(tool) = browser_tool
@@ -1205,6 +1270,18 @@ pub fn openclaw_detected_for_ui() -> bool {
 #[cfg(not(feature = "openclaw-import"))]
 pub fn openclaw_detected_for_ui() -> bool {
     false
+}
+
+#[cfg(feature = "local-llm")]
+#[must_use]
+pub fn local_llama_cpp_bytes_for_ui() -> u64 {
+    moltis_providers::local_llm::loaded_llama_model_bytes()
+}
+
+#[cfg(not(feature = "local-llm"))]
+#[must_use]
+pub const fn local_llama_cpp_bytes_for_ui() -> u64 {
+    0
 }
 
 fn log_startup_config_storage_diagnostics() {
@@ -1364,6 +1441,8 @@ pub async fn prepare_gateway(
     let instance_slug_value = instance_slug(&config);
     let browser_container_prefix = browser_container_prefix(&instance_slug_value);
     let sandbox_container_prefix = sandbox_container_prefix(&instance_slug_value);
+    let mut startup_mem_probe = StartupMemProbe::new();
+    startup_mem_probe.checkpoint("prepare_gateway.start");
 
     // CLI --no-tls / LEETIUM_NO_TLS overrides config file TLS setting.
     if no_tls {
@@ -1465,14 +1544,17 @@ pub async fn prepare_gateway(
             );
         }
     }
+    startup_mem_probe.checkpoint("providers.registry.initialized");
 
-    // Refresh dynamic provider model discovery hourly so long-lived sessions
+    // Refresh dynamic provider model discovery daily so long-lived sessions
     // pick up newly available models without requiring a restart.
+    const DYNAMIC_PROVIDER_MODEL_REFRESH_INTERVAL: std::time::Duration =
+        std::time::Duration::from_secs(24 * 60 * 60);
     {
         let registry_for_refresh = Arc::clone(&registry);
         let provider_config_for_refresh = base_provider_config.clone();
         tokio::spawn(async move {
-            let mut interval = tokio::time::interval(std::time::Duration::from_secs(60 * 60));
+            let mut interval = tokio::time::interval(DYNAMIC_PROVIDER_MODEL_REFRESH_INTERVAL);
             interval.tick().await;
             loop {
                 interval.tick().await;
@@ -1490,7 +1572,7 @@ pub async fn prepare_gateway(
                     info!(
                         provider = %provider_name,
                         models = model_count,
-                        "hourly dynamic provider model refresh complete"
+                        "daily dynamic provider model refresh complete"
                     );
                 }
             }
@@ -1594,9 +1676,9 @@ pub async fn prepare_gateway(
                         token_url: o.token_url.clone(),
                         scopes: o.scopes.clone(),
                     });
-                merged
-                    .servers
-                    .insert(name.clone(), leetium_mcp::McpServerConfig {
+                merged.servers.insert(
+                    name.clone(),
+                    leetium_mcp::McpServerConfig {
                         command: entry.command.clone(),
                         args: entry.args.clone(),
                         env: entry.env.clone(),
@@ -1604,7 +1686,8 @@ pub async fn prepare_gateway(
                         transport,
                         url: entry.url.clone(),
                         oauth,
-                    });
+                    },
+                );
             }
         }
         mcp_configured_count = merged.servers.values().filter(|s| s.enabled).count();
@@ -1625,6 +1708,7 @@ pub async fn prepare_gateway(
         });
         services.mcp = live_mcp.clone() as Arc<dyn crate::services::McpService>;
     }
+    startup_mem_probe.checkpoint("services.core_wired");
 
     // Initialize data directory and SQLite database.
     let data_dir = data_dir.unwrap_or_else(leetium_config::data_dir);
@@ -1731,6 +1815,7 @@ pub async fn prepare_gateway(
 
     // Migrate plugins data into unified skills system (idempotent, non-fatal).
     leetium_skills::migration::migrate_plugins_to_skills(&data_dir).await;
+    startup_mem_probe.checkpoint("sqlite.migrations.complete");
 
     // Initialize vault for encryption-at-rest.
     #[cfg(feature = "vault")]
@@ -2208,10 +2293,15 @@ pub async fn prepare_gateway(
             // Spawn async broadcast in a background task since we're in a sync callback.
             let state = Arc::clone(state);
             tokio::spawn(async move {
-                broadcast(&state, event, payload, BroadcastOpts {
-                    drop_if_slow: true,
-                    ..Default::default()
-                })
+                broadcast(
+                    &state,
+                    event,
+                    payload,
+                    BroadcastOpts {
+                        drop_if_slow: true,
+                        ..Default::default()
+                    },
+                )
                 .await;
             });
         });
@@ -2236,7 +2326,8 @@ pub async fn prepare_gateway(
     services = services.with_cron(live_cron);
 
     // Build sandbox router from config (shared across sessions).
-    let mut sandbox_config = leetium_tools::sandbox::SandboxConfig::from(&config.tools.exec.sandbox);
+    let mut sandbox_config =
+        leetium_tools::sandbox::SandboxConfig::from(&config.tools.exec.sandbox);
     sandbox_config.container_prefix = Some(sandbox_container_prefix);
     sandbox_config.timezone = config
         .user
@@ -2783,6 +2874,7 @@ pub async fn prepare_gateway(
     services = services.with_session_share_store(Arc::clone(&session_share_store));
 
     services = services.with_agent_persona_store(Arc::clone(&agent_persona_store));
+    startup_mem_probe.checkpoint("channels.initialized");
 
     // Shared agents config (presets) — used by both SpawnAgentTool and RPC.
     let agents_config = Arc::new(tokio::sync::RwLock::new(config.agents.clone()));
@@ -2896,8 +2988,9 @@ pub async fn prepare_gateway(
                                 env_value_with_overrides(&runtime_env_overrides, "OPENAI_API_KEY")
                             })
                             .unwrap_or_default();
-                        let mut e =
-                            leetium_memory::embeddings_openai::OpenAiEmbeddingProvider::new(api_key);
+                        let mut e = leetium_memory::embeddings_openai::OpenAiEmbeddingProvider::new(
+                            api_key,
+                        );
                         if base_url != "https://api.openai.com" {
                             e = e.with_base_url(base_url);
                         }
@@ -2913,7 +3006,8 @@ pub async fn prepare_gateway(
 
             // 2. Auto-detect: try Ollama health check.
             if embedding_providers.is_empty() {
-                let ollama_ok = leetium_common::http::shared_http_client().clone()
+                let ollama_ok = leetium_common::http::shared_http_client()
+                    .clone()
                     .get("http://localhost:11434/api/tags")
                     .timeout(std::time::Duration::from_secs(2))
                     .send()
@@ -3110,9 +3204,9 @@ pub async fn prepare_gateway(
                                         while let Some(event) = rx.recv().await {
                                             let path = match &event {
                                                 leetium_memory::watcher::WatchEvent::Created(p)
-                                                | leetium_memory::watcher::WatchEvent::Modified(p) => {
-                                                    Some(p.clone())
-                                                },
+                                                | leetium_memory::watcher::WatchEvent::Modified(
+                                                    p,
+                                                ) => Some(p.clone()),
                                                 leetium_memory::watcher::WatchEvent::Removed(p) => {
                                                     // For removed files, trigger a full sync
                                                     if let Err(e) = watcher_manager.sync().await {
@@ -3174,6 +3268,7 @@ pub async fn prepare_gateway(
             },
         }
     };
+    startup_mem_probe.checkpoint("memory_manager.initialized");
 
     let is_localhost =
         matches!(bind, "127.0.0.1" | "::1" | "localhost") || bind.ends_with(".localhost");
@@ -3248,6 +3343,7 @@ pub async fn prepare_gateway(
         #[cfg(feature = "vault")]
         vault.clone(),
     );
+    startup_mem_probe.checkpoint("gateway_state.created");
 
     // Store discovered hook info, disabled set, and config overrides in state for the web UI.
     {
@@ -3504,7 +3600,8 @@ pub async fn prepare_gateway(
         ) {
             tool_registry.register(Box::new(t.with_env_provider(Arc::clone(&env_provider))));
         }
-        if let Some(t) = leetium_tools::web_fetch::WebFetchTool::from_config(&config.tools.web.fetch)
+        if let Some(t) =
+            leetium_tools::web_fetch::WebFetchTool::from_config(&config.tools.web.fetch)
         {
             #[cfg(feature = "trusted-network")]
             let t = if let Some(ref url) = proxy_url_for_tools {
@@ -4246,12 +4343,13 @@ pub async fn prepare_gateway(
                 .and_then(|p| sys.process(p))
                 .map(|p| p.memory())
                 .unwrap_or(0);
+            let local_llama_cpp = local_llama_cpp_bytes_for_ui();
             let total = sys.total_memory();
             let available = match sys.available_memory() {
                 0 => total.saturating_sub(sys.used_memory()),
                 v => v,
             };
-            broadcast_tick(&tick_state, process_mem, available, total).await;
+            broadcast_tick(&tick_state, process_mem, local_llama_cpp, available, total).await;
         }
     });
 
@@ -4276,13 +4374,75 @@ pub async fn prepare_gateway(
                                 ("patched", session_key.as_str())
                             },
                         };
+                        let mut payload = serde_json::json!({
+                            "kind": kind,
+                            "sessionKey": session_key,
+                        });
+                        if kind != "deleted"
+                            && let Some(ref metadata) = ws_state.services.session_metadata
+                            && let Some(entry) = metadata.get(session_key).await
+                        {
+                            let active_channel = if let Some(ref binding_json) =
+                                entry.channel_binding
+                            {
+                                if let Ok(target) = serde_json::from_str::<
+                                    moltis_channels::ChannelReplyTarget,
+                                >(binding_json)
+                                {
+                                    metadata
+                                        .get_active_session(
+                                            target.channel_type.as_str(),
+                                            &target.account_id,
+                                            &target.chat_id,
+                                        )
+                                        .await
+                                        .map(|key| key == entry.key)
+                                        .unwrap_or(false)
+                                } else {
+                                    false
+                                }
+                            } else {
+                                false
+                            };
+                            let preview = entry.preview.as_deref().map(|text| {
+                                let truncated = text.chars().take(200).collect::<String>();
+                                if text.chars().count() > 200 {
+                                    format!("{truncated}…")
+                                } else {
+                                    truncated
+                                }
+                            });
+                            let agent_id = entry.agent_id.clone();
+                            payload["entry"] = serde_json::json!({
+                                "id": entry.id,
+                                "key": entry.key,
+                                "label": entry.label,
+                                "model": entry.model,
+                                "createdAt": entry.created_at,
+                                "updatedAt": entry.updated_at,
+                                "messageCount": entry.message_count,
+                                "lastSeenMessageCount": entry.last_seen_message_count,
+                                "projectId": entry.project_id,
+                                "sandbox_enabled": entry.sandbox_enabled,
+                                "sandbox_image": entry.sandbox_image,
+                                "worktree_branch": entry.worktree_branch,
+                                "channelBinding": entry.channel_binding,
+                                "activeChannel": active_channel,
+                                "parentSessionKey": entry.parent_session_key,
+                                "forkPoint": entry.fork_point,
+                                "mcpDisabled": entry.mcp_disabled,
+                                "preview": preview,
+                                "archived": entry.archived,
+                                "agent_id": agent_id.clone(),
+                                "agentId": agent_id,
+                                "node_id": entry.node_id,
+                                "version": entry.version,
+                            });
+                        }
                         broadcast(
                             &ws_state,
                             "session",
-                            serde_json::json!({
-                                "kind": kind,
-                                "sessionKey": session_key,
-                            }),
+                            payload,
                             BroadcastOpts {
                                 drop_if_slow: true,
                                 ..Default::default()
@@ -4331,10 +4491,15 @@ pub async fn prepare_gateway(
                 }
             };
             if changed && let Ok(payload) = serde_json::to_value(&next) {
-                broadcast(&update_state, "update.available", payload, BroadcastOpts {
-                    drop_if_slow: true,
-                    ..Default::default()
-                })
+                broadcast(
+                    &update_state,
+                    "update.available",
+                    payload,
+                    BroadcastOpts {
+                        drop_if_slow: true,
+                        ..Default::default()
+                    },
+                )
                 .await;
             }
         }
@@ -4428,14 +4593,19 @@ pub async fn prepare_gateway(
                         .by_provider
                         .iter()
                         .map(|(name, metrics)| {
-                            (name.clone(), leetium_metrics::ProviderTokens {
-                                input_tokens: metrics.input_tokens,
-                                output_tokens: metrics.output_tokens,
-                                completions: metrics.completions,
-                                errors: metrics.errors,
-                            })
+                            (
+                                name.clone(),
+                                leetium_metrics::ProviderTokens {
+                                    input_tokens: metrics.input_tokens,
+                                    output_tokens: metrics.output_tokens,
+                                    completions: metrics.completions,
+                                    errors: metrics.errors,
+                                },
+                            )
                         })
                         .collect();
+                    let process_mem = process_rss_bytes();
+                    let local_llama_cpp = local_llama_cpp_bytes_for_ui();
 
                     let point = crate::state::MetricsHistoryPoint {
                         timestamp: std::time::SystemTime::now()
@@ -4455,6 +4625,8 @@ pub async fn prepare_gateway(
                         tool_errors: snapshot.categories.tools.errors,
                         mcp_calls: snapshot.categories.mcp.total,
                         active_sessions: snapshot.categories.system.active_sessions,
+                        process_memory_bytes: process_mem,
+                        local_llama_cpp_bytes: local_llama_cpp,
                     };
 
                     // Push to in-memory history.
@@ -4588,10 +4760,15 @@ pub async fn prepare_gateway(
                                 }),
                             ),
                         };
-                        broadcast(&event_state, event_name, payload, BroadcastOpts {
-                            drop_if_slow: true,
-                            ..Default::default()
-                        })
+                        broadcast(
+                            &event_state,
+                            event_name,
+                            payload,
+                            BroadcastOpts {
+                                drop_if_slow: true,
+                                ..Default::default()
+                            },
+                        )
                         .await;
                     },
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
@@ -4646,10 +4823,15 @@ pub async fn prepare_gateway(
                             continue;
                         }
                         if let Ok(payload) = serde_json::to_value(&entry) {
-                            broadcast(&log_state, "logs.entry", payload, BroadcastOpts {
-                                drop_if_slow: true,
-                                ..Default::default()
-                            })
+                            broadcast(
+                                &log_state,
+                                "logs.entry",
+                                payload,
+                                BroadcastOpts {
+                                    drop_if_slow: true,
+                                    ..Default::default()
+                                },
+                            )
                             .await;
                         }
                     },
@@ -4776,6 +4958,7 @@ pub async fn prepare_gateway(
             tracing::info!("heartbeat skipped: no prompt in config and HEARTBEAT.md is empty");
         }
     }
+    startup_mem_probe.checkpoint("prepare_gateway.ready");
 
     Ok(PreparedGateway {
         app,
@@ -6254,7 +6437,10 @@ mod tests {
             sender_id: None,
         };
         let result = registry.dispatch(&payload).await.unwrap();
-        assert!(matches!(result, leetium_common::hooks::HookAction::Continue));
+        assert!(matches!(
+            result,
+            leetium_common::hooks::HookAction::Continue
+        ));
 
         let memory_dir = tmp.path().join("memory");
         assert!(memory_dir.is_dir());
@@ -6506,21 +6692,27 @@ mod tests {
             "https://localhost:49494".to_string(),
             "https://m4max.local:49494".to_string(),
         ]);
-        assert_eq!(lines, vec![
-            "passkey origin: https://localhost:49494",
-            "passkey origin: https://m4max.local:49494",
-        ]);
+        assert_eq!(
+            lines,
+            vec![
+                "passkey origin: https://localhost:49494",
+                "passkey origin: https://m4max.local:49494",
+            ]
+        );
     }
 
     #[test]
     fn startup_setup_code_lines_adds_spacers() {
         let lines = startup_setup_code_lines("493413");
-        assert_eq!(lines, vec![
-            "",
-            "setup code: 493413",
-            "enter this code to set your password or register a passkey",
-            "",
-        ]);
+        assert_eq!(
+            lines,
+            vec![
+                "",
+                "setup code: 493413",
+                "enter this code to set your password or register a passkey",
+                "",
+            ]
+        );
     }
 
     #[test]
@@ -6548,13 +6740,16 @@ mod tests {
             ("OPENAI_API_KEY".to_string(), "config-openai".to_string()),
             ("BRAVE_API_KEY".to_string(), "config-brave".to_string()),
         ]);
-        let merged = merge_env_overrides(&base, vec![
-            ("OPENAI_API_KEY".to_string(), "db-openai".to_string()),
-            (
-                "PERPLEXITY_API_KEY".to_string(),
-                "db-perplexity".to_string(),
-            ),
-        ]);
+        let merged = merge_env_overrides(
+            &base,
+            vec![
+                ("OPENAI_API_KEY".to_string(), "db-openai".to_string()),
+                (
+                    "PERPLEXITY_API_KEY".to_string(),
+                    "db-perplexity".to_string(),
+                ),
+            ],
+        );
         assert_eq!(
             merged.get("OPENAI_API_KEY").map(String::as_str),
             Some("config-openai")
