@@ -15,7 +15,7 @@ docker run -d \
   -v leetium-config:/home/leetium/.config/leetium \
   -v leetium-data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 Open https://localhost:13131 in your browser and configure your LLM provider to start chatting.
@@ -79,7 +79,7 @@ docker run -d \
   -v ./config:/home/leetium/.config/leetium \
   -v ./data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 With bind mounts, you can edit `config/leetium.toml` directly on the host.
@@ -104,7 +104,7 @@ will fail.
 Mounting the Docker socket gives the container full access to the Docker
 daemon. This is equivalent to root access on the host for practical purposes.
 Only run Leetium containers from trusted sources (official images from
-`ghcr.io/1337leetium/leetium`).
+`ghcr.io/1337niy/leetium`).
 
 If you cannot mount the Docker socket, Leetium will run in "no sandbox" mode —
 commands execute directly inside the Leetium container itself, which provides
@@ -118,7 +118,7 @@ complete example:
 ```yaml
 services:
   leetium:
-    image: ghcr.io/1337leetium/leetium:latest
+    image: ghcr.io/1337niy/leetium:latest
     container_name: leetium
     restart: unless-stopped
     ports:
@@ -181,7 +181,7 @@ docker run -d \
   -v leetium-config:/home/leetium/.config/leetium \
   -v leetium-data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 Alternatively, use the Docker bridge gateway IP directly
@@ -202,7 +202,7 @@ podman run -d \
   -v leetium-config:/home/leetium/.config/leetium \
   -v leetium-data:/home/leetium/.leetium \
   -v /run/user/$(id -u)/podman/podman.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 
 # Podman rootful
 podman run -d \
@@ -213,7 +213,7 @@ podman run -d \
   -v leetium-config:/home/leetium/.config/leetium \
   -v leetium-data:/home/leetium/.leetium \
   -v /run/podman/podman.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 You may need to enable the Podman socket service first:
@@ -246,7 +246,7 @@ docker run -d \
   -v ./config:/config \
   -v ./data:/data \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 ### API Keys and the `[env]` Section
@@ -263,7 +263,7 @@ docker run -d \
   -e BRAVE_API_KEY=your-key \
   -e OPENROUTER_API_KEY=sk-or-... \
   ...
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 **Option 2: `[env]` section in `leetium.toml`**

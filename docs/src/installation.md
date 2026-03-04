@@ -17,7 +17,7 @@ This downloads the latest release for your platform and installs it to `~/.local
 ### Homebrew (macOS / Linux)
 
 ```bash
-brew install 1337leetium/tap/leetium
+brew install 1337niy/tap/leetium
 ```
 
 ## Linux Packages
@@ -26,7 +26,7 @@ brew install 1337leetium/tap/leetium
 
 ```bash
 # Download the latest .deb package
-curl -LO https://github.com/1337leetium/leetium/releases/latest/download/leetium_amd64.deb
+curl -LO https://github.com/1337niy/leetium/releases/latest/download/leetium_amd64.deb
 
 # Install
 sudo dpkg -i leetium_amd64.deb
@@ -36,7 +36,7 @@ sudo dpkg -i leetium_amd64.deb
 
 ```bash
 # Download the latest .rpm package
-curl -LO https://github.com/1337leetium/leetium/releases/latest/download/leetium.x86_64.rpm
+curl -LO https://github.com/1337niy/leetium/releases/latest/download/leetium.x86_64.rpm
 
 # Install
 sudo rpm -i leetium.x86_64.rpm
@@ -46,7 +46,7 @@ sudo rpm -i leetium.x86_64.rpm
 
 ```bash
 # Download the latest package
-curl -LO https://github.com/1337leetium/leetium/releases/latest/download/leetium.pkg.tar.zst
+curl -LO https://github.com/1337niy/leetium/releases/latest/download/leetium.pkg.tar.zst
 
 # Install
 sudo pacman -U leetium.pkg.tar.zst
@@ -62,7 +62,7 @@ sudo snap install leetium
 
 ```bash
 # Download
-curl -LO https://github.com/1337leetium/leetium/releases/latest/download/leetium.AppImage
+curl -LO https://github.com/1337niy/leetium/releases/latest/download/leetium.AppImage
 chmod +x leetium.AppImage
 
 # Run
@@ -74,7 +74,7 @@ chmod +x leetium.AppImage
 Multi-architecture images (amd64/arm64) are published to GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/1337leetium/leetium:latest
+docker pull ghcr.io/1337niy/leetium:latest
 ```
 
 See [Docker Deployment](docker.md) for full instructions on running Leetium in a container.
@@ -89,7 +89,7 @@ See [Docker Deployment](docker.md) for full instructions on running Leetium in a
 ### Clone and Build
 
 ```bash
-git clone https://github.com/1337leetium/leetium.git
+git clone https://github.com/1337niy/leetium.git
 cd leetium
 cargo build --release
 ```
@@ -99,7 +99,7 @@ The binary will be at `target/release/leetium`.
 ### Install via Cargo
 
 ```bash
-cargo install leetium --git https://github.com/1337leetium/leetium
+cargo install leetium --git https://github.com/1337niy/leetium
 ```
 
 ## First Run

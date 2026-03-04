@@ -11,7 +11,7 @@ curl -fsSL https://www.leetnex.ru/install.sh | sh
 Or via Homebrew:
 
 ```bash
-brew install 1337leetium/tap/leetium
+brew install 1337niy/tap/leetium
 ```
 
 ## 2. Start
@@ -151,5 +151,5 @@ Add knowledge by placing Markdown files in `~/.leetium/memory/`.
 ## Getting Help
 
 - **Documentation**: [docs.leetnex.ru](https://docs.leetnex.ru)
-- **GitHub Issues**: [github.com/1337leetium/leetium/issues](https://github.com/1337leetium/leetium/issues)
-- **Discussions**: [github.com/1337leetium/leetium/discussions](https://github.com/1337leetium/leetium/discussions)
+- **GitHub Issues**: [github.com/1337niy/leetium/issues](https://github.com/1337niy/leetium/issues)
+- **Discussions**: [github.com/1337niy/leetium/discussions](https://github.com/1337niy/leetium/discussions)

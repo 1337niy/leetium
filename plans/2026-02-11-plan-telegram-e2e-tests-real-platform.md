@@ -307,7 +307,7 @@ on:
 jobs:
   telegram-e2e:
     runs-on: ubuntu-latest
-    if: github.repository == '1337leetium/leetium'
+    if: github.repository == '1337niy/leetium'
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4

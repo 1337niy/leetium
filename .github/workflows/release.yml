@@ -1406,7 +1406,7 @@ jobs:
         if: steps.token_check.outputs.has_token == 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          repository: 1337leetium/homebrew-tap
+          repository: 1337niy/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           persist-credentials: true
 
@@ -1422,20 +1422,20 @@ jobs:
 
             on_macos do
               if Hardware::CPU.arm?
-                url "https://github.com/1337leetium/leetium/releases/download/v#{version}/leetium-#{version}-aarch64-apple-darwin.tar.gz"
+                url "https://github.com/1337niy/leetium/releases/download/v#{version}/leetium-#{version}-aarch64-apple-darwin.tar.gz"
                 sha256 "${SHA_aarch64_apple_darwin}"
               else
-                url "https://github.com/1337leetium/leetium/releases/download/v#{version}/leetium-#{version}-x86_64-apple-darwin.tar.gz"
+                url "https://github.com/1337niy/leetium/releases/download/v#{version}/leetium-#{version}-x86_64-apple-darwin.tar.gz"
                 sha256 "${SHA_x86_64_apple_darwin}"
               end
             end
 
             on_linux do
               if Hardware::CPU.arm?
-                url "https://github.com/1337leetium/leetium/releases/download/v#{version}/leetium-#{version}-aarch64-unknown-linux-gnu.tar.gz"
+                url "https://github.com/1337niy/leetium/releases/download/v#{version}/leetium-#{version}-aarch64-unknown-linux-gnu.tar.gz"
                 sha256 "${SHA_aarch64_unknown_linux_gnu}"
               else
-                url "https://github.com/1337leetium/leetium/releases/download/v#{version}/leetium-#{version}-x86_64-unknown-linux-gnu.tar.gz"
+                url "https://github.com/1337niy/leetium/releases/download/v#{version}/leetium-#{version}-x86_64-unknown-linux-gnu.tar.gz"
                 sha256 "${SHA_x86_64_unknown_linux_gnu}"
               end
             end
@@ -1491,14 +1491,14 @@ jobs:
           sed -i "s/tag: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"/tag: \"${VERSION}\"/" .do/deploy.template.yaml
 
           # Render
-          sed -i "s|ghcr.io/1337leetium/leetium:[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|ghcr.io/1337leetium/leetium:${VERSION}|" render.yaml
+          sed -i "s|ghcr.io/1337niy/leetium:[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|ghcr.io/1337niy/leetium:${VERSION}|" render.yaml
 
           # Fly.io
-          sed -i "s|ghcr.io/1337leetium/leetium:[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|ghcr.io/1337leetium/leetium:${VERSION}|" fly.toml
+          sed -i "s|ghcr.io/1337niy/leetium:[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|ghcr.io/1337niy/leetium:${VERSION}|" fly.toml
 
           # Website releases.json
           jq --arg v "$VERSION" \
-            '.stable.version = $v | .stable.release_url = "https://github.com/1337leetium/leetium/releases/tag/v" + $v' \
+            '.stable.version = $v | .stable.release_url = "https://github.com/1337niy/leetium/releases/tag/v" + $v' \
             website/releases.json > website/releases.json.tmp \
             && mv website/releases.json.tmp website/releases.json
 

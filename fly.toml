@@ -1,5 +1,5 @@
 [build]
-image = 'ghcr.io/1337leetium/leetium:0.1.0'
+image = 'ghcr.io/1337niy/leetium:0.1.0'
 
 [env]
 LEETIUM_BEHIND_PROXY    = 'true'

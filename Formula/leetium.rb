@@ -1,11 +1,11 @@
 class Leetium < Formula
   desc "Rust-powered bot framework with LLM agents, plugins, and gateway"
-  homepage "https://github.com/1337leetium/leetium"
-  url "https://github.com/1337leetium/leetium.git",
+  homepage "https://github.com/1337niy/leetium"
+  url "https://github.com/1337niy/leetium.git",
       tag:      "v0.1.0",
       revision: ""
   license "MIT"
-  head "https://github.com/1337leetium/leetium.git", branch: "main"
+  head "https://github.com/1337niy/leetium.git", branch: "main"
 
   depends_on "rust" => :build
 

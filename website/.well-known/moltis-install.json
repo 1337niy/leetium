@@ -23,7 +23,7 @@
     "command_preview": "curl -fsSL https://www.leetnex.ru/install.sh | sh",
     "release_manifest_schema": "https://leetnex.ru/.well-known/leetium-install.release.schema.json",
     "verify": {
-      "release_page_url": "https://github.com/1337leetium/leetium/releases"
+      "release_page_url": "https://github.com/1337niy/leetium/releases"
     }
   },
   "post_install": [

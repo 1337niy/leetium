@@ -163,7 +163,7 @@ mod tests {
     fn builds_update_payload_from_release() {
         let update = update_from_release(
             "v0.3.0",
-            Some("https://github.com/1337leetium/leetium/releases/tag/v0.3.0"),
+            Some("https://github.com/1337niy/leetium/releases/tag/v0.3.0"),
             "0.2.5",
         );
 
@@ -171,7 +171,7 @@ mod tests {
         assert_eq!(update.latest_version.as_deref(), Some("0.3.0"));
         assert_eq!(
             update.release_url.as_deref(),
-            Some("https://github.com/1337leetium/leetium/releases/tag/v0.3.0")
+            Some("https://github.com/1337niy/leetium/releases/tag/v0.3.0")
         );
     }
 
@@ -187,12 +187,12 @@ mod tests {
     fn selects_channel_based_on_current_version() {
         let stable = ReleaseChannel {
             version: "0.10.7".into(),
-            release_url: Some("https://github.com/1337leetium/leetium/releases/tag/v0.10.7".into()),
+            release_url: Some("https://github.com/1337niy/leetium/releases/tag/v0.10.7".into()),
         };
         let unstable = ReleaseChannel {
             version: "0.11.0-rc.2".into(),
             release_url: Some(
-                "https://github.com/1337leetium/leetium/releases/tag/v0.11.0-rc.2".into(),
+                "https://github.com/1337niy/leetium/releases/tag/v0.11.0-rc.2".into(),
             ),
         };
 

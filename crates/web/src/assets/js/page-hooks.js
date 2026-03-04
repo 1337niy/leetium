@@ -229,7 +229,7 @@ function HookCard({ hook }) {
                    style="min-height:60px;max-height:400px">
                 <p>${hook.description}</p>
                 <p class="mt-2">
-                  <a href="https://github.com/1337leetium/leetium/blob/main/${hook.source_path}"
+                  <a href="https://github.com/1337niy/leetium/blob/main/${hook.source_path}"
                      target="_blank" rel="noopener noreferrer"
                      class="text-[var(--accent)] hover:underline">
                     View source on GitHub \u2197

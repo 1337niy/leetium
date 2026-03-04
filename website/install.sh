@@ -12,8 +12,8 @@
 
 set -e
 
-GITHUB_REPO="1337leetium/leetium"
-HOMEBREW_TAP="1337leetium/tap"
+GITHUB_REPO="1337niy/leetium"
+HOMEBREW_TAP="1337niy/tap"
 BINARY_NAME="leetium"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 

@@ -1455,7 +1455,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Update checker repository configuration**: The update checker now reads
   `server.update_repository_url` from `leetium.toml`, defaults new configs to
-  `https://github.com/1337leetium/leetium`, and treats an omitted/commented value
+  `https://github.com/1337niy/leetium`, and treats an omitted/commented value
   as explicitly disabled.
 - **Mistral and other providers rejecting requests with HTTP 422**: Session metadata fields
   (`created_at`, `model`, `provider`, `inputTokens`, `outputTokens`) were leaking into

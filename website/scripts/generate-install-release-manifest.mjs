@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 const DEFAULT_SITE = "https://leetnex.ru";
-const DEFAULT_REPO = "1337leetium/leetium";
+const DEFAULT_REPO = "1337niy/leetium";
 const DEFAULT_CHANNEL = "stable";
 
 const RELEASE_TARGETS = [
@@ -24,7 +24,7 @@ Options:
   --version <x.y.z>           Release version (required)
   --published-at <YYYY-MM-DD> Release date (default: UTC today)
   --channel <name>            Channel to update (default: stable)
-  --repo <owner/repo>         GitHub repo (default: 1337leetium/leetium)
+  --repo <owner/repo>         GitHub repo (default: 1337niy/leetium)
   --site <https://host>       Site origin (default: https://leetnex.ru)
   --checksums-file <path>     File containing lines: <sha256> <filename>
   --allow-missing-sha         Allow missing SHA256 entries

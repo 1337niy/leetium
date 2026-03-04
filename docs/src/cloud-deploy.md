@@ -1,7 +1,7 @@
 # Cloud Deploy
 
 Leetium publishes a multi-arch Docker image (`linux/amd64` and `linux/arm64`)
-to `ghcr.io/1337leetium/leetium`. You can deploy it to any cloud provider that
+to `ghcr.io/1337niy/leetium`. You can deploy it to any cloud provider that
 supports container images.
 
 ## Common configuration
@@ -68,7 +68,7 @@ The repository includes a `fly.toml` ready to use.
 curl -L https://fly.io/install.sh | sh
 
 # Launch from the repo (uses fly.toml)
-fly launch --image ghcr.io/1337leetium/leetium:latest
+fly launch --image ghcr.io/1337niy/leetium:latest
 
 # Set your password
 fly secrets set LEETIUM_PASSWORD="your-password"
@@ -79,7 +79,7 @@ fly volumes create leetium_data --region iad --size 1
 
 ### How it works
 
-- **Image**: pulled from `ghcr.io/1337leetium/leetium:latest`
+- **Image**: pulled from `ghcr.io/1337niy/leetium:latest`
 - **Port**: internal 8080, Fly terminates TLS and routes HTTPS traffic
 - **Storage**: a Fly Volume mounted at `/data` persists the database, sessions,
   and memory files
@@ -95,13 +95,13 @@ Then point a CNAME to `your-app.fly.dev`.
 
 ## DigitalOcean App Platform
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/1337leetium/leetium/tree/main)
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/1337niy/leetium/tree/main)
 
 Click the button above or create an app manually:
 
 1. Go to **Apps** > **Create App**
 2. Choose **Container Image** as source
-3. Set image to `ghcr.io/1337leetium/leetium:latest`
+3. Set image to `ghcr.io/1337niy/leetium:latest`
 4. Set the run command: `leetium --bind 0.0.0.0 --port 8080 --no-tls`
 5. Set environment variables:
    - `LEETIUM_DATA_DIR` = `/data`
@@ -116,7 +116,7 @@ persistent storage, consider using a DigitalOcean Droplet with Docker instead.
 
 ## Render
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/1337leetium/leetium)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/1337niy/leetium)
 
 The repository includes a `render.yaml` blueprint. Click the button above or:
 
@@ -139,7 +139,7 @@ environment variables (`LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR`,
 `LEETIUM_DEPLOY_PLATFORM`) automatically.
 
 1. Create a new project on [Railway](https://railway.com)
-2. Add a service from **Docker Image**: `ghcr.io/1337leetium/leetium:latest`
+2. Add a service from **Docker Image**: `ghcr.io/1337niy/leetium:latest`
 3. Railway injects the `$PORT` variable automatically; the `railway.json` start
    command handles the rest
 4. Set additional environment variables in the Railway dashboard:

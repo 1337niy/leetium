@@ -128,4 +128,4 @@ startup, and broad channel support without a web UI.
 - [PicoClaw](https://github.com/sipeed/picoclaw) — [Site](https://picoclaw.net)
 - [NanoClaw](https://github.com/qwibitai/nanoclaw)
 - [ZeroClaw](https://github.com/zeroclaw-labs/zeroclaw) — [Site](https://zeroclaw.net)
-- [Leetium](https://github.com/1337leetium/leetium) — [Docs](https://docs.leetnex.ru)
+- [Leetium](https://github.com/1337niy/leetium) — [Docs](https://docs.leetnex.ru)

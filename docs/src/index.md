@@ -123,9 +123,9 @@ Leetium applies defense in depth:
 
 ## Community
 
-- **GitHub**: [github.com/1337leetium/leetium](https://github.com/1337leetium/leetium)
-- **Issues**: [Report bugs](https://github.com/1337leetium/leetium/issues)
-- **Discussions**: [Ask questions](https://github.com/1337leetium/leetium/discussions)
+- **GitHub**: [github.com/1337niy/leetium](https://github.com/1337niy/leetium)
+- **Issues**: [Report bugs](https://github.com/1337niy/leetium/issues)
+- **Discussions**: [Ask questions](https://github.com/1337niy/leetium/discussions)
 
 ## License
 

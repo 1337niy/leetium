@@ -1,9 +1,9 @@
-# 1337leetium / Leetium — Project Backlog
+# 1337niy / Leetium — Project Backlog
 
 > **Продукт:** Leetium — Rust-native local-first AI gateway (local-first, single binary, sandboxed execution)
 > **Текущая версия:** 0.10.11
 > **Дата создания бэклога:** 2026-03-04
-> **Репозиторий:** `/home/qwner/Desktop/CO/1337leetium/leetium`
+> **Репозиторий:** `/home/qwner/Desktop/CO/1337niy/leetium`
 
 ---
 
@@ -18,36 +18,36 @@
 
 ---
 
-## 🚀 EPIC 0 — Ребрендинг: moltis → leetium [COMPLETE]
+## 🚀 EPIC 0 — Ребрендинг: leetium → leetium [COMPLETE]
 
-> **Цель:** Полностью заменить бренд `moltis` / `Moltis` / `MOLTIS` на `leetium` / `Leetium` / `LEETIUM` во всём проекте.
+> **Цель:** Полностью заменить бренд `leetium` / `Leetium` / `LEETIUM` на `leetium` / `Leetium` / `LEETIUM` во всём проекте.
 > Масштаб: **494 файла** содержат упоминания, из них: 288 `.rs`, 74 `.md`, 56 `.toml`, 18 `.yml`/`.yaml`, 13 `.sh`, 12 `.json`.
 
 ### BRD-001 ✅ Переименование — Rust crates и Cargo.toml
-- [x] Переименовать все crate-пакеты: `moltis-*` → `leetium-*` в корневом `Cargo.toml`
-- [x] Обновить `[workspace.package].repository` с `moltis-org/moltis` → `1337leetium/leetium`
+- [x] Переименовать все crate-пакеты: `leetium-*` → `leetium-*` в корневом `Cargo.toml`
+- [x] Обновить `[workspace.package].repository` с `leetium-org/leetium` → `1337niy/leetium`
 - [x] Переименовать pub-имена крейтов в каждом `crates/*/Cargo.toml`
-- [x] Обновить все `use moltis_*` / `extern crate moltis_*` в `.rs` файлах (288 файлов)
-- [x] Переименовать `crates/cli` бинарник: `[[bin]] name = "moltis"` → `name = "leetium"`
+- [x] Обновить все `use leetium_*` / `extern crate leetium_*` в `.rs` файлах (288 файлов)
+- [x] Переименовать `crates/cli` бинарник: `[[bin]] name = "leetium"` → `name = "leetium"`
 
 ### BRD-002 ✅ Переименование — Config & Data directories
-- [x] В `crates/config/src/schema.rs`: `~/.config/moltis/` → `~/.config/leetium/`
-- [x] В `crates/config/src/schema.rs`: `~/.moltis/` → `~/.leetium/`
-- [x] `MOLTIS_CONFIG_DIR`, `MOLTIS_DATA_DIR` env vars → `LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR`
-- [x] `MOLTIS_PASSWORD`, `MOLTIS_BEHIND_PROXY`, `MOLTIS_ALLOW_TLS_BEHIND_PROXY` env vars
-- [x] `moltis.toml` → `leetium.toml` (config file name)
-- [x] `moltis.db`, `memory.db` → `leetium.db`, `memory.db`
+- [x] В `crates/config/src/schema.rs`: `~/.config/leetium/` → `~/.config/leetium/`
+- [x] В `crates/config/src/schema.rs`: `~/.leetium/` → `~/.leetium/`
+- [x] `LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR` env vars → `LEETIUM_CONFIG_DIR`, `LEETIUM_DATA_DIR`
+- [x] `LEETIUM_PASSWORD`, `LEETIUM_BEHIND_PROXY`, `LEETIUM_ALLOW_TLS_BEHIND_PROXY` env vars
+- [x] `leetium.toml` → `leetium.toml` (config file name)
+- [x] `leetium.db`, `memory.db` → `leetium.db`, `memory.db`
 
 ### BRD-003 ✅ Переименование — Docker & Deployment
-- [x] `Dockerfile`: образ `ghcr.io/moltis-org/moltis` → `ghcr.io/1337leetium/leetium`
-- [x] `docker run --name moltis` → `--name leetium`
-- [x] Volume names: `moltis-config`, `moltis-data` → `leetium-config`, `leetium-data`
-- [x] `fly.toml`: `MOLTIS_PASSWORD` secret rename
+- [x] `Dockerfile`: образ `ghcr.io/leetium-org/leetium` → `ghcr.io/1337niy/leetium`
+- [x] `docker run --name leetium` → `--name leetium`
+- [x] Volume names: `leetium-config`, `leetium-data` → `leetium-config`, `leetium-data`
+- [x] `fly.toml`: `LEETIUM_PASSWORD` secret rename
 - [x] `render.yaml`: обновить service name и env vars
 - [x] `railway.json`: обновить имена
 
 ### BRD-004 ✅ Переименование — Документация и README
-- [x] `README.md`: все 90+ упоминаний moltis → leetium
+- [x] `README.md`: все 90+ упоминаний leetium → leetium
 - [x] `CLAUDE.md` / `AGENTS.md`: обновить ссылки
 - [x] `CHANGELOG.md`: добавить секцию с объяснением ребрендинга (TBD)
 - [x] `docs/src/*.md` (30+ файлов): `docs.leetnex.ru` → `docs.leetnex.ru`
@@ -57,17 +57,17 @@
 - [x] `.github/workflows/*.yml` (6 файлов): обновить package names, env vars
 - [x] `install.sh`: URL `leetnex.ru/install.sh` → `leetnex.ru/install.sh`
 - [x] `scripts/*.sh` (13 файлов): обновить имена бинарников и переменных
-- [x] `justfile`: все команды с `moltis` → `leetium`
+- [x] `justfile`: все команды с `leetium` → `leetium`
 
 ### BRD-006 ✅ Переименование — Web UI и Assets
 - [x] `crates/web/src/assets/`: тексты в HTML/JS файлах
 - [x] `crates/web/ui/`: конфигурационные файлы Tailwind, Playwright
-- [x] Favicon / logo: заменить `moltis` SVG на `leetium` брендинг
+- [x] Favicon / logo: заменить `leetium` SVG на `leetium` брендинг
 
 ### BRD-007 ✅ Переименование — iOS / macOS apps
 - [x] `apps/ios/Leetium.xcodeproj` → `Leetium.xcodeproj`
 - [x] `apps/macos/Leetium.xcodeproj` → `Leetium.xcodeproj`
-- [x] Swift source files: bundle ID `org.moltis.*` → `org.leetium.*`
+- [x] Swift source files: bundle ID `org.leetium.*` → `org.leetium.*`
 
 ### BRD-008 ✅ Переименование — Package managers (Homebrew, snap, flatpak)
 - [x] `Formula/leetium.rb` renamed
@@ -243,17 +243,17 @@
 
 #### IMP-012 🟠 [FLASH] [Marketing] Нет официального сайта для leetnex.ru
 - **Описание:** После ребрендинга нужен новый домен и landing page.
-- [x] Зарегистрировать `leetnex.ru` (или `1337leetium.com`)
+- [x] Зарегистрировать `leetnex.ru` (или `1337niy.com`)
 - [x] Создать landing page через Next.js или Astro (бесплатный хостинг: Vercel/Cloudflare Pages)
 - [x] Настроить редирект `docs.leetnex.ru` → документация
 
 #### IMP-013 🟡 [FLASH] [Marketing] Discord сервер — нет после ребрендинга
-- **Описание:** README ссылается на Discord `1337leetium`. После ребрендинга нужен новый.
+- **Описание:** README ссылается на Discord `1337niy`. После ребрендинга нужен новый.
 - [x] Создать Discord сервер для Leetium сообщества
 - [x] Обновить invite link в README и docs
 
 #### IMP-014 🟢 [FLASH] [Marketing] Star History chart будет сброшен
-- **Описание:** `README.md` строка 225: Star History привязана к `1337leetium/leetium`. Форк начнёт с 0 звёзд.
+- **Описание:** `README.md` строка 225: Star History привязана к `1337niy/leetium`. Форк начнёт с 0 звёзд.
 - [x] Обновить Star History URL после ребрендинга
 - [x] Рассмотреть стратегию сохранения звёзд (перенос репо vs форк)
 
@@ -266,7 +266,7 @@
 - [x] Добавить `windows-latest` runner в ci.yml
 
 ### CI-002 🟠 [FLASH] CodeCov интеграция — актуальна ли?
-- **Описание:** README badge ссылается на codecov.io/gh/1337leetium/leetium. После fork нужно перенастроить.
+- **Описание:** README badge ссылается на codecov.io/gh/1337niy/leetium. После fork нужно перенастроить.
 - [x] Настроить CodeCov для нового repo
 - [x] Или перейти на бесплатную альтернативу (Coveralls, Codecov free tier)
 

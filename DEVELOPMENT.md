@@ -13,7 +13,7 @@ Welcome to the Leetium developer guide! This document provides human-readable on
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/1337leetium/leetium.git
+   git clone https://github.com/1337niy/leetium.git
    cd leetium
    ```
 

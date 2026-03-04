@@ -3,41 +3,41 @@
   "version": "0.9.10",
   "tag": "v0.9.10",
   "published_at": "2026-02-21",
-  "repo": "1337leetium/leetium",
+  "repo": "1337niy/leetium",
   "artifacts": [
     {
       "target": "aarch64-apple-darwin",
       "filename": "leetium-0.9.10-aarch64-apple-darwin.tar.gz",
-      "url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-apple-darwin.tar.gz",
-      "sha256_url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-apple-darwin.tar.gz.sha256",
+      "url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-apple-darwin.tar.gz",
+      "sha256_url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-apple-darwin.tar.gz.sha256",
       "sha256": null
     },
     {
       "target": "x86_64-apple-darwin",
       "filename": "leetium-0.9.10-x86_64-apple-darwin.tar.gz",
-      "url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-apple-darwin.tar.gz",
-      "sha256_url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-apple-darwin.tar.gz.sha256",
+      "url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-apple-darwin.tar.gz",
+      "sha256_url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-apple-darwin.tar.gz.sha256",
       "sha256": null
     },
     {
       "target": "aarch64-unknown-linux-gnu",
       "filename": "leetium-0.9.10-aarch64-unknown-linux-gnu.tar.gz",
-      "url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-unknown-linux-gnu.tar.gz",
-      "sha256_url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-unknown-linux-gnu.tar.gz.sha256",
+      "url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256_url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-aarch64-unknown-linux-gnu.tar.gz.sha256",
       "sha256": null
     },
     {
       "target": "x86_64-unknown-linux-gnu",
       "filename": "leetium-0.9.10-x86_64-unknown-linux-gnu.tar.gz",
-      "url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-unknown-linux-gnu.tar.gz",
-      "sha256_url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-unknown-linux-gnu.tar.gz.sha256",
+      "url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256_url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-unknown-linux-gnu.tar.gz.sha256",
       "sha256": null
     },
     {
       "target": "x86_64-pc-windows-msvc",
       "filename": "leetium-0.9.10-x86_64-pc-windows-msvc.exe",
-      "url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-pc-windows-msvc.exe",
-      "sha256_url": "https://github.com/1337leetium/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-pc-windows-msvc.exe.sha256",
+      "url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-pc-windows-msvc.exe",
+      "sha256_url": "https://github.com/1337niy/leetium/releases/download/v0.9.10/leetium-0.9.10-x86_64-pc-windows-msvc.exe.sha256",
       "sha256": null
     }
   ],

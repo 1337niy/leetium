@@ -4,7 +4,7 @@ edition.workspace = true
 homepage          = "https://www.leetnex.ru/"
 license           = "MIT"
 name              = "leetium"
-repository        = "https://github.com/1337leetium/leetium"
+repository        = "https://github.com/1337niy/leetium"
 version.workspace = true
 
 [package.metadata.deb]

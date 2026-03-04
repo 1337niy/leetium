@@ -17,7 +17,7 @@
 
 services:
   leetium:
-    image: ghcr.io/1337leetium/leetium:latest
+    image: ghcr.io/1337niy/leetium:latest
     restart: unless-stopped
     user: "0:0"
     ports:

@@ -3,7 +3,7 @@ services:
     name: leetium
     runtime: image
     image:
-      url: ghcr.io/1337leetium/leetium:0.1.0
+      url: ghcr.io/1337niy/leetium:0.1.0
     plan: free
     healthCheckPath: /health
     envVars:

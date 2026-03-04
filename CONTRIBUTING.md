@@ -27,7 +27,7 @@ Prerequisites:
 Quick start:
 
 ```bash
-git clone https://github.com/1337leetium/leetium.git
+git clone https://github.com/1337niy/leetium.git
 cd leetium
 cargo build
 cargo run

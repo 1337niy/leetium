@@ -914,7 +914,7 @@ struct StartupMemProbe {
 
 impl StartupMemProbe {
     fn new() -> Self {
-        let enabled = env_flag_enabled("MOLTIS_STARTUP_MEM_TRACE");
+        let enabled = env_flag_enabled("LEETIUM_STARTUP_MEM_TRACE");
         let last_rss_bytes = if enabled {
             process_rss_bytes()
         } else {
@@ -1163,8 +1163,8 @@ fn spawn_post_listener_warmups(
     browser_service: Arc<dyn crate::services::BrowserService>,
     browser_tool: Option<Arc<dyn leetium_agents::tool_registry::AgentTool>>,
 ) {
-    if !env_flag_enabled("MOLTIS_BROWSER_WARMUP") {
-        debug!("startup browser warmup disabled (set MOLTIS_BROWSER_WARMUP=1 to enable)");
+    if !env_flag_enabled("LEETIUM_BROWSER_WARMUP") {
+        debug!("startup browser warmup disabled (set LEETIUM_BROWSER_WARMUP=1 to enable)");
         return;
     }
 

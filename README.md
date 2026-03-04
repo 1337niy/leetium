@@ -1,14 +1,14 @@
 <div align="center">
 
-<a href="https://leetnex.ru"><img src="https://raw.githubusercontent.com/1337leetium/leetium/main/website/favicon.svg" alt="Leetium" width="64"></a>
+<a href="https://leetnex.ru"><img src="https://raw.githubusercontent.com/1337niy/leetium/main/website/favicon.svg" alt="Leetium" width="64"></a>
 
 # Leetium — A Rust-native claw you can trust
 
 One binary — sandboxed, secure, yours.
 
-[![CI](https://github.com/1337leetium/leetium/actions/workflows/ci.yml/badge.svg)](https://github.com/1337leetium/leetium/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/1337leetium/leetium/graph/badge.svg)](https://codecov.io/gh/1337leetium/leetium)
-[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json&style=flat&label=CodSpeed)](https://codspeed.io/1337leetium/leetium)
+[![CI](https://github.com/1337niy/leetium/actions/workflows/ci.yml/badge.svg)](https://github.com/1337niy/leetium/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/1337niy/leetium/graph/badge.svg)](https://codecov.io/gh/1337niy/leetium)
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json&style=flat&label=CodSpeed)](https://codspeed.io/1337niy/leetium)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.91%2B-orange.svg)](https://www.rust-lang.org)
 [![Discord](https://img.shields.io/discord/1469505370169933837?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/XnmrepsXp5)
@@ -19,7 +19,7 @@ One binary — sandboxed, secure, yours.
 
 ---
 
-Please [open an issue](https://github.com/1337leetium/leetium/issues) for any friction at all. I'm focused on making Leetium excellent.
+Please [open an issue](https://github.com/1337niy/leetium/issues) for any friction at all. I'm focused on making Leetium excellent.
 
 **Secure by design** — Your keys never leave your machine. Every command runs in a sandboxed container, never on your host.
 
@@ -36,13 +36,13 @@ Please [open an issue](https://github.com/1337leetium/leetium/issues) for any fr
 curl -fsSL https://www.leetnex.ru/install.sh | sh
 
 # macOS / Linux via Homebrew
-brew install 1337leetium/tap/leetium
+brew install 1337niy/tap/leetium
 
 # Docker (multi-arch: amd64/arm64)
-docker pull ghcr.io/1337leetium/leetium:latest
+docker pull ghcr.io/1337niy/leetium:latest
 
 # Or build from source
-cargo install leetium --git https://github.com/1337leetium/leetium
+cargo install leetium --git https://github.com/1337niy/leetium
 ```
 
 ## Comparison
@@ -176,7 +176,7 @@ See [Quickstart](https://docs.leetnex.ru/quickstart.html) for gateway startup, m
 ### Build & Run
 
 ```bash
-git clone https://github.com/1337leetium/leetium.git
+git clone https://github.com/1337niy/leetium.git
 cd leetium
 just build-release
 just dev-server
@@ -199,7 +199,7 @@ docker run -d \
   -v leetium-config:/home/leetium/.config/leetium \
   -v leetium-data:/home/leetium/.leetium \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 Open `https://localhost:13131` and complete the setup. See [Docker docs](https://docs.leetnex.ru/docker.html) for Podman, OrbStack, TLS trust, and persistence details.
@@ -208,12 +208,12 @@ Open `https://localhost:13131` and complete the setup. See [Docker docs](https:/
 
 | Provider | Deploy |
 |----------|--------|
-| DigitalOcean | [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/1337leetium/leetium/tree/main) |
+| DigitalOcean | [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/1337niy/leetium/tree/main) |
 
 **Fly.io** (CLI):
 
 ```bash
-fly launch --image ghcr.io/1337leetium/leetium:latest
+fly launch --image ghcr.io/1337niy/leetium:latest
 fly secrets set LEETIUM_PASSWORD="your-password"
 ```
 
@@ -222,7 +222,7 @@ See [Cloud Deploy docs](https://docs.leetnex.ru/cloud-deploy.html) for details.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=1337leetium/leetium&type=date&legend=top-left)](https://www.star-history.com/#1337leetium/leetium&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=1337niy/leetium&type=date&legend=top-left)](https://www.star-history.com/#1337niy/leetium&type=date&legend=top-left)
 
 ## License
 

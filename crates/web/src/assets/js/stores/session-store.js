@@ -187,7 +187,7 @@ export function remove(key) {
 	if (activeSessionKey.value === key) {
 		var fallback = sessions.value.find((session) => session.key === "main")?.key || sessions.value[0]?.key || "main";
 		activeSessionKey.value = fallback;
-		localStorage.setItem("moltis-session", fallback);
+		localStorage.setItem("leetium-session", fallback);
 	}
 	return true;
 }

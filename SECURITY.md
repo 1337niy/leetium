@@ -6,7 +6,7 @@ If you discover a security vulnerability in Leetium, please report it responsibl
 
 ### Preferred Methods
 
-1. **GitHub Security Advisories** (recommended): Use [GitHub's private vulnerability reporting](https://github.com/1337leetium/leetium/security/advisories/new) to report issues confidentially.
+1. **GitHub Security Advisories** (recommended): Use [GitHub's private vulnerability reporting](https://github.com/1337niy/leetium/security/advisories/new) to report issues confidentially.
 
 2. **Email**: Send details to [leetium AT pen DOT so](mailto:leetium AT pen DOT so)
 
@@ -50,15 +50,15 @@ Each release artifact has three companion files:
 
 ```bash
 # Download the artifact and its signature files
-curl -LO https://github.com/1337leetium/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz
-curl -LO https://github.com/1337leetium/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.sig
-curl -LO https://github.com/1337leetium/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.crt
+curl -LO https://github.com/1337niy/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/1337niy/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.sig
+curl -LO https://github.com/1337niy/leetium/releases/download/v0.1.0/leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.crt
 
 # Verify the signature
 cosign verify-blob \
   --signature leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.sig \
   --certificate leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz.crt \
-  --certificate-identity-regexp="https://github.com/1337leetium/leetium/*" \
+  --certificate-identity-regexp="https://github.com/1337niy/leetium/*" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   leetium-0.1.0-x86_64-unknown-linux-gnu.tar.gz
 
@@ -70,24 +70,24 @@ cosign verify-blob \
 ```bash
 # Verify the image signature
 cosign verify \
-  --certificate-identity-regexp="https://github.com/1337leetium/leetium/*" \
+  --certificate-identity-regexp="https://github.com/1337niy/leetium/*" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 
 # View the SBOM attached to the image
-cosign download sbom ghcr.io/1337leetium/leetium:latest
+cosign download sbom ghcr.io/1337niy/leetium:latest
 
 # View provenance attestation
 cosign verify-attestation \
   --type slsaprovenance \
-  --certificate-identity-regexp="https://github.com/1337leetium/leetium/*" \
+  --certificate-identity-regexp="https://github.com/1337niy/leetium/*" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-  ghcr.io/1337leetium/leetium:latest
+  ghcr.io/1337niy/leetium:latest
 ```
 
 ### What the signature proves
 
-- The artifact was built by GitHub Actions in the `1337leetium/leetium` repository
+- The artifact was built by GitHub Actions in the `1337niy/leetium` repository
 - The build was triggered by a specific commit (visible in the certificate)
 - The artifact has not been modified since signing
 - No private keys are involved — signatures use GitHub's OIDC identity
