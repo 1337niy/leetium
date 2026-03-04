@@ -15,8 +15,10 @@ pub mod error;
 pub mod params;
 pub use error::{Error, Result};
 
+#[cfg(feature = "browser")]
 pub mod browser;
 pub mod calc;
+#[cfg(feature = "cron")]
 pub mod cron_tool;
 #[cfg(feature = "wasm")]
 pub mod embedded_wasm;

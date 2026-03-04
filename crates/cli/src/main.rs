@@ -43,10 +43,12 @@ mod tailscale_commands;
 use {
     anyhow::anyhow,
     clap::{Parser, Subcommand},
-    leetium_gateway::logs::{EnabledLogLevels, LogBroadcastLayer, LogBuffer},
     tracing::info,
     tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt},
 };
+
+#[cfg(feature = "gateway")]
+use leetium_gateway::logs::{EnabledLogLevels, LogBroadcastLayer, LogBuffer};
 
 #[derive(Parser)]
 #[command(name = "leetium", about = "Leetium — personal AI gateway", version)]
@@ -95,6 +97,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Start the gateway server (default when no subcommand is provided).
+    #[cfg(feature = "gateway")]
     Gateway,
     /// Invoke an agent directly.
     Agent {
@@ -189,7 +192,7 @@ enum Commands {
         action: tailscale_commands::TailscaleAction,
     },
     /// Install the Leetium CA certificate into the system trust store.
-    #[cfg(feature = "tls")]
+    #[cfg(all(feature = "tls", feature = "gateway"))]
     TrustCa,
 }
 
@@ -223,7 +226,11 @@ enum SkillAction {
 
 /// Initialise tracing and optionally attach a [`LogBroadcastLayer`] that
 /// captures events into an in-memory ring buffer for the web UI.
-fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) -> tracing_appender::non_blocking::WorkerGuard {
+#[cfg(feature = "gateway")]
+fn init_telemetry(
+    cli: &Cli,
+    log_buffer: Option<LogBuffer>,
+) -> tracing_appender::non_blocking::WorkerGuard {
     // Start with user-specified or default log level
     let base_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&cli.log_level));
@@ -259,12 +266,13 @@ fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) -> tracing_appender:
     if cli.json_logs {
         registry
             .with(fmt::layer().json().with_target(true).with_thread_ids(false))
-            .with(fmt::layer()
-                .with_writer(non_blocking)
-                .with_ansi(false)
-                .with_target(true)
-                .with_thread_ids(false)
-                .json()
+            .with(
+                fmt::layer()
+                    .with_writer(non_blocking)
+                    .with_ansi(false)
+                    .with_target(true)
+                    .with_thread_ids(false)
+                    .json(),
             )
             .with(log_layer)
             .init();
@@ -276,11 +284,12 @@ fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) -> tracing_appender:
                     .with_thread_ids(false)
                     .with_ansi(true),
             )
-            .with(fmt::layer()
-                .with_writer(non_blocking)
-                .with_ansi(false)
-                .with_target(true)
-                .with_thread_ids(false)
+            .with(
+                fmt::layer()
+                    .with_writer(non_blocking)
+                    .with_ansi(false)
+                    .with_target(true)
+                    .with_thread_ids(false),
             )
             .with(log_layer)
             .init();
@@ -289,7 +298,57 @@ fn init_telemetry(cli: &Cli, log_buffer: Option<LogBuffer>) -> tracing_appender:
     guard
 }
 
-#[cfg(feature = "tls")]
+/// Headless telemetry init — no LogBroadcastLayer or LogBuffer.
+#[cfg(not(feature = "gateway"))]
+fn init_telemetry_headless(cli: &Cli) -> tracing_appender::non_blocking::WorkerGuard {
+    let base_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&cli.log_level));
+    let filter = if let Ok(directive) = "chromiumoxide=off".parse() {
+        base_filter.add_directive(directive)
+    } else {
+        base_filter
+    };
+    let log_dir = std::env::var("LEETIUM_DATA_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|_| leetium_config::data_dir())
+        .join("logs");
+    std::fs::create_dir_all(&log_dir).ok();
+    let file_appender = tracing_appender::rolling::daily(log_dir, "leetium.log");
+    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+    let registry = tracing_subscriber::registry().with(filter);
+    if cli.json_logs {
+        registry
+            .with(fmt::layer().json().with_target(true).with_thread_ids(false))
+            .with(
+                fmt::layer()
+                    .with_writer(non_blocking)
+                    .with_ansi(false)
+                    .with_target(true)
+                    .with_thread_ids(false)
+                    .json(),
+            )
+            .init();
+    } else {
+        registry
+            .with(
+                fmt::layer()
+                    .with_target(true)
+                    .with_thread_ids(false)
+                    .with_ansi(true),
+            )
+            .with(
+                fmt::layer()
+                    .with_writer(non_blocking)
+                    .with_ansi(false)
+                    .with_target(true)
+                    .with_thread_ids(false),
+            )
+            .init();
+    }
+    guard
+}
+
+#[cfg(all(feature = "tls", feature = "gateway"))]
 async fn trust_ca() -> anyhow::Result<()> {
     let cert_dir = leetium_gateway::tls::cert_dir()?;
     let ca_path = cert_dir.join("ca.pem");
@@ -371,13 +430,17 @@ async fn main() -> anyhow::Result<()> {
     // Create the log buffer only for the gateway command so the web UI can
     // display captured log entries. Default capacity (1000) can be overridden
     // via `server.log_buffer_size` in leetium.toml.
+    #[cfg(feature = "gateway")]
     let log_buffer = if matches!(cli.command, None | Some(Commands::Gateway)) {
         Some(LogBuffer::default())
     } else {
         None
     };
 
+    #[cfg(feature = "gateway")]
     let _guard = init_telemetry(&cli, log_buffer.clone());
+    #[cfg(not(feature = "gateway"))]
+    let _guard = init_telemetry_headless(&cli);
 
     info!(version = env!("CARGO_PKG_VERSION"), "leetium starting");
 
@@ -395,8 +458,8 @@ async fn main() -> anyhow::Result<()> {
 
     // Ensure config/data directories exist for every command path. This is a
     // hard requirement for startup; fail fast if directory initialization fails.
-    let config_dir =
-        leetium_config::config_dir().ok_or_else(|| anyhow!("unable to resolve config directory"))?;
+    let config_dir = leetium_config::config_dir()
+        .ok_or_else(|| anyhow!("unable to resolve config directory"))?;
     std::fs::create_dir_all(&config_dir).unwrap_or_else(|e| {
         panic!(
             "failed to create config directory {}: {e}",
@@ -414,6 +477,7 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         // Default: start gateway when no subcommand is provided
+        #[cfg(feature = "gateway")]
         None | Some(Commands::Gateway) => {
             // Load config to get server settings
             let config = leetium_config::discover_and_load();
@@ -456,6 +520,15 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         },
+        // Headless default: run agent REPL when gateway is not available
+        #[cfg(not(feature = "gateway"))]
+        None => {
+            eprintln!("Leetium headless mode. Use `leetium agent -m <message>` to invoke agents.");
+            eprintln!(
+                "No gateway available. Build with --features gateway to start the HTTP server."
+            );
+            Ok(())
+        },
         Some(Commands::Agent { message, .. }) => {
             let result = leetium_agents::runner::run_agent("default", "main", &message).await?;
             println!("{result}");
@@ -481,7 +554,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Config { action }) => config_commands::handle_config(action).await,
         Some(Commands::Doctor) => doctor_commands::handle_doctor().await,
         Some(Commands::Hooks { action }) => hooks_commands::handle_hooks(action).await,
-        #[cfg(feature = "tls")]
+        #[cfg(all(feature = "tls", feature = "gateway"))]
         Some(Commands::TrustCa) => trust_ca().await,
         Some(_) => {
             eprintln!("command not yet implemented");
