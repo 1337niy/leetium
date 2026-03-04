@@ -7,15 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
@@ -33,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [gateway] Fetch updates from releases manifest instead of GitHub API
 
-
 ### Fixed
 - [ci] Add Tailwind CSS build step to release workflow, Dockerfile, and snapcraft
 - [e2e] Wait for session history render before DOM injection in chat-abort
@@ -46,10 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [web] Show running version at bottom of identity settings
 - [channels] Channel architecture phase 5, contract suites, and observability baseline (#289)
 
-
 ### Changed
 - [channels] Registry-driven dispatch for cheap new channels (#277)
-
 
 ### Fixed
 - [e2e] Make sandboxes container tests deterministic
@@ -63,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [e2e] Fix OAuth token-exchange failure test and add error-context capture
 - [web] Auto-install node_modules in Tailwind build script
 - [web] Retry openclaw onboarding scan until ws is ready
-
 
 ### Security
 - [macos] Wire settings UI to rust config backend (#267)
@@ -89,10 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add channel-aware heartbeat delivery and send_message agent tool (#270)
 - [memory] Add tree-sitter code splitter and RRF search merge
 
-
 ### Changed
 - [ffi] Tighten unsafe_code allowances
-
 
 ### Fixed
 - [sandbox] Make apple container keepalive portable (#269)
@@ -102,12 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.2] - 2026-02-28
 
-
-### Added
-
 ### Changed
-
-### Deprecated
 
 ### Removed
 
@@ -119,21 +102,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.1] - 2026-02-28
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.10.0] - 2026-02-28
-
 
 ### Added
 
@@ -207,8 +182,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sandbox config now supports `/home/sandbox` persistence strategies (`off`, `session`, `shared`), with `shared` as the default and a shared host folder mounted from `data_dir()/sandbox/home/shared`
 - Settings → Sandboxes now includes shared-home controls (enabled + folder path), and sandbox config supports `tools.exec.sandbox.shared_home_dir` for custom shared persistence location
 
-### Deprecated
-
 ### Removed
 
 ### Fixed
@@ -238,76 +211,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.10] - 2026-02-21
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.9] - 2026-02-21
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.8] - 2026-02-21
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.7] - 2026-02-20
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.6] - 2026-02-20
 
-
 ### Added
 
 - Cron jobs can now deliver agent turn output to Telegram channels via the `deliver`, `channel`, and `to` payload fields
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -318,12 +258,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.5] - 2026-02-20
 
-
-### Added
-
 ### Changed
-
-### Deprecated
 
 ### Removed
 
@@ -335,36 +270,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.4] - 2026-02-20
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.3] - 2026-02-20
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.9.2] - 2026-02-20
-
 
 ### Added
 
@@ -377,18 +297,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   event and wake the heartbeat, giving the agent real-time awareness of
   background task results.
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
 ### Security
 
 ## [0.9.1] - 2026-02-19
-
 
 ### Added
 
@@ -417,8 +332,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WebSocket client channels changed from unbounded to bounded (512), adding
   backpressure for slow consumers.
 - Release profile: `panic = "abort"` and `codegen-units = 1` for smaller binaries.
-
-### Deprecated
 
 ### Removed
 
@@ -459,7 +372,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.0] - 2026-02-17
 
-
 ### Added
 
 - Settings > Cron job editor now supports per-job LLM model selection and
@@ -473,8 +385,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[mcp.servers.<name>]`, and `[channels.telegram.<account>]`), including
   updated provider and local-LLM snippets.
 
-### Deprecated
-
 ### Removed
 
 ### Fixed
@@ -486,7 +396,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ## [0.8.38] - 2026-02-17
-
 
 ### Added
 
@@ -500,18 +409,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Telegram per-account `stream_min_initial_chars` option (default `30`) to
   delay the first streamed message until enough text has accumulated.
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
 ### Security
 
 ## [0.8.37] - 2026-02-17
-
 
 ### Added
 
@@ -535,8 +439,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a Leetium-friendly profile (status off, mouse off, stable window naming).
 - Settings > Terminal subtitle now omits the prompt symbol hint so it does not
   show stale `$`/`#` information after privilege changes inside the shell.
-
-### Deprecated
 
 ### Removed
 
@@ -583,7 +485,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.36] - 2026-02-16
 
-
 ### Added
 
 - OAuth 2.1 support for remote MCP servers — automatic discovery (RFC 9728/8414), dynamic client registration (RFC 7591), PKCE authorization code flow, and Bearer token injection with 401 retry
@@ -594,11 +495,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CIDR ranges from SSRF blocking, enabling Docker inter-container networking.
 - Memory config: add `memory.disable_rag` to force keyword-only memory search while keeping markdown indexing and memory tools enabled
 - Generic OpenAI-compatible provider support: connect any OpenAI-compatible endpoint via the provider setup UI, with domain-derived naming (`custom-` prefix), model auto-discovery, and full model selection
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -616,16 +513,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.35] - 2026-02-15
 
-
 ### Added
 
 - Add memory target routing guidance to `memory_save` prompt hint — core facts go to MEMORY.md, everything else to `memory/<topic>.md` to keep context lean
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -633,18 +525,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.34] - 2026-02-15
 
-
 ### Added
 
 - Add explicit `memory_save` hint in system prompt so weaker models (MiniMax, etc.) call the tool when asked to remember something
 - Add anchor text after memory content so models don't ignore known facts when `memory_search` returns empty
 - Add `zai` to default offered providers in config template
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -652,12 +539,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.33] - 2026-02-15
 
-
-### Added
-
 ### Changed
-
-### Deprecated
 
 ### Removed
 
@@ -670,12 +552,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.32] - 2026-02-15
 
-
-### Added
-
 ### Changed
-
-### Deprecated
 
 ### Removed
 
@@ -687,7 +564,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ## [0.8.31] - 2026-02-15
-
 
 ### Added
 
@@ -732,8 +608,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `DefaultHasher` for deterministic, cross-run hashing of base image +
   packages.
 
-### Deprecated
-
 ### Removed
 
 ### Fixed
@@ -775,25 +649,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.30] - 2026-02-15
 
-
-### Added
-
 ### Changed
 
 - **Assistant reasoning persistence**: conversation reasoning is now persisted
   in assistant messages and shared snapshots so resumed sessions retain
   reasoning context instead of dropping it after refresh/share operations.
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.8.29] - 2026-02-14
-
 
 ### Added
 
@@ -812,8 +678,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   memory turn and `MemorySaveTool` both delegate to the manager, which handles
   path validation, size limits, and automatic re-indexing after writes
 
-### Deprecated
-
 ### Removed
 
 ### Fixed
@@ -826,16 +690,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.28] - 2026-02-14
 
-
-### Added
-
 ### Changed
 
 - **Browser sandbox resolution**: `BrowserTool` now resolves sandbox mode
   directly from `SandboxRouter` instead of relying on a `_sandbox` flag
   injected via tool call params.
-
-### Deprecated
 
 ### Removed
 
@@ -849,17 +708,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.27] - 2026-02-14
 
-
-### Added
-
 ### Changed
 
 - **DRY voice/identity/channel utils**: Extracted shared RPC wrappers and
   validation helpers from `onboarding-view.js` and `page-settings.js` /
   `page-channels.js` into dedicated `voice-utils.js`, `identity-utils.js`,
   and `channel-utils.js` modules.
-
-### Deprecated
 
 ### Removed
 
@@ -874,7 +728,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.26] - 2026-02-14
 
-
 ### Added
 
 - **Rustls/OpenSSL migration roadmap**: Added
@@ -882,11 +735,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   plan to reduce OpenSSL coupling, isolate feature gates, and move default TLS
   networking paths toward rustls.
 
-### Changed
-
 ### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -904,36 +753,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.25] - 2026-02-14
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.8.24] - 2026-02-13
 
-
-### Added
-
 ### Changed
 
-### Deprecated
-
 ### Removed
-
-### Fixed
 
 ### Security
 
 ## [0.8.23] - 2026-02-13
-
 
 ### Added
 - **Multi-select preferred models per provider**: The LLMs page now has a
