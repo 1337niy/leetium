@@ -194,6 +194,13 @@ enum Commands {
     /// Install the Leetium CA certificate into the system trust store.
     #[cfg(all(feature = "tls", feature = "gateway"))]
     TrustCa,
+    /// Launch the TUI terminal client (connects to a running gateway via WebSocket).
+    #[cfg(feature = "tui")]
+    Tui {
+        /// Gateway URL to connect to (default: http://localhost:33333).
+        #[arg(long, default_value = "http://localhost:33333")]
+        gateway_url: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -556,6 +563,14 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Hooks { action }) => hooks_commands::handle_hooks(action).await,
         #[cfg(all(feature = "tls", feature = "gateway"))]
         Some(Commands::TrustCa) => trust_ca().await,
+        #[cfg(feature = "tui")]
+        Some(Commands::Tui { gateway_url }) => {
+            eprintln!("TUI client connecting to {gateway_url}...");
+            eprintln!(
+                "TUI crate not yet integrated. See branch `tui-interface` for full implementation."
+            );
+            Ok(())
+        },
         Some(_) => {
             eprintln!("command not yet implemented");
             Ok(())

@@ -212,8 +212,8 @@
 #### IMP-016 🟠 [PRO] [Architecture] Разделение Gateway от CLI Core (Minimal Core) (Пропущено)
 - **Описание:** Сделать `leetium-gateway` опциональным для запуска CLI в режиме headless (снижение веса бинарника до ~20MB). Необходимо для работы на слабых устройствах.
 - Ссылка на план: `plans/2026-02-21-plan-minimal-core-optional-gateway.md`
-- [ ] Изолировать инструменты от browser/cron
-- [ ] Сделать gateway опциональным, добавить headless agent loop
+- [x] Изолировать инструменты от browser/cron
+- [x] Сделать gateway опциональным, добавить headless agent loop
 
 #### IMP-017 🟡 [PRO] [Architecture] TUI Client (Пропущено)
 - **Описание:** Интеграция `crates/tui` в качестве опциональной фичи WebSocket-клиента для работы с gateway из терминала.

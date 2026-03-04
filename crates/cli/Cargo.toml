@@ -130,6 +130,8 @@ default = [
 # Minimal headless build: no HTTP server, no Web UI, no TLS stack.
 # Build with: cargo build --release --no-default-features --features headless
 headless = []
+# TUI terminal client (connects to gateway via WebSocket).
+tui = []
 # Minimal build for memory-constrained devices (Raspberry Pi, etc.).
 # Build with: cargo build --release --no-default-features --features lightweight
 code-splitter   = ["leetium-memory/code-splitter"]
