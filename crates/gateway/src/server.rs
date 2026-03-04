@@ -1275,7 +1275,7 @@ pub fn openclaw_detected_for_ui() -> bool {
 #[cfg(feature = "local-llm")]
 #[must_use]
 pub fn local_llama_cpp_bytes_for_ui() -> u64 {
-    moltis_providers::local_llm::loaded_llama_model_bytes()
+    leetium_providers::local_llm::loaded_llama_model_bytes()
 }
 
 #[cfg(not(feature = "local-llm"))]
@@ -4386,7 +4386,7 @@ pub async fn prepare_gateway(
                                 entry.channel_binding
                             {
                                 if let Ok(target) = serde_json::from_str::<
-                                    moltis_channels::ChannelReplyTarget,
+                                    leetium_channels::ChannelReplyTarget,
                                 >(binding_json)
                                 {
                                     metadata

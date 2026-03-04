@@ -397,7 +397,7 @@ pub async fn api_bootstrap_handler(
 }
 
 async fn api_bootstrap_with_query(
-    gw: &moltis_gateway::state::GatewayState,
+    gw: &leetium_gateway::state::GatewayState,
     query: &BootstrapQuery,
 ) -> Response {
     let channels_enabled = query.channels_enabled();

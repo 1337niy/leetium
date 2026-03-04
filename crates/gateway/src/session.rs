@@ -1086,7 +1086,7 @@ impl SessionService for LiveSessionService {
             if entry.message_count == 0
                 && let Some(ref hooks) = self.hook_registry
             {
-                let payload = moltis_common::hooks::HookPayload::SessionStart {
+                let payload = leetium_common::hooks::HookPayload::SessionStart {
                     session_key: key.to_string(),
                 };
                 if let Err(e) = hooks.dispatch(&payload).await {

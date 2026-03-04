@@ -40,7 +40,7 @@ wasm-tools:
 
 # Build just the release WASM artifacts expected by embedded-wasm builds.
 build-wasm-artifacts: wasm-tools
-    @echo "Built target/wasm32-wasip2/release/{moltis_wasm_calc,moltis_wasm_web_fetch,moltis_wasm_web_search}.{wasm,cwasm}"
+    @echo "Built target/wasm32-wasip2/release/{leetium_wasm_calc,leetium_wasm_web_fetch,leetium_wasm_web_search}.{wasm,cwasm}"
 
 # Build release after ensuring embedded WASM artifacts are present.
 build-release-with-wasm: build-wasm-artifacts
